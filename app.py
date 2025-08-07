@@ -54,11 +54,10 @@ def home():
                     model="gpt-4",
                     messages=[
                         {"role": "system", "content": (
-                            f"You are a prompt assistant helping non-technical TVA employees use Microsoft {app_selected}. "
-                            "Break their vague task into extremely clear, detailed follow-up questions. "
-                            "Write the questions in plain language, like you're guiding someone with no technical background. "
-                            "Avoid jargon. If the task is about searching emails, use wording like: 'What are you trying to find in the emails?' "
-                            "Be supportive and step-by-step. Output only the questions."
+                            f"You are helping a non-technical TVA employee write a better Copilot prompt for Microsoft {app_selected}. "
+                            "Ask follow-up questions in very plain English to clarify what they want to do. "
+                            "Imagine they’ve never used Copilot before. Keep the questions friendly, clear, and simple — like you're walking them through the task. "
+                            "List the questions as plain numbered sentences. Only return the list of questions."
                         )},
                         {"role": "user", "content": f"The user said: '{task}'"}
                     ],
@@ -87,8 +86,10 @@ def home():
                     model="gpt-4",
                     messages=[
                         {"role": "system", "content": (
-                            f"You are a Microsoft Copilot assistant helping TVA staff using {app_selected}. "
-                            "Write the clearest, most helpful prompt possible based on their original task and clarified answers."
+                            f"You are an expert Microsoft Copilot prompt writer helping a TVA employee. "
+                            f"Use their original task and the clarified context to write a single clear, direct, and useful Copilot prompt for {app_selected}. "
+                            "Your response should ONLY be the final Copilot prompt — no explanation, no greeting. "
+                            "Begin with an action verb like 'Summarize', 'Search', 'Extract', 'Organize', 'Find', or 'Draft'."
                         )},
                         {"role": "user", "content": f"Original Task: {task}\n\nClarified Context:\n{context}"}
                     ],
@@ -122,8 +123,7 @@ def ask_gpt():
             model="gpt-4",
             messages=[
                 {"role": "system", "content": (
-                    "You're a friendly assistant guiding non-technical users at TVA to ask good Microsoft Copilot questions. "
-                    "Keep your response short, clear, and beginner-friendly."
+                    "You are a Copilot assistant at TVA. Answer user questions clearly and simply, as if you're helping someone who just started using Copilot today."
                 )},
                 {"role": "user", "content": question}
             ],
