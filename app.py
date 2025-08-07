@@ -84,14 +84,18 @@ def home():
 
             try:
                 smart_prompt = (
-                    f"You're a Microsoft Copilot prompt engineer. Based on the user's goal and their responses, write a specific, useful prompt for use in {app_selected}. "
-                    f"Use plain language. Think about how to structure it so Copilot gives the best result.\n\n"
-                    f"Task: {task}\n\nClarified Context:\n{context}"
+                    f"The user wants help using Microsoft Copilot in {app_selected}. Based on the goal and context below, write a clear, workplace-friendly prompt for Microsoft Copilot. "
+                    f"Do not write code. Do not assume the user is technical. Just write a normal Copilot prompt that an employee might type inside Word, Excel, Outlook, or Teams.\n\n"
+                    f"Task:\n{task}\n\nContext:\n{context}"
                 )
                 prompt_response = client.chat.completions.create(
                     model="gpt-4",
                     messages=[
-                        {"role": "system", "content": "You are a helpful expert at writing advanced Copilot prompts."},
+                        {"role": "system", "content": (
+                            "You are an expert at writing Microsoft Copilot prompts for Office apps (Word, Excel, Outlook, Teams). "
+                            "You help non-technical employees get their work done with natural-language Copilot commands. "
+                            "Avoid technical language, code, or developer terms."
+                        )},
                         {"role": "user", "content": smart_prompt}
                     ],
                     temperature=0.5,
