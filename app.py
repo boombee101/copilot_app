@@ -54,10 +54,11 @@ def home():
                     model="gpt-4",
                     messages=[
                         {"role": "system", "content": (
-                            f"You are helping a non-technical TVA employee write a better Copilot prompt for Microsoft {app_selected}. "
-                            "Ask follow-up questions in very plain English to clarify what they want to do. "
-                            "Imagine they’ve never used Copilot before. Keep the questions friendly, clear, and simple — like you're walking them through the task. "
-                            "List the questions as plain numbered sentences. Only return the list of questions."
+                            f"You are a prompt assistant helping non-technical TVA employees use Microsoft {app_selected}. "
+                            "Break their vague task into extremely clear, detailed follow-up questions. "
+                            "Write the questions in plain language, like you're guiding someone with no technical background. "
+                            "Avoid jargon. If the task is about searching emails, use wording like: 'What are you trying to find in the emails?' "
+                            "Be supportive and step-by-step. Output only the questions."
                         )},
                         {"role": "user", "content": f"The user said: '{task}'"}
                     ],
@@ -86,20 +87,9 @@ def home():
                     model="gpt-4",
                     messages=[
                         {"role": "system", "content": (
-    f"You are an expert Microsoft Copilot prompt engineer helping a non-technical TVA employee. "
-    f"The user is working in **{app_selected}**. Their goal is to accomplish a specific task, and you have their clarified input below. "
-    "Your job is to create one excellent Copilot prompt tailored for that Microsoft app — short, clear, and formatted like a real Copilot command.\n\n"
-    "DO:\n"
-    "- Write only the Copilot prompt (no extra explanation)\n"
-    "- Start with an action word like 'Summarize', 'Extract', 'Draft', 'Find', etc.\n"
-    "- Include any important keywords, names, filters, or context mentioned\n"
-    "- Use terms specific to the selected app (e.g., files/folders for SharePoint, messages for Teams, emails for Outlook)\n"
-    "DO NOT:\n"
-    "- Do not repeat the question or context\n"
-    "- Do not say 'Here's your prompt:' or 'Based on your input...'\n\n"
-    "The result should look like a polished, ready-to-use command that could be pasted directly into Copilot."
-)},
-
+                            f"You are a Microsoft Copilot assistant helping TVA staff using {app_selected}. "
+                            "Write the clearest, most helpful prompt possible based on their original task and clarified answers."
+                        )},
                         {"role": "user", "content": f"Original Task: {task}\n\nClarified Context:\n{context}"}
                     ],
                     temperature=0.5,
@@ -116,9 +106,40 @@ def home():
             except Exception as e:
                 print(f"⚠️ Error saving prompt: {e}")
 
-            return render_template("home.html", final_prompt=final_prompt, app_selected=app_selected, history=history)
+            return render_template("home.html", final_prompt=final_prompt, app_selected=app_selected, task=task, context=context, history=history)
 
     return render_template("home.html", history=history)
+
+@app.route('/how_to_manual', methods=['POST'])
+def how_to_manual():
+    try:
+        data = request.get_json()
+        task = data.get('task', '')
+        context = data.get('context', '')
+        app_selected = data.get('app_selected', 'a Microsoft app')
+
+        prompt = (
+            f"You are a friendly technical assistant for employees at TVA who are not familiar with Microsoft {app_selected}. "
+            f"The user wants to complete this task manually, without using Copilot:\n\n"
+            f"Task: {task}\n\nAdditional Details:\n{context}\n\n"
+            "Write step-by-step instructions in very simple, beginner-friendly language. "
+            "Break it down clearly. Assume they don’t know anything technical. Avoid jargon."
+        )
+
+        response = client.chat.completions.create(
+            model="gpt-4",
+            messages=[
+                {"role": "system", "content": "You help people understand how to do Microsoft 365 tasks manually using clear, simple steps."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.6,
+            max_tokens=600
+        )
+        manual_steps = response.choices[0].message.content.strip()
+        return jsonify({"manual_steps": manual_steps})
+    except Exception as e:
+        print(f"⚠️ /how_to_manual error: {e}")
+        return jsonify({"manual_steps": "⚠️ Failed to generate instructions. Please try again."})
 
 @app.route('/ask_gpt', methods=['POST'])
 def ask_gpt():
@@ -132,7 +153,8 @@ def ask_gpt():
             model="gpt-4",
             messages=[
                 {"role": "system", "content": (
-                    "You are a Copilot assistant at TVA. Answer user questions clearly and simply, as if you're helping someone who just started using Copilot today."
+                    "You're a friendly assistant guiding non-technical users at TVA to ask good Microsoft Copilot questions. "
+                    "Keep your response short, clear, and beginner-friendly."
                 )},
                 {"role": "user", "content": question}
             ],
