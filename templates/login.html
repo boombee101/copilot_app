@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>TVA Copilot Assistant - Login</title>
+    <style>
+        body {
+            background: url("/static/images/sqn_background.webp") no-repeat center center fixed;
+            background-size: cover;
+            font-family: Arial, sans-serif;
+            color: #fff;
+            text-align: center;
+            padding-top: 140px;
+        }
+        .login-box {
+            background-color: rgba(0, 0, 64, 0.85);
+            padding: 30px;
+            border-radius: 12px;
+            width: 350px;
+            margin: 0 auto;
+        }
+        input, button {
+            width: 90%;
+            padding: 12px;
+            margin-top: 10px;
+            border: none;
+            border-radius: 6px;
+        }
+        button {
+            background-color: #004785;
+            color: white;
+            font-weight: bold;
+        }
+        img.logo {
+            width: 150px;
+            margin-bottom: 20px;
+        }
+        .error {
+            color: #ffdddd;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-box">
+        <img src="/static/images/tva_logo.png" class="logo" alt="TVA Logo">
+        <h2>Copilot Prompt Assistant</h2>
+        <form method="post">
+            <input type="password" name="password" placeholder="Enter shared password" required>
+            <button type="submit">Login</button>
+        </form>
+        {% if error %}
+            <div class="error">{{ error }}</div>
+        {% endif %}
+    </div>
+</body>
+</html>

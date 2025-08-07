@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>TVA Copilot Prompt Assistant</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, sans-serif;
+      background-color: #f0f4f9;
+      color: #003366;
+    }
+
+    .header {
+      background: url("/static/images/sqn2.jpg") center center/cover no-repeat;
+      padding: 40px;
+      text-align: center;
+      color: white;
+      position: relative;
+    }
+
+    .header::after {
+      content: "";
+      background: rgba(0, 40, 85, 0.6);
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      z-index: 0;
+    }
+
+    .header-content {
+      position: relative;
+      z-index: 1;
+    }
+
+    .header h1 {
+      margin: 0;
+      font-size: 32px;
+    }
+
+    .main {
+      display: flex;
+      max-width: 1200px;
+      margin: 40px auto;
+      gap: 30px;
+    }
+
+    .content {
+      flex: 2;
+      background: white;
+      border-radius: 12px;
+      padding: 30px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+
+    .sidebar {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .sidebar-card {
+      background: #ffffff;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+
+    label {
+      font-weight: bold;
+      display: block;
+      margin-top: 20px;
+    }
+
+    select, textarea, input[type="text"] {
+      width: 100%;
+      padding: 12px;
+      font-size: 16px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      margin-top: 6px;
+    }
+
+    button {
+      margin-top: 30px;
+      width: 100%;
+      padding: 14px;
+      background-color: #004785;
+      color: white;
+      font-weight: bold;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    .followup, .final, .history-block {
+      margin-top: 30px;
+      background: #f8faff;
+      padding: 20px;
+      border-left: 4px solid #004785;
+      border-radius: 10px;
+    }
+
+    .copy-button {
+      margin-top: 10px;
+      background-color: #0073e6;
+      font-size: 14px;
+      padding: 10px;
+    }
+
+    .grade {
+      margin-top: 5px;
+      font-size: 14px;
+      font-weight: bold;
+    }
+
+    .answer-box {
+      background-color: #f0f8ff;
+      padding: 10px;
+      border-radius: 6px;
+      border-left: 4px solid #80bfff;
+      margin-top: 10px;
+    }
+
+    details summary {
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    textarea[readonly] {
+      background-color: #f4f4f4;
+      font-family: monospace;
+    }
+
+    ul {
+      padding-left: 20px;
+    }
+
+    .disclaimer {
+      background-color: #fff3cd;
+      color: #856404;
+      border-left: 6px solid #ffa502;
+      padding: 20px 30px;
+      margin: 0 auto;
+      font-size: 15px;
+      line-height: 1.6;
+      max-width: 1200px;
+    }
+  </style>
+  <script>
+    function gradePrompt() {
+      const task = document.getElementById("task");
+      const grade = document.getElementById("gradeResult");
+      const len = task.value.length;
+      if (len < 20) {
+        grade.innerText = "🔴 Too short – try adding more detail.";
+        grade.style.color = "#b30000";
+      } else if (len < 60) {
+        grade.innerText = "🟡 Okay – could be more specific.";
+        grade.style.color = "#cc7a00";
+      } else {
+        grade.innerText = "🟢 Great – clear and detailed!";
+        grade.style.color = "#007a33";
+      }
+    }
+
+    async function askGptHelp() {
+      const input = document.getElementById("gptQuestion");
+      const responseBox = document.getElementById("gptResponse");
+      const question = input.value.trim();
+      if (!question) return;
+
+      responseBox.innerText = "🤖 Thinking...";
+      const res = await fetch("/ask_gpt", {
+        method: "POST",
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question })
+      });
+
+      const data = await res.json();
+      responseBox.innerText = data.answer || "⚠️ Something went wrong.";
+    }
+
+    function copyToClipboard() {
+      const box = document.getElementById("finalPromptBox");
+      box.select();
+      document.execCommand("copy");
+      alert("Prompt copied to clipboard!");
+    }
+  </script>
+</head>
+<body>
+
+  <div class="header">
+    <div class="header-content">
+      <h1>TVA Copilot Prompt Assistant</h1>
+      <p>Powered by GPT-4 | SQN AI Visionaries</p>
+    </div>
+  </div>
+
+  <!-- 🔒 WARNING / DISCLOSURE BANNER -->
+  <div class="disclaimer">
+    <strong>⚠️ Important Disclosure:</strong> This program uses OpenAI's GPT-4 through an external connection and is not part of TVA’s secure internal systems.
+    <br><br>
+    <strong>Please do not input or upload any sensitive, classified, confidential, or personally identifiable information (PII).</strong>
+    This includes security protocols, passwords, personal records, facility operations, or anything covered under TVA cybersecurity or data protection policies.
+    <br><br>
+    This assistant is intended only for drafting general Copilot prompts to support workplace productivity. For secure tasks, use official TVA-approved IT channels.
+  </div>
+
+  <div class="main">
+    <div class="content">
+      <form method="post">
+        {% if not questions and not final_prompt %}
+          <label for="app">Which Microsoft app are you using?</label>
+          <select name="app" id="app" required>
+            <option value="">-- Select an app --</option>
+            <option value="Word">Word</option>
+            <option value="Excel">Excel</option>
+            <option value="Outlook">Outlook</option>
+            <option value="Teams">Teams</option>
+            <option value="PowerPoint">PowerPoint</option>
+            <option value="SharePoint">SharePoint</option>
+          </select>
+
+          <label for="task">What do you want Copilot to help with?</label>
+          <textarea name="task" id="task" rows="5" oninput="gradePrompt()" required></textarea>
+          <div class="grade" id="gradeResult">🟡 Waiting for input...</div>
+          <button type="submit">Start Assistant</button>
+        {% elif questions and not final_prompt %}
+          <div class="followup">
+            <h3>Answer the following questions to improve your prompt:</h3>
+            {% for question in questions %}
+              <label>{{ question }}</label>
+              <input type="text" name="answer_{{ loop.index0 }}">
+            {% endfor %}
+            <input type="hidden" name="original_task" value="{{ original_task }}">
+            <button type="submit">Generate Final Prompt</button>
+          </div>
+        {% elif final_prompt %}
+          <div class="final">
+            <h3>✅ Final Copilot Prompt:</h3>
+            <textarea id="finalPromptBox" rows="8" readonly>{{ final_prompt }}</textarea>
+            <button type="button" class="copy-button" onclick="copyToClipboard()">📋 Copy Prompt</button>
+            <br><br>
+            <a href="/home">⬅ Start Over</a> |
+            <a href="/logout">Log out</a>
+          </div>
+        {% endif %}
+      </form>
+    </div>
+
+    <div class="sidebar">
+      <div class="sidebar-card">
+        <h4>🤖 Need Help Writing Your Task?</h4>
+        <input type="text" id="gptQuestion" placeholder="e.g., How do I ask Copilot to summarize a PDF?">
+        <button type="button" onclick="askGptHelp()">Ask the Assistant</button>
+        <div class="answer-box" id="gptResponse"></div>
+      </div>
+
+      <div class="sidebar-card">
+        <details>
+          <summary>🧭 How to Use This Assistant</summary>
+          <ul>
+            <li>Select the Microsoft app you're using</li>
+            <li>Describe what you want to do</li>
+            <li>Answer any follow-up questions</li>
+            <li>Paste the generated prompt into Copilot</li>
+          </ul>
+        </details>
+      </div>
+
+      {% if history %}
+        <div class="sidebar-card history-block">
+          <h4>📜 Recent Prompts</h4>
+          <ul>
+            {% for item in history %}
+              <li><strong>{{ item.task }}</strong><br><em>{{ item.prompt }}</em></li>
+            {% endfor %}
+          </ul>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+</body>
+</html>
