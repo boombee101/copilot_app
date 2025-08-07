@@ -53,15 +53,21 @@ def home():
                 response = client.chat.completions.create(
                     model="gpt-4",
                     messages=[
-                        {"role": "system", "content": f"You are helping TVA employees write better Copilot prompts for {app_selected}."},
-                        {"role": "user", "content": f"The user said: '{task}'."}
+                        {"role": "system", "content": (
+                            f"You are a prompt assistant helping non-technical TVA employees use Microsoft {app_selected}. "
+                            "Break their vague task into extremely clear, detailed follow-up questions. "
+                            "Write the questions in plain language, like you're guiding someone with no technical background. "
+                            "Avoid jargon. If the task is about searching emails, use wording like: 'What are you trying to find in the emails?' "
+                            "Be supportive and step-by-step. Output only the questions."
+                        )},
+                        {"role": "user", "content": f"The user said: '{task}'"}
                     ],
                     temperature=0.6,
                     max_tokens=700
                 )
                 raw = response.choices[0].message.content
                 questions = [line.strip("-•1234567890. ").strip() for line in raw.splitlines() if line.strip()]
-                questions = [q for q in questions if len(q) > 5 and "sure" not in q.lower()][:10]
+                questions = [q for q in questions if len(q) > 5][:10]
             except Exception as e:
                 print(f"⚠️ Error generating follow-up questions: {e}")
                 questions = ["Something went wrong. Please try again."]
@@ -80,7 +86,10 @@ def home():
                 response = client.chat.completions.create(
                     model="gpt-4",
                     messages=[
-                        {"role": "system", "content": f"You are a Copilot assistant for TVA inside {app_selected}. Use the user's task and details to create the best prompt."},
+                        {"role": "system", "content": (
+                            f"You are a Microsoft Copilot assistant helping TVA staff using {app_selected}. "
+                            "Write the clearest, most helpful prompt possible based on their original task and clarified answers."
+                        )},
                         {"role": "user", "content": f"Original Task: {task}\n\nClarified Context:\n{context}"}
                     ],
                     temperature=0.5,
@@ -112,7 +121,10 @@ def ask_gpt():
         response = client.chat.completions.create(
             model="gpt-4",
             messages=[
-                {"role": "system", "content": "You are a helpful assistant guiding Copilot users at TVA."},
+                {"role": "system", "content": (
+                    "You're a friendly assistant guiding non-technical users at TVA to ask good Microsoft Copilot questions. "
+                    "Keep your response short, clear, and beginner-friendly."
+                )},
                 {"role": "user", "content": question}
             ],
             temperature=0.5,
