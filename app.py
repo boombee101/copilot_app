@@ -86,11 +86,20 @@ def home():
                     model="gpt-4",
                     messages=[
                         {"role": "system", "content": (
-                            f"You are an expert Microsoft Copilot prompt writer helping a TVA employee. "
-                            f"Use their original task and the clarified context to write a single clear, direct, and useful Copilot prompt for {app_selected}. "
-                            "Your response should ONLY be the final Copilot prompt — no explanation, no greeting. "
-                            "Begin with an action verb like 'Summarize', 'Search', 'Extract', 'Organize', 'Find', or 'Draft'."
-                        )},
+    f"You are an expert Microsoft Copilot prompt engineer helping a non-technical TVA employee. "
+    f"The user is working in **{app_selected}**. Their goal is to accomplish a specific task, and you have their clarified input below. "
+    "Your job is to create one excellent Copilot prompt tailored for that Microsoft app — short, clear, and formatted like a real Copilot command.\n\n"
+    "DO:\n"
+    "- Write only the Copilot prompt (no extra explanation)\n"
+    "- Start with an action word like 'Summarize', 'Extract', 'Draft', 'Find', etc.\n"
+    "- Include any important keywords, names, filters, or context mentioned\n"
+    "- Use terms specific to the selected app (e.g., files/folders for SharePoint, messages for Teams, emails for Outlook)\n"
+    "DO NOT:\n"
+    "- Do not repeat the question or context\n"
+    "- Do not say 'Here's your prompt:' or 'Based on your input...'\n\n"
+    "The result should look like a polished, ready-to-use command that could be pasted directly into Copilot."
+)},
+
                         {"role": "user", "content": f"Original Task: {task}\n\nClarified Context:\n{context}"}
                     ],
                     temperature=0.5,
