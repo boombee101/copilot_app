@@ -187,6 +187,11 @@
       document.execCommand("copy");
       alert("Prompt copied to clipboard!");
     }
+
+    function toggleManual() {
+      const box = document.getElementById("manualInstructions");
+      box.style.display = box.style.display === "none" ? "block" : "none";
+    }
   </script>
 </head>
 <body>
@@ -198,7 +203,6 @@
     </div>
   </div>
 
-  <!-- 🔒 WARNING / DISCLOSURE BANNER -->
   <div class="disclaimer">
     <strong>⚠️ Important Disclosure:</strong> This program uses OpenAI's GPT-4 through an external connection and is not part of TVA’s secure internal systems.
     <br><br>
@@ -245,6 +249,19 @@
             <br><br>
             <a href="/home">⬅ Start Over</a> |
             <a href="/logout">Log out</a>
+
+            {% if manual_instructions %}
+              <div style="margin-top: 20px;">
+                <button type="button" onclick="toggleManual()" style="background-color:#005799; color:white; padding:10px 16px; border:none; border-radius:6px; cursor:pointer;">
+                  👣 See How to Do It Manually
+                </button>
+              </div>
+
+              <div id="manualInstructions" style="display:none; margin-top:20px; background:#f9f9ff; padding:20px; border-left:6px solid #004785; border-radius:8px;">
+                <h3>📝 Manual Instructions:</h3>
+                <p style="white-space: pre-line;">{{ manual_instructions }}</p>
+              </div>
+            {% endif %}
           </div>
         {% endif %}
       </form>
@@ -282,6 +299,5 @@
       {% endif %}
     </div>
   </div>
-
 </body>
 </html>

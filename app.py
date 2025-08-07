@@ -83,22 +83,44 @@ def home():
             context = "\n".join(answers) if answers else "No extra info provided."
 
             try:
-                response = client.chat.completions.create(
+                smart_prompt = (
+                    f"You're a Microsoft Copilot prompt engineer. Based on the user's goal and their responses, write a specific, useful prompt for use in {app_selected}. "
+                    f"Use plain language. Think about how to structure it so Copilot gives the best result.\n\n"
+                    f"Task: {task}\n\nClarified Context:\n{context}"
+                )
+                prompt_response = client.chat.completions.create(
                     model="gpt-4",
                     messages=[
-                        {"role": "system", "content": (
-                            f"You are a Microsoft Copilot assistant helping TVA staff using {app_selected}. "
-                            "Write the clearest, most helpful prompt possible based on their original task and clarified answers."
-                        )},
-                        {"role": "user", "content": f"Original Task: {task}\n\nClarified Context:\n{context}"}
+                        {"role": "system", "content": "You are a helpful expert at writing advanced Copilot prompts."},
+                        {"role": "user", "content": smart_prompt}
                     ],
                     temperature=0.5,
                     max_tokens=400
                 )
-                final_prompt = response.choices[0].message.content.strip()
+                final_prompt = prompt_response.choices[0].message.content.strip()
             except Exception as e:
                 final_prompt = "⚠️ Something went wrong."
                 print(f"⚠️ Error generating final prompt: {e}")
+
+            try:
+                manual_prompt = (
+                    f"The user needs to do the following task in Microsoft {app_selected} without Copilot:\n\n"
+                    f"Task: {task}\n\nContext:\n{context}\n\n"
+                    "Write step-by-step instructions in plain language that a beginner could follow."
+                )
+                manual_response = client.chat.completions.create(
+                    model="gpt-4",
+                    messages=[
+                        {"role": "system", "content": "You are an expert at writing easy-to-follow Microsoft 365 instructions for beginners."},
+                        {"role": "user", "content": manual_prompt}
+                    ],
+                    temperature=0.6,
+                    max_tokens=600
+                )
+                manual_instructions = manual_response.choices[0].message.content.strip()
+            except Exception as e:
+                manual_instructions = "⚠️ Failed to generate manual instructions."
+                print(f"⚠️ Manual instructions error: {e}")
 
             try:
                 with open('prompt_log/prompts.csv', mode='a', newline='', encoding='utf-8') as file:
@@ -106,7 +128,7 @@ def home():
             except Exception as e:
                 print(f"⚠️ Error saving prompt: {e}")
 
-            return render_template("home.html", final_prompt=final_prompt, app_selected=app_selected, task=task, context=context, history=history)
+            return render_template("home.html", final_prompt=final_prompt, app_selected=app_selected, task=task, context=context, manual_instructions=manual_instructions, history=history)
 
     return render_template("home.html", history=history)
 
