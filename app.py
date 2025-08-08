@@ -226,6 +226,12 @@ def logout():
     session.clear()
     return redirect(url_for('login'))
 
+@app.route('/ask_help', methods=['GET', 'POST'])
+def ask_help():
+    # For now, just redirect to home or show a placeholder
+    return render_template('home.html')
+
+
 if __name__ == '__main__':
     print("✅ SQN Copilot Companion running...")
     app.run(debug=True)
