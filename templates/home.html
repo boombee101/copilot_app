@@ -1,181 +1,249 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>TVA Copilot Help Center</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <!-- Use the classic stylesheet -->
-  <link rel="stylesheet" href="{{ url_for('static', filename='style_classic.css') }}">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: "Segoe UI", Tahoma, Arial, sans-serif;
+      background: #f4f8fb;
+      color: #003366;
+      margin: 0;
+      padding: 0;
+    }
+
+    .disclaimer {
+      background: linear-gradient(90deg, #fffbe5 85%, #f6f7f8 100%);
+      color: #755000;
+      border: 1.5px solid #f5df95;
+      font-weight: 500;
+      text-align: center;
+      padding: 13px 10px 11px 10px;
+      font-size: 15.5px;
+      letter-spacing: 0.01em;
+      margin-bottom: 0;
+      border-radius: 0 0 10px 10px;
+      box-shadow: 0 2px 8px rgba(227, 193, 72, 0.05);
+      position: relative;
+      z-index: 10;
+    }
+    .disclaimer .icon {
+      font-size: 22px;
+      vertical-align: middle;
+      margin-right: 8px;
+      display: inline-block;
+    }
+
+    .header {
+      background: url('/static/images/sqn2.jpg') center center/cover no-repeat, linear-gradient(90deg, #003366 65%, #426da9 100%);
+      color: #fff;
+      padding: 54px 20px 34px 20px;
+      text-align: center;
+      position: relative;
+      box-shadow: 0 5px 18px rgba(0,34,85,0.10);
+    }
+    .header::after {
+      content: "";
+      position: absolute;
+      left: 0; top: 0; width: 100%; height: 100%;
+      background: rgba(0, 40, 85, 0.40);
+      pointer-events: none;
+      z-index: 1;
+    }
+    .header-content {
+      position: relative;
+      z-index: 2;
+    }
+    .header img {
+      max-width: 110px;
+      margin-bottom: 10px;
+      filter: drop-shadow(0 3px 9px rgba(0,0,0,0.22));
+    }
+    .header .subtitle {
+      font-size: 22px;
+      color: #d2e6f7;
+      margin-top: 7px;
+      margin-bottom: 10px;
+    }
+
+    .container {
+      max-width: 980px;
+      margin: -36px auto 30px auto;
+      background: white;
+      padding: 42px 38px 32px 38px;
+      border-radius: 16px;
+      box-shadow: 0 10px 28px rgba(0,0,0,0.11);
+    }
+
+    h1 {
+      font-size: 30px;
+      margin-bottom: 2px;
+      letter-spacing: 1px;
+      font-weight: 700;
+    }
+
+    h2 {
+      font-size: 22px;
+      color: #004785;
+      margin: 34px 0 12px 0;
+    }
+
+    .welcome {
+      font-size: 16px;
+      line-height: 1.7;
+      margin-bottom: 18px;
+    }
+
+    .how-it-works {
+      background: #eaf3fb;
+      border-left: 5px solid #003366;
+      border-radius: 7px;
+      padding: 18px 24px 10px 24px;
+      margin: 30px 0 28px 0;
+    }
+
+    .how-it-works-title {
+      font-size: 17px;
+      font-weight: 600;
+      color: #003366;
+      margin-bottom: 5px;
+      letter-spacing: 0.3px;
+    }
+    .how-it-works ul {
+      margin: 10px 0 0 8px;
+      padding-left: 22px;
+      font-size: 15px;
+      color: #233;
+    }
+    .feature-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 28px;
+      justify-content: space-between;
+      margin-bottom: 25px;
+      margin-top: 25px;
+    }
+    .feature-block {
+      flex: 1 1 260px;
+      min-width: 255px;
+      background: #f0f6fc;
+      border-radius: 11px;
+      box-shadow: 0 3px 12px rgba(0,34,85,0.04);
+      padding: 22px 18px 20px 18px;
+      margin-bottom: 18px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      border-left: 5px solid #004785;
+      transition: box-shadow .2s;
+    }
+    .feature-block:hover {
+      box-shadow: 0 7px 18px rgba(0,41,105,0.09);
+    }
+    .feature-block .icon {
+      font-size: 27px;
+      margin-bottom: 10px;
+      color: #004785;
+    }
+    .feature-block h3 {
+      margin: 0 0 6px 0;
+      font-size: 19px;
+      color: #003366;
+      font-weight: 600;
+    }
+    .feature-block p {
+      margin: 0 0 8px 0;
+      font-size: 15.4px;
+      color: #1c3553;
+    }
+
+    .button {
+      background: #004785;
+      color: white;
+      border: none;
+      padding: 13px 24px;
+      font-size: 16.5px;
+      border-radius: 7px;
+      cursor: pointer;
+      text-decoration: none;
+      font-weight: 600;
+      margin-top: 13px;
+      box-shadow: 0 3px 7px rgba(0,50,100,0.07);
+      transition: background 0.14s, box-shadow 0.17s;
+      letter-spacing: 0.1px;
+      display: inline-block;
+    }
+    .button:hover {
+      background: #002d5d;
+      box-shadow: 0 6px 14px rgba(0,50,100,0.11);
+    }
+
+    .footer {
+      text-align: center;
+      font-size: 14.5px;
+      color: #7d91ab;
+      margin-top: 52px;
+      margin-bottom: 12px;
+    }
+    @media (max-width: 700px) {
+      .container {padding: 15px 6px 20px 6px;}
+      .feature-list {flex-direction: column;}
+      .feature-block {min-width: 0;}
+    }
+  </style>
 </head>
 <body>
   <div class="disclaimer">
-    ⚠️ Do not input, upload, or share any TVA-sensitive, personal, or confidential information in this tool. Use general descriptions only.
+    <span class="icon">⚠️</span>
+    <span>
+      Do not input, upload, or share any TVA-sensitive, personal, or confidential information in this tool.<br>
+      Unauthorized use may violate TVA cybersecurity policies.<br>
+      This resource is intended for general learning, support, and productivity purposes only.
+    </span>
   </div>
-
   <div class="header">
     <div class="header-content">
       <img src="/static/images/tva_logo.png" alt="TVA Logo" />
-      <div class="title">TVA Copilot Help Center</div>
+      <h1>TVA Copilot Help Center</h1>
       <div class="subtitle">Smart support for Microsoft 365 — built for TVA employees</div>
     </div>
   </div>
-
   <div class="container">
-    <div class="layout">
-      <!-- Left: Prompt Builder (classic styling) -->
-      <div>
-        <h2>Prompt Builder</h2>
-        <p class="lead">
-          Tell us your task. We’ll ask short follow‑up questions and generate a clean Copilot prompt. You can also get step‑by‑step manual instructions.
-        </p>
-
-        <form method="POST" action="{{ url_for('home') }}">
-          <div class="section">
-            <label for="app">Microsoft app</label>
-            <select id="app" name="app" required>
-              {% set current_app = app_selected if app_selected else 'Word' %}
-              {% for a in ['Word','Excel','Outlook','Teams','PowerPoint'] %}
-                <option value="{{a}}" {% if a==current_app %}selected{% endif %}>{{a}}</option>
-              {% endfor %}
-            </select>
-            <div class="hint">Choose where you’ll run the prompt.</div>
-          </div>
-
-          <div class="section">
-            <label for="task">What do you want to do?</label>
-            <input id="task" name="task" type="text" placeholder="Example: Summarize a report for shift handoff" value="{{ original_task or '' }}" required />
-            <div class="hint">Use general wording. No sensitive content.</div>
-          </div>
-
-          {% if presets and presets.common_tasks %}
-          <div class="badges">
-            {% for p in presets.common_tasks %}
-              <button class="btn-soft" type="button" onclick="fillTask('{{p}}')">📌 {{p}}</button>
-            {% endfor %}
-          </div>
-          {% endif %}
-
-          <!-- Advanced toggle (kept simple; same backend fields) -->
-          <details class="section">
-            <summary><b>Show advanced options</b></summary>
-            <div class="section">
-              <label for="audience">Audience</label>
-              <input id="audience" name="audience" type="text" placeholder="Who will read this? (e.g., shift supervisors)" />
-            </div>
-            <div class="section">
-              <label for="tone">Tone</label>
-              <input id="tone" name="tone" type="text" placeholder="Plain, professional, friendly" />
-            </div>
-            <div class="section">
-              <label for="length_limit">Length limit</label>
-              <input id="length_limit" name="length_limit" type="text" placeholder="Example: 200 words" />
-            </div>
-            <div class="section">
-              <label for="format_pref">Preferred output format</label>
-              <input id="format_pref" name="format_pref" type="text" placeholder="Bullets, outline, table, slide outline" />
-            </div>
-            <div class="section">
-              <label for="must_include">Must include</label>
-              <input id="must_include" name="must_include" type="text" placeholder="Key items Copilot must cover" />
-            </div>
-            <div class="section">
-              <label for="must_exclude">Do not include</label>
-              <input id="must_exclude" name="must_exclude" type="text" placeholder="Words, topics, or details to avoid" />
-            </div>
-            <div class="section">
-              <label for="deadline">Deadline or timing</label>
-              <input id="deadline" name="deadline" type="text" placeholder="Example: before 7:00 AM daily" />
-            </div>
-            <div class="section">
-              <label for="style_guide">Style preferences</label>
-              <input id="style_guide" name="style_guide" type="text" placeholder="Short sentences, no jargon" />
-            </div>
-          </details>
-
-          <div class="section">
-            <button class="button" type="submit">Generate Questions</button>
-          </div>
-        </form>
-
-        {% if questions %}
-          <hr class="divider" />
-          <h2>Follow‑up Questions</h2>
-          <p class="lead">Answer in plain language. If you do not know something, leave it blank.</p>
-          <form method="POST" action="{{ url_for('home') }}">
-            <input type="hidden" name="original_task" value="{{ original_task }}" />
-            {% for q in questions %}
-              <div class="section">
-                <label>Q{{ loop.index }}. {{ q }}</label>
-                <textarea name="answer_{{ loop.index0 }}" placeholder="Type your answer here"></textarea>
-              </div>
-            {% endfor %}
-            <div class="panel">Reminder: Do not paste sensitive information. Use general descriptions.</div>
-            <div class="section">
-              <button class="button" type="submit">Build Prompt</button>
-            </div>
-          </form>
-        {% endif %}
+    <div class="welcome">
+      Welcome to the <b>TVA Copilot Help Center</b>! This tool is built to get you fast, expert AI-powered help with <b>Word, Excel, Outlook, Teams, PowerPoint, and more.</b>
+    </div>
+    <div class="how-it-works">
+      <div class="how-it-works-title">How it works:</div>
+      <ul>
+        <li>Pick your Microsoft 365 app and describe what you need help with</li>
+        <li>Get clear, step-by-step answers — or have the AI write a perfect Copilot prompt for you</li>
+        <li>Choose to follow manual instructions or copy the Copilot prompt directly</li>
+      </ul>
+    </div>
+    <div class="feature-list">
+      <div class="feature-block">
+        <span class="icon">💬</span>
+        <h3>Ask for Help (Help Desk)</h3>
+        <p>Describe your issue in any Microsoft app and get a step-by-step answer in plain language, not tech jargon.</p>
+        <a href="{{ url_for('help_desk') }}" class="button">Open Help Desk</a>
       </div>
-
-      <!-- Right: Results / Manual / History -->
-      <div>
-        <h2>Results</h2>
-
-        {% if final_prompt %}
-          <div class="section"><b>Copilot Prompt</b></div>
-          <div class="panel mono" id="promptBox">{{ final_prompt }}</div>
-          <div class="section">
-            <button class="button" type="button" onclick="copyText('promptBox')">Copy prompt</button>
-          </div>
-        {% else %}
-          <div class="panel">Your prompt will appear here after you answer the questions and click <b>Build Prompt</b>.</div>
-        {% endif %}
-
-        <div class="section"><b>Manual Steps</b></div>
-        <div class="panel mono" id="manualBox">
-{% if manual_instructions %}
-{{ manual_instructions }}
-{% else %}
-No steps yet. After you build the prompt, we’ll also generate beginner-friendly instructions here.
-{% endif %}
-        </div>
-        <div class="section">
-          <button class="button" type="button" onclick="copyText('manualBox')">Copy steps</button>
-        </div>
-
-        <h2>Recent Prompts</h2>
-        {% if history and history|length > 0 %}
-          {% for h in history %}
-            <div class="history-item">
-              <div class="history-meta">{{ h.timestamp }} • {{ h.app }}</div>
-              <div><b>Task:</b> {{ h.task }}</div>
-              <details style="margin-top:6px">
-                <summary>Show context</summary>
-                <div class="mono" style="margin-top:6px">{{ h.context }}</div>
-              </details>
-              <details style="margin-top:6px">
-                <summary>Show prompt</summary>
-                <div class="mono" style="margin-top:6px">{{ h.prompt }}</div>
-              </details>
-            </div>
-          {% endfor %}
-        {% else %}
-          <div class="history-item"><div class="history-meta">No recent prompts yet.</div></div>
-        {% endif %}
+      <div class="feature-block">
+        <span class="icon">⚙️</span>
+        <h3>Prompt Builder</h3>
+        <p>Use this tool to generate a clear, work-ready Copilot prompt. The AI will guide you through a few questions to build it.</p>
+        <a href="{{ url_for('prompt_builder') }}" class="button">Start Prompt Builder</a>
+      </div>
+      <div class="feature-block">
+        <span class="icon">🛠️</span>
+        <h3>Manual Instructions</h3>
+        <p>Get easy-to-follow steps to complete your task in Microsoft 365 — no Copilot needed.</p>
+        <a href="{{ url_for('manual_instructions') }}" class="button">Try Manual Instructions</a>
       </div>
     </div>
-
-    <div class="footer">SQN Copilot Companion</div>
+    <div class="footer">
+      SQN Copilot Companion
+    </div>
   </div>
-
-  <script>
-    function fillTask(t){ const el=document.getElementById('task'); el.value=t; el.focus(); }
-    function copyText(id){
-      const el=document.getElementById(id); if(!el) return;
-      const sel=window.getSelection(), range=document.createRange();
-      range.selectNodeContents(el); sel.removeAllRanges(); sel.addRange(range);
-      document.execCommand('copy'); sel.removeAllRanges();
-    }
-  </script>
 </body>
 </html>
