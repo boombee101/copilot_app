@@ -1,18 +1,19 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>SQN Copilot Companion – Microsoft 365 Hub</title>
+    <title>SQN Copilot Companion | Microsoft 365 Help Center</title>
     <style>
         body {
             font-family: "Segoe UI", Tahoma, sans-serif;
             background-color: #f4f8fb;
             color: #003366;
             margin: 0;
+            padding: 0;
         }
 
         .header {
             background: url("/static/images/sqn2.jpg") center center/cover no-repeat;
-            padding: 50px 20px;
+            padding: 60px 20px;
             text-align: center;
             color: white;
             position: relative;
@@ -20,7 +21,7 @@
 
         .header::after {
             content: "";
-            background: rgba(0, 40, 85, 0.6);
+            background: rgba(0, 40, 85, 0.7);
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
             z-index: 0;
@@ -31,79 +32,94 @@
             z-index: 1;
         }
 
-        .header h1 {
+        .header-content h1 {
             margin: 0;
-            font-size: 38px;
+            font-size: 40px;
+            font-weight: bold;
         }
 
-        .header p {
-            font-size: 16px;
+        .header-content p {
+            font-size: 18px;
             margin-top: 10px;
         }
 
+        .disclaimer {
+            background-color: #fff3cd;
+            color: #856404;
+            border-left: 6px solid #ffa502;
+            padding: 20px 30px;
+            margin: 0 auto;
+            font-size: 15px;
+            line-height: 1.6;
+            max-width: 1100px;
+        }
+
         .container {
-            max-width: 1200px;
-            margin: auto;
-            padding: 30px;
-            display: flex;
-            gap: 30px;
-        }
-
-        .main {
-            flex: 3;
-        }
-
-        .sidebar {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        .card {
-            background: white;
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+            max-width: 1100px;
+            margin: 40px auto;
+            padding: 0 20px;
         }
 
         h2 {
-            margin-top: 0;
+            font-size: 24px;
+            margin-bottom: 10px;
             color: #002855;
         }
 
-        .btn {
-            display: block;
-            width: 100%;
+        .section {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            margin-bottom: 40px;
+        }
+
+        .grid-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .grid-buttons a {
+            flex: 1 1 150px;
+            text-align: center;
             padding: 14px;
-            margin-top: 12px;
             background-color: #004785;
             color: white;
             font-weight: bold;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 16px;
-            text-align: center;
             text-decoration: none;
+            border-radius: 6px;
+            transition: background 0.2s ease;
         }
 
-        .section {
-            margin-bottom: 30px;
+        .grid-buttons a:hover {
+            background-color: #003366;
         }
 
         label {
             font-weight: bold;
             display: block;
-            margin: 15px 0 6px;
+            margin: 20px 0 6px;
         }
 
-        textarea, select, input[type="text"] {
+        input[type="text"], select, textarea {
             width: 100%;
             padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 16px;
+        }
+
+        button {
+            margin-top: 20px;
+            background-color: #004785;
+            color: white;
+            border: none;
+            padding: 14px 20px;
+            font-weight: bold;
             font-size: 16px;
             border-radius: 6px;
-            border: 1px solid #ccc;
+            cursor: pointer;
         }
 
         textarea[readonly] {
@@ -111,24 +127,8 @@
             font-family: monospace;
         }
 
-        .history li {
-            margin-bottom: 10px;
-            font-size: 15px;
-        }
-
-        .disclaimer {
-            background-color: #fff3cd;
-            color: #856404;
-            border-left: 6px solid #ffa502;
-            padding: 20px;
-            font-size: 14px;
-            line-height: 1.6;
-            margin: 0;
-            text-align: center;
-        }
-
         .back-link {
-            margin-top: 20px;
+            margin-top: 30px;
             display: inline-block;
             color: #004785;
             text-decoration: none;
@@ -136,20 +136,13 @@
         }
     </style>
     <script>
-        function copyPrompt() {
-            const box = document.getElementById("finalPromptBox");
-            box.select();
-            document.execCommand("copy");
-            alert("Prompt copied to clipboard!");
-        }
-
         async function askGptHelp() {
             const input = document.getElementById("gptQuestion");
             const responseBox = document.getElementById("gptResponse");
             const question = input.value.trim();
             if (!question) return;
 
-            responseBox.innerText = "🤖 Thinking...";
+            responseBox.innerText = "Thinking...";
             const res = await fetch("/ask_gpt", {
                 method: "POST",
                 headers: { 'Content-Type': 'application/json' },
@@ -157,7 +150,14 @@
             });
 
             const data = await res.json();
-            responseBox.innerText = data.answer || "⚠️ Something went wrong.";
+            responseBox.innerText = data.answer || "Something went wrong.";
+        }
+
+        function copyPrompt() {
+            const box = document.getElementById("finalPromptBox");
+            box.select();
+            document.execCommand("copy");
+            alert("Prompt copied!");
         }
 
         function toggleManual() {
@@ -171,95 +171,100 @@
     <div class="header">
         <div class="header-content">
             <h1>SQN Copilot Companion</h1>
-            <p>TVA Microsoft 365 Learning & Productivity Hub</p>
+            <p>Microsoft 365 Help & Prompt Assistant for TVA Employees</p>
         </div>
     </div>
 
     <div class="disclaimer">
-        ⚠️ This is an external tool. Do not enter private, classified, or sensitive data.
+        <strong>⚠️ Important Disclosure:</strong> This program uses OpenAI's GPT-4 through an external connection and is not part of TVA’s secure internal systems.
+        <br><br>
+        <strong>Please do not input or upload any sensitive, classified, confidential, or personally identifiable information (PII).</strong>
+        This includes security protocols, passwords, personal records, facility operations, or anything covered under TVA cybersecurity or data protection policies.
+        <br><br>
+        This assistant is intended only for drafting general Copilot prompts to support workplace productivity. For secure tasks, use official TVA-approved IT channels.
     </div>
 
     <div class="container">
-        <div class="main">
 
-            <div class="card section">
-                <h2>🧭 What would you like to do?</h2>
-                <a class="btn" href="/learn/word">📘 Learn Microsoft Word</a>
-                <a class="btn" href="/learn/excel">📊 Learn Microsoft Excel</a>
-                <a class="btn" href="/learn/outlook">📧 Learn Microsoft Outlook</a>
-                <a class="btn" href="/learn/teams">💬 Learn Microsoft Teams</a>
-                <a class="btn" href="/learn/powerpoint">📽 Learn PowerPoint</a>
+        <div class="section">
+            <h2>📘 Learn a Microsoft 365 App</h2>
+            <p>Choose an app to explore step-by-step tutorials and examples:</p>
+            <div class="grid-buttons">
+                <a href="/learn/word">📄 Word</a>
+                <a href="/learn/excel">📊 Excel</a>
+                <a href="/learn/outlook">📧 Outlook</a>
+                <a href="/learn/teams">💬 Teams</a>
+                <a href="/learn/powerpoint">📽 PowerPoint</a>
             </div>
+        </div>
 
-            <form method="post" class="card section">
-                <h2>💬 Build a Copilot Prompt</h2>
+        <form method="post" class="section">
+            <h2>💬 Create a Copilot Prompt</h2>
 
-                {% if not questions and not final_prompt %}
-                    <label for="app">Which Microsoft app are you using?</label>
-                    <select name="app" id="app" required>
-                        <option value="">-- Select --</option>
-                        <option value="Word">Word</option>
-                        <option value="Excel">Excel</option>
-                        <option value="Outlook">Outlook</option>
-                        <option value="Teams">Teams</option>
-                        <option value="PowerPoint">PowerPoint</option>
-                    </select>
+            {% if not questions and not final_prompt %}
+                <label for="app">Which app are you using?</label>
+                <select name="app" id="app" required>
+                    <option value="">-- Select an app --</option>
+                    <option value="Word">Word</option>
+                    <option value="Excel">Excel</option>
+                    <option value="Outlook">Outlook</option>
+                    <option value="Teams">Teams</option>
+                    <option value="PowerPoint">PowerPoint</option>
+                </select>
 
-                    <label for="task">Describe your task:</label>
-                    <textarea name="task" id="task" rows="4" required></textarea>
+                <label for="task">What do you need help with?</label>
+                <textarea name="task" id="task" rows="4" required></textarea>
 
-                    <button type="submit" class="btn">Start Prompt Assistant</button>
+                <button type="submit">Start Assistant</button>
 
-                {% elif questions and not final_prompt %}
-                    <h3>✏️ Please answer these follow-up questions:</h3>
-                    {% for question in questions %}
-                        <label>{{ question }}</label>
-                        <input type="text" name="answer_{{ loop.index0 }}">
-                    {% endfor %}
-                    <input type="hidden" name="original_task" value="{{ original_task }}">
-                    <button type="submit" class="btn">Generate Final Prompt</button>
+            {% elif questions and not final_prompt %}
+                <h3>✏️ Follow-Up Questions</h3>
+                {% for question in questions %}
+                    <label>{{ question }}</label>
+                    <input type="text" name="answer_{{ loop.index0 }}">
+                {% endfor %}
+                <input type="hidden" name="original_task" value="{{ original_task }}">
+                <button type="submit">Generate Prompt</button>
 
-                {% elif final_prompt %}
-                    <h3>✅ Final Copilot Prompt:</h3>
-                    <textarea id="finalPromptBox" rows="6" readonly>{{ final_prompt }}</textarea>
-                    <button type="button" class="btn" onclick="copyPrompt()">📋 Copy Prompt</button>
+            {% elif final_prompt %}
+                <h3>✅ Final Copilot Prompt</h3>
+                <textarea id="finalPromptBox" rows="6" readonly>{{ final_prompt }}</textarea>
+                <button type="button" onclick="copyPrompt()">📋 Copy Prompt</button>
 
-                    {% if manual_instructions %}
-                        <div style="margin-top: 20px;">
-                            <button type="button" class="btn" onclick="toggleManual()">👣 Show Manual Instructions</button>
-                        </div>
-
+                {% if manual_instructions %}
+                    <div style="margin-top: 20px;">
+                        <button type="button" onclick="toggleManual()">👣 Show Manual Steps</button>
                         <div id="manualInstructions" style="display:none; margin-top:15px;">
-                            <h3>📝 Manual Steps:</h3>
+                            <h3>📝 Manual Instructions</h3>
                             <p style="white-space: pre-line;">{{ manual_instructions }}</p>
                         </div>
-                    {% endif %}
-
-                    <a href="/home" class="back-link">⬅ Start Over</a> |
-                    <a href="/logout" class="back-link">Log Out</a>
+                    </div>
                 {% endif %}
-            </form>
-        </div>
 
-        <div class="sidebar">
-            <div class="card">
-                <h3>🤖 Ask the Assistant</h3>
-                <input type="text" id="gptQuestion" placeholder="e.g., How do I summarize a PDF?">
-                <button class="btn" onclick="askGptHelp()">Ask</button>
-                <div id="gptResponse" style="margin-top: 10px;"></div>
-            </div>
-
-            {% if history %}
-            <div class="card">
-                <h3>📜 Prompt History</h3>
-                <ul class="history">
-                    {% for item in history %}
-                        <li><strong>{{ item.task }}</strong><br><em>{{ item.prompt }}</em></li>
-                    {% endfor %}
-                </ul>
-            </div>
+                <a href="/home" class="back-link">⬅ Start Over</a> |
+                <a href="/logout" class="back-link">Log Out</a>
             {% endif %}
+        </form>
+
+        <div class="section">
+            <h2>🤖 Ask the Assistant</h2>
+            <p>Need help writing your prompt or using Microsoft 365? Ask anything:</p>
+            <input type="text" id="gptQuestion" placeholder="e.g., How do I get Copilot to summarize an email thread?">
+            <button type="button" onclick="askGptHelp()">Ask</button>
+            <div id="gptResponse" style="margin-top: 15px;"></div>
         </div>
+
+        {% if history %}
+        <div class="section">
+            <h2>📜 Recent Prompts</h2>
+            <ul>
+                {% for item in history %}
+                    <li><strong>{{ item.task }}</strong><br><em>{{ item.prompt }}</em></li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
     </div>
+
 </body>
 </html>
