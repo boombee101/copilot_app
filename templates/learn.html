@@ -1,116 +1,86 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Learn {{ app }} – SQN Copilot Companion</title>
+  <meta charset="UTF-8" />
+  <title>Learn {{ app }} • SQN Copilot Companion</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-  <style>
-    body {
-      margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background-color: #f4f8fc;
-      color: #1a1a1a;
-    }
-    .container {
-      display: flex;
-    }
-    .sidebar {
-      width: 260px;
-      background-color: #003366;
-      color: white;
-      height: 100vh;
-      padding: 30px 20px;
-      box-shadow: 2px 0 5px rgba(0,0,0,0.1);
-    }
-    .sidebar h2 {
-      font-size: 22px;
-      margin-bottom: 20px;
-    }
-    .sidebar a {
-      color: white;
-      display: block;
-      margin-bottom: 12px;
-      text-decoration: none;
-    }
-    .main {
-      flex-grow: 1;
-      padding: 40px;
-    }
-    .warning {
-      background-color: #fff3cd;
-      color: #856404;
-      border: 1px solid #ffeeba;
-      padding: 15px;
-      margin-bottom: 25px;
-      border-radius: 6px;
-      font-weight: bold;
-    }
-    h1 {
-      margin-bottom: 10px;
-    }
-    form {
-      margin-bottom: 30px;
-    }
-    input[type="text"] {
-      width: 100%;
-      padding: 10px;
-      font-size: 16px;
-      margin-top: 10px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-    }
-    button {
-      background-color: #005ea2;
-      color: white;
-      border: none;
-      padding: 12px 20px;
-      font-size: 16px;
-      border-radius: 4px;
-      margin-top: 15px;
-      cursor: pointer;
-    }
-    .lesson-block {
-      background-color: white;
-      border: 1px solid #ccc;
-      padding: 25px;
-      border-radius: 6px;
-      white-space: pre-wrap;
-    }
-  </style>
 </head>
 <body>
-<div class="container">
-  <div class="sidebar">
-    <h2>SQN Copilot</h2>
-    <a href="{{ url_for('home') }}">🏠 Home</a>
-    <a href="{{ url_for('learn_app', app_name='word') }}">📄 Learn Word</a>
-    <a href="{{ url_for('learn_app', app_name='excel') }}">📊 Learn Excel</a>
-    <a href="{{ url_for('learn_app', app_name='outlook') }}">📧 Learn Outlook</a>
-    <a href="{{ url_for('learn_app', app_name='teams') }}">💬 Learn Teams</a>
-    <a href="{{ url_for('learn_app', app_name='powerpoint') }}">📽 Learn PowerPoint</a>
-    <a href="{{ url_for('logout') }}">🔒 Logout</a>
+  <div class="disclaimer">⚠️ Do not input or share TVA-sensitive, personal, or confidential information. Use general descriptions only.</div>
+
+  <div class="header">
+    <div class="header-content">
+      <img src="/static/images/tva_logo.png" alt="TVA Logo" />
+      <div class="title">Learn Microsoft {{ app }}</div>
+      <div class="subtitle">Beginner lessons with clear, numbered steps</div>
+    </div>
   </div>
 
-  <div class="main">
-    <div class="warning">
-      ⚠️ Do not enter or upload any TVA-sensitive or personal information. This is an external tool for learning and general productivity only.
+  <div class="wrap split">
+    <!-- Left: Lesson builder -->
+    <div class="card">
+      <h2>What do you want to learn</h2>
+      <form method="POST">
+        <label class="label" for="topic">Type a feature or action</label>
+        <input type="text" id="topic" name="topic" value="{{ user_topic }}" placeholder="Example: mail merge. pivot table. schedule a Teams meeting." />
+        <div class="row" style="margin-top:12px">
+          <button class="btn" type="submit">Generate Lesson</button>
+          <a class="btn secondary" href="{{ url_for('home') }}">Back to Home</a>
+        </div>
+      </form>
+
+      <div class="note">Tip: Keep it simple. If you need more or less detail, say “more detail” or “short version.”</div>
+
+      <div class="pill-row">
+        {% if app|lower == 'word' %}
+          <span class="pill" onclick="quick('Use Styles for headings')">Word Styles</span>
+          <span class="pill" onclick="quick('Track Changes and accept edits')">Track Changes</span>
+          <span class="pill" onclick="quick('Create a table of contents')">Table of Contents</span>
+        {% elif app|lower == 'excel' %}
+          <span class="pill" onclick="quick('VLOOKUP with a simple example')">VLOOKUP</span>
+          <span class="pill" onclick="quick('Create a PivotTable from a list')">PivotTable</span>
+          <span class="pill" onclick="quick('Use TEXTJOIN to merge cells')">TEXTJOIN</span>
+        {% elif app|lower == 'outlook' %}
+          <span class="pill" onclick="quick('Create a conditional rule that moves messages')">Rules</span>
+          <span class="pill" onclick="quick('Delay delivery of an email')">Delay Send</span>
+          <span class="pill" onclick="quick('Create a shared mailbox view')">Shared Mailbox</span>
+        {% elif app|lower == 'teams' %}
+          <span class="pill" onclick="quick('Schedule a recurring meeting')">Recurring Meeting</span>
+          <span class="pill" onclick="quick('Manage channel notifications')">Channel notifications</span>
+          <span class="pill" onclick="quick('Share files in a channel safely')">Share files</span>
+        {% elif app|lower == 'powerpoint' %}
+          <span class="pill" onclick="quick('Turn notes into a slide outline')">Slide outline</span>
+          <span class="pill" onclick="quick('Use Slide Master for consistent layout')">Slide Master</span>
+          <span class="pill" onclick="quick('Export slides as a PDF')">Export PDF</span>
+        {% endif %}
+      </div>
     </div>
 
-    <h1>Learn Microsoft {{ app }}</h1>
-    <p>Get beginner-friendly, step-by-step instructions using AI.</p>
-
-    <form method="POST">
-      <label for="topic">What do you want to learn about {{ app }}?</label>
-      <input type="text" name="topic" id="topic" value="{{ user_topic }}" placeholder="(Optional) Type a feature or action, like 'mail merge'">
-      <button type="submit">Generate Lesson</button>
-    </form>
-
-    {% if lesson %}
-    <div class="lesson-block">
-      {{ lesson | safe }}
+    <!-- Right: Lesson content -->
+    <div class="card">
+      <h2>Your lesson</h2>
+      {% if lesson %}
+        <div class="copybar">
+          <button class="btn copy" onclick="copyText('lessonBox')">Copy steps</button>
+        </div>
+        <div id="lessonBox" class="mono">{{ lesson | safe }}</div>
+      {% else %}
+        <div class="note">No lesson yet. Enter a topic and select Generate Lesson. You will get numbered steps in plain language.</div>
+      {% endif %}
     </div>
-    {% endif %}
   </div>
-</div>
+
+  <div class="footer">SQN Copilot Companion • TVA-safe guidance for Microsoft 365</div>
+
+  <script>
+    function quick(text){ const el=document.getElementById('topic'); el.value=text; el.focus(); }
+    function copyText(id){
+      const el=document.getElementById(id); if(!el) return;
+      const sel=window.getSelection(), range=document.createRange();
+      range.selectNodeContents(el); sel.removeAllRanges(); sel.addRange(range);
+      document.execCommand('copy'); sel.removeAllRanges();
+    }
+  </script>
 </body>
 </html>
