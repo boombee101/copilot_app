@@ -1,270 +1,132 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>SQN Copilot Companion | Microsoft 365 Help Center</title>
-    <style>
-        body {
-            font-family: "Segoe UI", Tahoma, sans-serif;
-            background-color: #f4f8fb;
-            color: #003366;
-            margin: 0;
-            padding: 0;
-        }
+  <meta charset="UTF-8">
+  <title>TVA Copilot Help Center</title>
+  <style>
+    body {
+      font-family: "Segoe UI", Tahoma, sans-serif;
+      background-color: #f4f8fb;
+      color: #003366;
+      margin: 0;
+      padding: 0;
+    }
 
-        .header {
-            background: url("/static/images/sqn2.jpg") center center/cover no-repeat;
-            padding: 60px 20px;
-            text-align: center;
-            color: white;
-            position: relative;
-        }
+    .header {
+      background-color: #003366;
+      color: white;
+      padding: 40px 20px;
+      text-align: center;
+    }
 
-        .header::after {
-            content: "";
-            background: rgba(0, 40, 85, 0.7);
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 0;
-        }
+    .disclaimer {
+      background-color: #fff3cd;
+      color: #856404;
+      border: 1px solid #ffeeba;
+      padding: 15px;
+      font-weight: bold;
+      text-align: center;
+    }
 
-        .header-content {
-            position: relative;
-            z-index: 1;
-        }
+    .container {
+      max-width: 1000px;
+      margin: 40px auto;
+      background: white;
+      padding: 40px;
+      border-radius: 12px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+    }
 
-        .header-content h1 {
-            margin: 0;
-            font-size: 40px;
-            font-weight: bold;
-        }
+    h1 {
+      font-size: 28px;
+      margin-bottom: 10px;
+    }
 
-        .header-content p {
-            font-size: 18px;
-            margin-top: 10px;
-        }
+    h2 {
+      font-size: 22px;
+      margin-top: 30px;
+      color: #004785;
+    }
 
-        .disclaimer {
-            background-color: #fff3cd;
-            color: #856404;
-            border-left: 6px solid #ffa502;
-            padding: 20px 30px;
-            margin: 0 auto;
-            font-size: 15px;
-            line-height: 1.6;
-            max-width: 1100px;
-        }
+    p {
+      font-size: 16px;
+      line-height: 1.6;
+    }
 
-        .container {
-            max-width: 1100px;
-            margin: 40px auto;
-            padding: 0 20px;
-        }
+    .feature {
+      margin-bottom: 30px;
+    }
 
-        h2 {
-            font-size: 24px;
-            margin-bottom: 10px;
-            color: #002855;
-        }
+    .button {
+      background-color: #004785;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      font-size: 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+      margin-top: 10px;
+    }
 
-        .section {
-            background: white;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-            margin-bottom: 40px;
-        }
-
-        .grid-buttons {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-
-        .grid-buttons a {
-            flex: 1 1 150px;
-            text-align: center;
-            padding: 14px;
-            background-color: #004785;
-            color: white;
-            font-weight: bold;
-            text-decoration: none;
-            border-radius: 6px;
-            transition: background 0.2s ease;
-        }
-
-        .grid-buttons a:hover {
-            background-color: #003366;
-        }
-
-        label {
-            font-weight: bold;
-            display: block;
-            margin: 20px 0 6px;
-        }
-
-        input[type="text"], select, textarea {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            font-size: 16px;
-        }
-
-        button {
-            margin-top: 20px;
-            background-color: #004785;
-            color: white;
-            border: none;
-            padding: 14px 20px;
-            font-weight: bold;
-            font-size: 16px;
-            border-radius: 6px;
-            cursor: pointer;
-        }
-
-        textarea[readonly] {
-            background-color: #f4f4f4;
-            font-family: monospace;
-        }
-
-        .back-link {
-            margin-top: 30px;
-            display: inline-block;
-            color: #004785;
-            text-decoration: none;
-            font-weight: bold;
-        }
-    </style>
-    <script>
-        async function askGptHelp() {
-            const input = document.getElementById("gptQuestion");
-            const responseBox = document.getElementById("gptResponse");
-            const question = input.value.trim();
-            if (!question) return;
-
-            responseBox.innerText = "Thinking...";
-            const res = await fetch("/ask_gpt", {
-                method: "POST",
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ question })
-            });
-
-            const data = await res.json();
-            responseBox.innerText = data.answer || "Something went wrong.";
-        }
-
-        function copyPrompt() {
-            const box = document.getElementById("finalPromptBox");
-            box.select();
-            document.execCommand("copy");
-            alert("Prompt copied!");
-        }
-
-        function toggleManual() {
-            const box = document.getElementById("manualInstructions");
-            box.style.display = box.style.display === "none" ? "block" : "none";
-        }
-    </script>
+    .footer {
+      text-align: center;
+      font-size: 14px;
+      margin-top: 60px;
+      color: #888;
+    }
+  </style>
 </head>
 <body>
 
-    <div class="header">
-        <div class="header-content">
-            <h1>SQN Copilot Companion</h1>
-            <p>Microsoft 365 Help & Prompt Assistant for TVA Employees</p>
-        </div>
+  <div class="disclaimer">
+    ⚠️ Do not enter or upload any TVA-sensitive or personal information. This tool is for learning, support, and general productivity only.
+  </div>
+
+  <div class="header">
+    <h1>TVA Copilot Help Center</h1>
+    <p>Smart support for Microsoft 365. Built for TVA employees.</p>
+  </div>
+
+  <div class="container">
+
+    <p>Welcome to the <strong>TVA Copilot Help Center</strong> — a simple tool to help you get expert, AI-powered help with Microsoft Word, Excel, Outlook, Teams, PowerPoint, and more.</p>
+
+    <p>This is not basic training. This tool is designed for experienced users who want:</p>
+    <ul>
+      <li>✅ Quick help with frustrating Microsoft 365 problems</li>
+      <li>✅ Clear, step-by-step solutions in plain language</li>
+      <li>✅ High-quality prompts tailored for Microsoft Copilot</li>
+    </ul>
+
+    <!-- Feature 1 -->
+    <div class="feature">
+      <h2>📌 Ask for Help</h2>
+      <p>Describe the problem you're facing in Word, Excel, Outlook, or another Microsoft app — and get expert, plain-language instructions from the AI. Whether it's a formula not working, Teams not syncing, or formatting acting weird, this tool is here to solve it.</p>
+      <a href="{{ url_for('ask_help') }}" class="button">Try the Help Desk</a>
     </div>
 
-    <div class="disclaimer">
-        <strong>⚠️ Important Disclosure:</strong> This program uses OpenAI's GPT-4 through an external connection and is not part of TVA’s secure internal systems.
-        <br><br>
-        <strong>Please do not input or upload any sensitive, classified, confidential, or personally identifiable information (PII).</strong>
-        This includes security protocols, passwords, personal records, facility operations, or anything covered under TVA cybersecurity or data protection policies.
-        <br><br>
-        This assistant is intended only for drafting general Copilot prompts to support workplace productivity. For secure tasks, use official TVA-approved IT channels.
+    <!-- Feature 2 -->
+    <div class="feature">
+      <h2>✍️ Copilot Prompt Builder</h2>
+      <p>Not sure how to ask Copilot for what you want? Use this tool to generate a work-ready prompt that you can copy straight into Microsoft Word, Excel, or Outlook Copilot. The AI will ask you a few follow-up questions and build a high-quality, task-specific prompt.</p>
+      <a href="{{ url_for('home') }}" class="button">Go to Prompt Builder</a>
     </div>
 
-    <div class="container">
-
-        <div class="section">
-            <h2>📘 Learn a Microsoft 365 App</h2>
-            <p>Choose an app to explore step-by-step tutorials and examples:</p>
-            <div class="grid-buttons">
-                <a href="/learn/word">📄 Word</a>
-                <a href="/learn/excel">📊 Excel</a>
-                <a href="/learn/outlook">📧 Outlook</a>
-                <a href="/learn/teams">💬 Teams</a>
-                <a href="/learn/powerpoint">📽 PowerPoint</a>
-            </div>
-        </div>
-
-        <form method="post" class="section">
-            <h2>💬 Create a Copilot Prompt</h2>
-
-            {% if not questions and not final_prompt %}
-                <label for="app">Which app are you using?</label>
-                <select name="app" id="app" required>
-                    <option value="">-- Select an app --</option>
-                    <option value="Word">Word</option>
-                    <option value="Excel">Excel</option>
-                    <option value="Outlook">Outlook</option>
-                    <option value="Teams">Teams</option>
-                    <option value="PowerPoint">PowerPoint</option>
-                </select>
-
-                <label for="task">What do you need help with?</label>
-                <textarea name="task" id="task" rows="4" required></textarea>
-
-                <button type="submit">Start Assistant</button>
-
-            {% elif questions and not final_prompt %}
-                <h3>✏️ Follow-Up Questions</h3>
-                {% for question in questions %}
-                    <label>{{ question }}</label>
-                    <input type="text" name="answer_{{ loop.index0 }}">
-                {% endfor %}
-                <input type="hidden" name="original_task" value="{{ original_task }}">
-                <button type="submit">Generate Prompt</button>
-
-            {% elif final_prompt %}
-                <h3>✅ Final Copilot Prompt</h3>
-                <textarea id="finalPromptBox" rows="6" readonly>{{ final_prompt }}</textarea>
-                <button type="button" onclick="copyPrompt()">📋 Copy Prompt</button>
-
-                {% if manual_instructions %}
-                    <div style="margin-top: 20px;">
-                        <button type="button" onclick="toggleManual()">👣 Show Manual Steps</button>
-                        <div id="manualInstructions" style="display:none; margin-top:15px;">
-                            <h3>📝 Manual Instructions</h3>
-                            <p style="white-space: pre-line;">{{ manual_instructions }}</p>
-                        </div>
-                    </div>
-                {% endif %}
-
-                <a href="/home" class="back-link">⬅ Start Over</a> |
-                <a href="/logout" class="back-link">Log Out</a>
-            {% endif %}
-        </form>
-
-        <div class="section">
-            <h2>🤖 Ask the Assistant</h2>
-            <p>Need help writing your prompt or using Microsoft 365? Ask anything:</p>
-            <input type="text" id="gptQuestion" placeholder="e.g., How do I get Copilot to summarize an email thread?">
-            <button type="button" onclick="askGptHelp()">Ask</button>
-            <div id="gptResponse" style="margin-top: 15px;"></div>
-        </div>
-
-        {% if history %}
-        <div class="section">
-            <h2>📜 Recent Prompts</h2>
-            <ul>
-                {% for item in history %}
-                    <li><strong>{{ item.task }}</strong><br><em>{{ item.prompt }}</em></li>
-                {% endfor %}
-            </ul>
-        </div>
-        {% endif %}
+    <!-- Feature 3 (Optional / Future) -->
+    <!--
+    <div class="feature">
+      <h2>🧠 Prompt Library (Coming Soon)</h2>
+      <p>A curated collection of TVA-friendly Copilot prompts for common use cases — like making reports, shift schedules, and summaries. Save time with pre-written examples that work.</p>
     </div>
+    -->
+
+    <div class="footer">
+      Built with ❤️ for TVA | SQN Copilot Companion
+    </div>
+
+  </div>
 
 </body>
 </html>

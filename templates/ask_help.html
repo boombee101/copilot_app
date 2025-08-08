@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Ask for Help – TVA Copilot Help Center</title>
+  <style>
+    body {
+      font-family: "Segoe UI", Tahoma, sans-serif;
+      background-color: #f4f8fb;
+      color: #003366;
+      margin: 0;
+      padding: 0;
+    }
+
+    .header {
+      background-color: #003366;
+      color: white;
+      padding: 40px 20px;
+      text-align: center;
+    }
+
+    .disclaimer {
+      background-color: #fff3cd;
+      color: #856404;
+      border: 1px solid #ffeeba;
+      padding: 15px;
+      font-weight: bold;
+      text-align: center;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 40px auto;
+      background: white;
+      padding: 40px;
+      border-radius: 12px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+    }
+
+    h1 {
+      font-size: 26px;
+      margin-bottom: 20px;
+    }
+
+    label {
+      font-weight: bold;
+      margin-top: 20px;
+      display: block;
+    }
+
+    select, textarea {
+      width: 100%;
+      padding: 12px;
+      font-size: 16px;
+      margin-top: 8px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      resize: vertical;
+    }
+
+    button {
+      margin-top: 20px;
+      padding: 12px 20px;
+      font-size: 16px;
+      font-weight: bold;
+      background-color: #004785;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .result {
+      background-color: #f0f8ff;
+      border-left: 6px solid #004785;
+      padding: 25px;
+      margin-top: 30px;
+      border-radius: 8px;
+      white-space: pre-wrap;
+    }
+
+    .back-link {
+      margin-top: 40px;
+      display: inline-block;
+      color: #004785;
+      font-weight: bold;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="disclaimer">
+    ⚠️ Do not enter any TVA-sensitive or private information. This is a support tool only.
+  </div>
+
+  <div class="header">
+    <h1>Ask for Help</h1>
+    <p>Get expert help with any Microsoft 365 problem</p>
+  </div>
+
+  <div class="container">
+    <form method="POST">
+      <label for="app">Which Microsoft app are you using?</label>
+      <select name="app" id="app" required>
+        <option value="Word" {% if app_selected == "Word" %}selected{% endif %}>Word</option>
+        <option value="Excel" {% if app_selected == "Excel" %}selected{% endif %}>Excel</option>
+        <option value="Outlook" {% if app_selected == "Outlook" %}selected{% endif %}>Outlook</option>
+        <option value="Teams" {% if app_selected == "Teams" %}selected{% endif %}>Teams</option>
+        <option value="PowerPoint" {% if app_selected == "PowerPoint" %}selected{% endif %}>PowerPoint</option>
+        <option value="Other" {% if app_selected == "Other" %}selected{% endif %}>Other</option>
+      </select>
+
+      <label for="problem">Describe the issue or question:</label>
+      <textarea name="problem" id="problem" rows="5" placeholder="Example: My Excel formula keeps showing an error..." required>{{ problem or '' }}</textarea>
+
+      <button type="submit">Get Help</button>
+    </form>
+
+    {% if result %}
+    <div class="result">
+      <h3>✅ AI-Generated Help:</h3>
+      {{ result | safe }}
+    </div>
+    {% endif %}
+
+    <a href="{{ url_for('home') }}" class="back-link">⬅ Back to Home</a>
+  </div>
+
+</body>
+</html>
