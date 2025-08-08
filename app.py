@@ -187,36 +187,37 @@ def learn_app(app_name):
     if app_name not in valid_apps:
         return "Invalid app", 404
 
-    user_topic = ""
-    lesson_content = ""
+    user_topic = request.form.get('topic', '').strip() if request.method == 'POST' else ""
 
-    if request.method == 'POST':
-        user_topic = request.form.get('topic', '').strip()
-        if user_topic:
-            prompt = (
-                f"You're teaching a new TVA employee about {app_name.title()}. "
-                f"Explain: '{user_topic}' in clear, slow, step-by-step instructions. No jargon. For total beginners."
-            )
-        else:
-            prompt = (
-                f"Teach someone how to use Microsoft {app_name.title()} from scratch. "
-                "Make it feel like a live beginner class. Explain everything in very simple language."
-            )
+    if user_topic:
+        prompt = (
+            f"You are teaching a total beginner how to use Microsoft {app_name.title()} to do this:\n"
+            f"'{user_topic}'\n\n"
+            "Use a step-by-step format with super simple explanations, plain language, and zero technical jargon. "
+            "Make it feel like a helpful live training session for a TVA employee who has never used the app before."
+        )
+    else:
+        prompt = (
+            f"You're teaching a brand new TVA employee how to use Microsoft {app_name.title()} from scratch. "
+            "Assume they have zero experience. Walk them through it slowly, like a beginner class. "
+            "Use very plain language, examples, and short, clear steps. No technical terms. "
+            "The tone should be friendly and for-dummies style."
+        )
 
-        try:
-            response = client.chat.completions.create(
-                model="gpt-4",
-                messages=[
-                    {"role": "system", "content": "You are a friendly Microsoft 365 trainer explaining in plain language."},
-                    {"role": "user", "content": prompt}
-                ],
-                temperature=0.6,
-                max_tokens=900
-            )
-            lesson_content = response.choices[0].message.content.strip()
-        except Exception as e:
-            print(f"⚠️ learn error: {e}")
-            lesson_content = "⚠️ Failed to load AI lesson."
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4",
+            messages=[
+                {"role": "system", "content": "You are a Microsoft 365 trainer for beginners at TVA. Keep your tone extremely simple, helpful, and non-technical."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.6,
+            max_tokens=900
+        )
+        lesson_content = response.choices[0].message.content.strip()
+    except Exception as e:
+        print(f"⚠️ learn error: {e}")
+        lesson_content = "⚠️ Sorry, we couldn’t load your lesson right now. Please try again later."
 
     return render_template("learn.html", app=app_name.title(), lesson=lesson_content, user_topic=user_topic)
 
