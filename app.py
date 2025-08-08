@@ -231,6 +231,38 @@ def ask_help():
     # For now, just redirect to home or show a placeholder
     return render_template('home.html')
 
+@app.route('/help', methods=['GET', 'POST'])
+def help_desk():
+    answer = None
+    user_question = ""
+    if request.method == 'POST':
+        user_question = request.form.get('user_question', '').strip()
+        if user_question:
+            try:
+                # This uses your OpenAI API for a real AI answer.
+                # You can improve the prompt as needed for TVA style!
+                response = client.chat.completions.create(
+                    model="gpt-4",
+                    messages=[
+                        {"role": "system", "content": (
+                            "You are an expert Microsoft 365 support agent for TVA employees. "
+                            "Provide clear, plain-language, step-by-step instructions to help solve their problem. "
+                            "Keep it beginner-friendly, use numbered steps, and avoid jargon."
+                        )},
+                        {"role": "user", "content": f"Issue: {user_question}"}
+                    ],
+                    temperature=0.3,
+                    max_tokens=550
+                )
+                answer = response.choices[0].message.content.strip()
+            except Exception as e:
+                print(f"⚠️ OpenAI error: {e}")
+                answer = "⚠️ Sorry, we couldn't get an answer from the AI. Please try again later."
+        else:
+            answer = "Please enter your Microsoft 365 issue or question above."
+    return render_template("help.html", answer=answer, user_question=user_question)
+
+
 
 if __name__ == '__main__':
     print("✅ SQN Copilot Companion running...")
