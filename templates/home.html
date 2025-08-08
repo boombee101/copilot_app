@@ -27,12 +27,15 @@
       box-shadow: 0 2px 8px rgba(227, 193, 72, 0.05);
       position: relative;
       z-index: 10;
+      text-shadow: none;
+      animation: none;
     }
     .disclaimer .icon {
       font-size: 22px;
       vertical-align: middle;
       margin-right: 8px;
       display: inline-block;
+      filter: none;
     }
 
     .header {
@@ -194,7 +197,7 @@
   </style>
 </head>
 <body>
-  <div class="disclaimer">
+  <div class="disclaimer" title="TVA Policy">
     <span class="icon">⚠️</span>
     <span>
       Do not input, upload, or share any TVA-sensitive, personal, or confidential information in this tool.<br>
@@ -225,24 +228,26 @@
       <div class="feature-block">
         <span class="icon">💬</span>
         <h3>Ask for Help (Help Desk)</h3>
-        <p>Describe your issue in any Microsoft app and get a step-by-step answer in plain language, not tech jargon.</p>
+        <p>Describe your issue in any Microsoft app and get a step-by-step answer in plain language, not tech jargon. Perfect for solving annoying or advanced problems fast.</p>
         <a href="{{ url_for('help_desk') }}" class="button">Open Help Desk</a>
       </div>
       <div class="feature-block">
         <span class="icon">⚙️</span>
         <h3>Prompt Builder</h3>
-        <p>Use this tool to generate a clear, work-ready Copilot prompt. The AI will guide you through a few questions to build it.</p>
-        <a href="{{ url_for('prompt_builder') }}" class="button">Start Prompt Builder</a>
+        <p>Not sure how to ask Copilot for what you want? Use this tool to generate a clear, work-ready Copilot prompt. The AI guides you through a few questions to build a tailored prompt.</p>
+        <!-- FIX: builder lives at /home -->
+        <a href="{{ url_for('home') }}" class="button">Start Prompt Builder</a>
       </div>
       <div class="feature-block">
         <span class="icon">🛠️</span>
         <h3>Manual Instructions</h3>
-        <p>Get easy-to-follow steps to complete your task in Microsoft 365 — no Copilot needed.</p>
-        <a href="{{ url_for('manual_instructions') }}" class="button">Try Manual Instructions</a>
+        <p>Prefer doing things yourself? Get easy-to-follow, beginner-friendly steps to complete your task inside Microsoft 365 — no Copilot needed.</p>
+        <!-- FIX: manual generation happens on /home after building -->
+        <a href="{{ url_for('home') }}" class="button">Try Manual Instructions</a>
       </div>
     </div>
     <div class="footer">
-      SQN Copilot Companion
+    SQN Copilot Companion
     </div>
   </div>
 </body>
