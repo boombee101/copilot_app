@@ -3,130 +3,231 @@
 <head>
   <meta charset="UTF-8">
   <title>TVA Copilot Help Center</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body {
-      font-family: "Segoe UI", Tahoma, sans-serif;
-      background-color: #f4f8fb;
+      font-family: "Segoe UI", Tahoma, Arial, sans-serif;
+      background: #f4f8fb;
       color: #003366;
       margin: 0;
       padding: 0;
     }
 
     .header {
-      background-color: #003366;
-      color: white;
-      padding: 40px 20px;
+      background: url('/static/images/sqn2.jpg') center center/cover no-repeat, linear-gradient(90deg, #003366 65%, #426da9 100%);
+      color: #fff;
+      padding: 54px 20px 34px 20px;
       text-align: center;
+      position: relative;
+      box-shadow: 0 5px 18px rgba(0,34,85,0.10);
+    }
+    .header::after {
+      content: "";
+      position: absolute;
+      left: 0; top: 0; width: 100%; height: 100%;
+      background: rgba(0, 40, 85, 0.40); /* Overlay for contrast */
+      pointer-events: none;
+      z-index: 1;
+    }
+    .header-content {
+      position: relative;
+      z-index: 2;
+    }
+    .header img {
+      max-width: 110px;
+      margin-bottom: 10px;
+      filter: drop-shadow(0 3px 9px rgba(0,0,0,0.22));
+    }
+    .header .subtitle {
+      font-size: 22px;
+      color: #d2e6f7;
+      margin-top: 7px;
+      margin-bottom: 10px;
     }
 
     .disclaimer {
-      background-color: #fff3cd;
-      color: #856404;
-      border: 1px solid #ffeeba;
-      padding: 15px;
-      font-weight: bold;
+      background: #fffbe5;
+      color: #7c5b04;
+      border: 1px solid #ffe69b;
+      font-weight: 600;
       text-align: center;
+      padding: 13px 20px;
+      font-size: 15px;
+      margin-bottom: 0;
     }
 
     .container {
-      max-width: 1000px;
-      margin: 40px auto;
+      max-width: 980px;
+      margin: -36px auto 30px auto;
       background: white;
-      padding: 40px;
-      border-radius: 12px;
-      box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+      padding: 42px 38px 32px 38px;
+      border-radius: 16px;
+      box-shadow: 0 10px 28px rgba(0,0,0,0.11);
     }
 
     h1 {
-      font-size: 28px;
-      margin-bottom: 10px;
+      font-size: 30px;
+      margin-bottom: 2px;
+      letter-spacing: 1px;
+      font-weight: 700;
     }
 
     h2 {
       font-size: 22px;
-      margin-top: 30px;
+      color: #004785;
+      margin: 34px 0 12px 0;
+    }
+
+    .welcome {
+      font-size: 16px;
+      line-height: 1.7;
+      margin-bottom: 18px;
+    }
+
+    .how-it-works {
+      background: #eaf3fb;
+      border-left: 5px solid #003366;
+      border-radius: 7px;
+      padding: 18px 24px 10px 24px;
+      margin: 30px 0 28px 0;
+    }
+
+    .how-it-works-title {
+      font-size: 17px;
+      font-weight: 600;
+      color: #003366;
+      margin-bottom: 5px;
+      letter-spacing: 0.3px;
+    }
+    .how-it-works ul {
+      margin: 10px 0 0 8px;
+      padding-left: 22px;
+      font-size: 15px;
+      color: #233;
+    }
+    .feature-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 28px;
+      justify-content: space-between;
+      margin-bottom: 25px;
+      margin-top: 25px;
+    }
+    .feature-block {
+      flex: 1 1 260px;
+      min-width: 255px;
+      background: #f0f6fc;
+      border-radius: 11px;
+      box-shadow: 0 3px 12px rgba(0,34,85,0.04);
+      padding: 22px 18px 20px 18px;
+      margin-bottom: 18px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      border-left: 5px solid #004785;
+      transition: box-shadow .2s;
+    }
+    .feature-block:hover {
+      box-shadow: 0 7px 18px rgba(0,41,105,0.09);
+    }
+    .feature-block .icon {
+      font-size: 27px;
+      margin-bottom: 10px;
       color: #004785;
     }
-
-    p {
-      font-size: 16px;
-      line-height: 1.6;
+    .feature-block h3 {
+      margin: 0 0 6px 0;
+      font-size: 19px;
+      color: #003366;
+      font-weight: 600;
     }
-
-    .feature {
-      margin-bottom: 30px;
+    .feature-block p {
+      margin: 0 0 8px 0;
+      font-size: 15.4px;
+      color: #1c3553;
     }
 
     .button {
-      background-color: #004785;
+      background: #004785;
       color: white;
       border: none;
-      padding: 12px 20px;
-      font-size: 16px;
-      border-radius: 6px;
+      padding: 13px 24px;
+      font-size: 16.5px;
+      border-radius: 7px;
       cursor: pointer;
       text-decoration: none;
+      font-weight: 600;
+      margin-top: 13px;
+      box-shadow: 0 3px 7px rgba(0,50,100,0.07);
+      transition: background 0.14s, box-shadow 0.17s;
+      letter-spacing: 0.1px;
       display: inline-block;
-      margin-top: 10px;
+    }
+    .button:hover {
+      background: #002d5d;
+      box-shadow: 0 6px 14px rgba(0,50,100,0.11);
     }
 
     .footer {
       text-align: center;
-      font-size: 14px;
-      margin-top: 60px;
-      color: #888;
+      font-size: 14.5px;
+      color: #7d91ab;
+      margin-top: 52px;
+      margin-bottom: 12px;
+    }
+    @media (max-width: 700px) {
+      .container {padding: 15px 6px 20px 6px;}
+      .feature-list {flex-direction: column;}
+      .feature-block {min-width: 0;}
     }
   </style>
 </head>
 <body>
-
-  <div class="disclaimer">
+  <div class="disclaimer" title="For learning and general productivity only.">
     ⚠️ Do not enter or upload any TVA-sensitive or personal information. This tool is for learning, support, and general productivity only.
   </div>
-
   <div class="header">
-    <h1>TVA Copilot Help Center</h1>
-    <p>Smart support for Microsoft 365. Built for TVA employees.</p>
+    <div class="header-content">
+      <img src="/static/images/tva_logo.png" alt="TVA Logo" />
+      <h1>TVA Copilot Help Center</h1>
+      <div class="subtitle">Smart support for Microsoft 365 — built for TVA employees</div>
+    </div>
   </div>
-
   <div class="container">
-
-    <p>Welcome to the <strong>TVA Copilot Help Center</strong> — a simple tool to help you get expert, AI-powered help with Microsoft Word, Excel, Outlook, Teams, PowerPoint, and more.</p>
-
-    <p>This is not basic training. This tool is designed for experienced users who want:</p>
-    <ul>
-      <li>✅ Quick help with frustrating Microsoft 365 problems</li>
-      <li>✅ Clear, step-by-step solutions in plain language</li>
-      <li>✅ High-quality prompts tailored for Microsoft Copilot</li>
-    </ul>
-
-    <!-- Feature 1 -->
-    <div class="feature">
-      <h2>📌 Ask for Help</h2>
-      <p>Describe the problem you're facing in Word, Excel, Outlook, or another Microsoft app — and get expert, plain-language instructions from the AI. Whether it's a formula not working, Teams not syncing, or formatting acting weird, this tool is here to solve it.</p>
-      <a href="{{ url_for('ask_help') }}" class="button">Try the Help Desk</a>
+    <div class="welcome">
+      Welcome to the <b>TVA Copilot Help Center</b>! This tool is built to get you fast, expert AI-powered help with <b>Word, Excel, Outlook, Teams, PowerPoint, and more.</b>
     </div>
-
-    <!-- Feature 2 -->
-    <div class="feature">
-      <h2>✍️ Copilot Prompt Builder</h2>
-      <p>Not sure how to ask Copilot for what you want? Use this tool to generate a work-ready prompt that you can copy straight into Microsoft Word, Excel, or Outlook Copilot. The AI will ask you a few follow-up questions and build a high-quality, task-specific prompt.</p>
-      <a href="{{ url_for('home') }}" class="button">Go to Prompt Builder</a>
+    <div class="how-it-works">
+      <div class="how-it-works-title">How it works:</div>
+      <ul>
+        <li>Pick your Microsoft 365 app and describe what you need help with</li>
+        <li>Get clear, step-by-step answers — or have the AI write a perfect Copilot prompt for you</li>
+        <li>Choose to follow manual instructions or copy the Copilot prompt directly</li>
+      </ul>
     </div>
-
-    <!-- Feature 3 (Optional / Future) -->
-    <!--
-    <div class="feature">
-      <h2>🧠 Prompt Library (Coming Soon)</h2>
-      <p>A curated collection of TVA-friendly Copilot prompts for common use cases — like making reports, shift schedules, and summaries. Save time with pre-written examples that work.</p>
+    <div class="feature-list">
+      <div class="feature-block">
+        <span class="icon">💬</span>
+        <h3>Ask for Help (Help Desk)</h3>
+        <p>Describe your issue in any Microsoft app and get a step-by-step answer in plain language, not tech jargon. Perfect for solving annoying or advanced problems fast.</p>
+        <a href="{{ url_for('ask_help') }}" class="button">Open Help Desk</a>
+      </div>
+      <div class="feature-block">
+        <span class="icon">⚙️</span>
+        <h3>Prompt Builder</h3>
+        <p>Not sure how to ask Copilot for what you want? Use this tool to generate a clear, work-ready Copilot prompt. The AI guides you through a few questions to build a tailored prompt.</p>
+        <a href="{{ url_for('home') }}" class="button">Start Prompt Builder</a>
+      </div>
+      <div class="feature-block">
+        <span class="icon">🛠️</span>
+        <h3>Manual Instructions</h3>
+        <p>Prefer doing things yourself? Get easy-to-follow, beginner-friendly steps to complete your task inside Microsoft 365 — no Copilot needed.</p>
+        <a href="{{ url_for('home') }}" class="button">Try Manual Instructions</a>
+      </div>
     </div>
-    -->
-
     <div class="footer">
       Built with ❤️ for TVA | SQN Copilot Companion
     </div>
-
   </div>
-
 </body>
 </html>
