@@ -25,7 +25,6 @@ def login():
             return render_template('login.html', error='Incorrect password.')
     return render_template('login.html')
 
-
 @app.route('/home', methods=['GET', 'POST'])
 def home():
     if not session.get('logged_in'):
@@ -35,7 +34,8 @@ def home():
     try:
         with open('prompt_log/prompts.csv', mode='r', encoding='utf-8') as file:
             reader = csv.reader(file)
-            for row in reversed(list(reader))[-10:]:
+            rows = list(reader)
+            for row in reversed(rows[-10:]):
                 if len(row) >= 3:
                     history.append({"task": row[0], "context": row[1], "prompt": row[2]})
     except Exception as e:
@@ -127,7 +127,6 @@ def home():
 
     return render_template("home.html", history=history)
 
-
 @app.route('/ask_gpt', methods=['POST'])
 def ask_gpt():
     try:
@@ -149,7 +148,6 @@ def ask_gpt():
     except Exception as e:
         print(f"⚠️ ask_gpt error: {e}")
         return jsonify({"answer": "⚠️ Failed to respond. Try again later."})
-
 
 @app.route('/how_to_manual', methods=['POST'])
 def how_to_manual():
@@ -178,7 +176,6 @@ def how_to_manual():
     except Exception as e:
         print(f"⚠️ manual API error: {e}")
         return jsonify({"manual_steps": "⚠️ Manual instructions unavailable."})
-
 
 @app.route('/learn/<app_name>', methods=['GET', 'POST'])
 def learn_app(app_name):
@@ -223,12 +220,10 @@ def learn_app(app_name):
 
     return render_template("learn.html", app=app_name.title(), lesson=lesson_content, user_topic=user_topic)
 
-
 @app.route('/logout')
 def logout():
     session.clear()
     return redirect(url_for('login'))
-
 
 if __name__ == '__main__':
     print("✅ SQN Copilot Companion running...")
