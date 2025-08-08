@@ -1,92 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Ask for Help – TVA Copilot Help Center</title>
-  <style>
-    body {
-      font-family: "Segoe UI", Tahoma, sans-serif;
-      background-color: #f4f8fb;
-      color: #003366;
-      margin: 0;
-      padding: 0;
-    }
-
-    .header {
-      background-color: #003366;
-      color: white;
-      padding: 40px 20px;
-      text-align: center;
-    }
-
-    .disclaimer {
-      background-color: #fff3cd;
-      color: #856404;
-      border: 1px solid #ffeeba;
-      padding: 15px;
-      font-weight: bold;
-      text-align: center;
-    }
-
-    .container {
-      max-width: 900px;
-      margin: 40px auto;
-      background: white;
-      padding: 40px;
-      border-radius: 12px;
-      box-shadow: 0 6px 18px rgba(0,0,0,0.08);
-    }
-
-    h1 {
-      font-size: 26px;
-      margin-bottom: 20px;
-    }
-
-    label {
-      font-weight: bold;
-      margin-top: 20px;
-      display: block;
-    }
-
-    select, textarea {
-      width: 100%;
-      padding: 12px;
-      font-size: 16px;
-      margin-top: 8px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      resize: vertical;
-    }
-
-    button {
-      margin-top: 20px;
-      padding: 12px 20px;
-      font-size: 16px;
-      font-weight: bold;
-      background-color: #004785;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-
-    .result {
-      background-color: #f0f8ff;
-      border-left: 6px solid #004785;
-      padding: 25px;
-      margin-top: 30px;
-      border-radius: 8px;
-      white-space: pre-wrap;
-    }
-
-    .back-link {
-      margin-top: 40px;
-      display: inline-block;
-      color: #004785;
-      font-weight: bold;
-      text-decoration: none;
-    }
-  </style>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='style_classic.css') }}">
 </head>
 <body>
 
@@ -95,37 +13,71 @@
   </div>
 
   <div class="header">
-    <h1>Ask for Help</h1>
-    <p>Get expert help with any Microsoft 365 problem</p>
+    <div class="header-content">
+      <img src="/static/images/tva_logo.png" alt="TVA Logo" />
+      <div class="title">Ask for Help</div>
+      <div class="subtitle">Get expert help with any Microsoft 365 problem</div>
+    </div>
   </div>
 
   <div class="container">
-    <form method="POST">
-      <label for="app">Which Microsoft app are you using?</label>
-      <select name="app" id="app" required>
-        <option value="Word" {% if app_selected == "Word" %}selected{% endif %}>Word</option>
-        <option value="Excel" {% if app_selected == "Excel" %}selected{% endif %}>Excel</option>
-        <option value="Outlook" {% if app_selected == "Outlook" %}selected{% endif %}>Outlook</option>
-        <option value="Teams" {% if app_selected == "Teams" %}selected{% endif %}>Teams</option>
-        <option value="PowerPoint" {% if app_selected == "PowerPoint" %}selected{% endif %}>PowerPoint</option>
-        <option value="Other" {% if app_selected == "Other" %}selected{% endif %}>Other</option>
-      </select>
+    <div class="layout">
+      <!-- Left: form -->
+      <div>
+        <h1>Describe the issue</h1>
+        <p class="lead">Tell us which app you are in and what is going wrong. Keep the wording general. Do not include private or sensitive data.</p>
 
-      <label for="problem">Describe the issue or question:</label>
-      <textarea name="problem" id="problem" rows="5" placeholder="Example: My Excel formula keeps showing an error..." required>{{ problem or '' }}</textarea>
+        <form method="POST">
+          <label for="app">Which Microsoft app are you using?</label>
+          <select name="app" id="app" required>
+            <option value="Word" {% if app_selected == "Word" %}selected{% endif %}>Word</option>
+            <option value="Excel" {% if app_selected == "Excel" %}selected{% endif %}>Excel</option>
+            <option value="Outlook" {% if app_selected == "Outlook" %}selected{% endif %}>Outlook</option>
+            <option value="Teams" {% if app_selected == "Teams" %}selected{% endif %}>Teams</option>
+            <option value="PowerPoint" {% if app_selected == "PowerPoint" %}selected{% endif %}>PowerPoint</option>
+            <option value="Other" {% if app_selected == "Other" %}selected{% endif %}>Other</option>
+          </select>
 
-      <button type="submit">Get Help</button>
-    </form>
+          <label for="problem" style="margin-top:10px">Describe the issue or question</label>
+          <textarea name="problem" id="problem" rows="6" placeholder="Example: In Excel my VLOOKUP shows errors when the name does not exist. How do I fix it?" required>{{ problem or '' }}</textarea>
+          <div class="hint">Examples: “Combine two columns in Excel”, “Outlook messages stuck in Outbox”, “Create a recurring Teams meeting”, “Word will not save my file”.</div>
 
-    {% if result %}
-    <div class="result">
-      <h3>✅ AI-Generated Help:</h3>
-      {{ result | safe }}
+          <div class="badges" style="margin-top:10px">
+            <button class="btn-soft" type="button" onclick="fill('In Word I need a clean summary for a shift handoff from a long document.')">Word summary</button>
+            <button class="btn-soft" type="button" onclick="fill('In Excel I need a formula that pulls the last 4 characters from a cell.')">Excel formula</button>
+            <button class="btn-soft" type="button" onclick="fill('Outlook shows messages stuck in Outbox. How can I fix send errors?')">Outlook send error</button>
+            <button class="btn-soft" type="button" onclick="fill('In Teams I need a recurring weekly meeting with a custom time zone.')">Teams meeting</button>
+            <button class="btn-soft" type="button" onclick="fill('In PowerPoint I want a simple slide outline from bullet notes.')">PowerPoint outline</button>
+          </div>
+
+          <button class="button" type="submit">Get Help</button>
+          <a class="btn-soft" href="{{ url_for('home') }}" style="margin-left:8px">Back to Home</a>
+        </form>
+      </div>
+
+      <!-- Right: result -->
+      <div>
+        <h2>Step-by-step answer</h2>
+        {% if result %}
+          <div class="panel mono">{{ result | safe }}</div>
+        {% else %}
+          <div class="panel">
+            You will see numbered, beginner-friendly steps here after you submit the form. If a step does not match your screen, tell us what you see and we will adjust.
+          </div>
+        {% endif %}
+      </div>
     </div>
-    {% endif %}
 
-    <a href="{{ url_for('home') }}" class="back-link">⬅ Back to Home</a>
+    <hr class="divider" />
+    <div class="footer">SQN Copilot Companion • TVA-safe guidance for Microsoft 365</div>
   </div>
 
+  <script>
+    function fill(text){
+      const el = document.getElementById('problem');
+      el.value = text;
+      el.focus();
+    }
+  </script>
 </body>
 </html>

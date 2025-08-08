@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <title>SQN Copilot Companion • Help Desk</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style_classic.css') }}">
 </head>
 <body>
   <div class="disclaimer">⚠️ Do not input or share TVA-sensitive, personal, or confidential information. Use general descriptions only.</div>
@@ -17,39 +17,50 @@
     </div>
   </div>
 
-  <div class="wrap" style="max-width:900px">
-    <div class="card">
-      <h2>Describe your issue</h2>
-      <form method="post" autocomplete="off">
-        <label class="label" for="user_question">Tell us the app and the problem. Include what you tried. Use general wording.</label>
-        <textarea id="user_question" name="user_question" placeholder="Example: In Excel I need to combine first and last name into one column. I tried CONCAT but it shows errors.">{{ user_question }}</textarea>
-        <div class="hint">Examples: “Combine two columns in Excel”, “Outlook will not send emails”, “Schedule a recurring Teams meeting”, “Word will not save my file”.</div>
-        <div class="row" style="margin-top:12px">
-          <button class="btn" type="submit">Get Help</button>
-          <a class="btn secondary" href="{{ url_for('home') }}">Back to Home</a>
-        </div>
-      </form>
+  <div class="container">
+    <div class="layout">
+      <!-- Left: form -->
+      <div>
+        <h1>Describe your issue</h1>
+        <p class="lead">Tell us the app and the problem. Include what you tried. Keep it general.</p>
 
-      {% if answer %}
-      <hr style="margin:22px 0;border:none;border-top:var(--line)" />
-      <h2>Step-by-step instructions</h2>
-      <div class="copybar">
-        <button class="btn copy" onclick="copyText('answerBox')">Copy steps</button>
+        <form method="post" autocomplete="off">
+          <label class="label" for="user_question">Your question</label>
+          <textarea id="user_question" name="user_question" placeholder="Example: In Excel I need to combine first and last name into one column. I tried CONCAT but it shows errors.">{{ user_question }}</textarea>
+          <div class="hint">Examples: “Combine two columns in Excel”, “Outlook will not send emails”, “Schedule a recurring Teams meeting”, “Word will not save my file”.</div>
+
+          <div class="badges" style="margin-top:10px">
+            <button class="btn-soft" type="button" onclick="fill('In Word I need to turn a wall of text into a short summary for a shift handoff.')">Word summary</button>
+            <button class="btn-soft" type="button" onclick="fill('In Excel I need a formula that pulls the last 4 characters from a cell list.')">Excel formula</button>
+            <button class="btn-soft" type="button" onclick="fill('Outlook shows messages stuck in Outbox. How do I fix send errors?')">Outlook send error</button>
+            <button class="btn-soft" type="button" onclick="fill('In Teams I need to create a recurring weekly meeting with a custom time zone.')">Teams meeting</button>
+            <button class="btn-soft" type="button" onclick="fill('In PowerPoint I want a clean slide outline from bullet notes.')">PowerPoint outline</button>
+          </div>
+
+          <button class="button" type="submit">Get Help</button>
+          <a class="btn-soft" href="{{ url_for('home') }}" style="margin-left:8px">Back to Home</a>
+        </form>
       </div>
-      <div id="answerBox" class="mono">{{ answer|safe }}</div>
-      {% endif %}
 
-      <div class="note">Tip: If a step does not match your screen, tell us what you see. We will adjust the steps.</div>
-
-      <div class="pill-row">
-        <span class="pill" onclick="fill('In Word I need to turn a wall of text into a short summary for a shift handoff.')">Word summary</span>
-        <span class="pill" onclick="fill('In Excel I need a formula that pulls the last 4 characters from a cell list.')">Excel formula</span>
-        <span class="pill" onclick="fill('Outlook shows messages stuck in Outbox. How do I fix send errors?')">Outlook send error</span>
-        <span class="pill" onclick="fill('In Teams I need to create a recurring weekly meeting with a custom time zone.')">Teams meeting</span>
-        <span class="pill" onclick="fill('In PowerPoint I want a clean slide outline from bullet notes.')">PowerPoint outline</span>
+      <!-- Right: answer -->
+      <div>
+        <h2>Step-by-step instructions</h2>
+        {% if answer %}
+          <div class="panel">
+            <div style="text-align:right; margin-bottom:6px">
+              <button class="btn-soft" onclick="copyText('answerBox')">Copy steps</button>
+            </div>
+            <div id="answerBox" class="mono">{{ answer|safe }}</div>
+          </div>
+        {% else %}
+          <div class="panel">
+            Enter your question on the left and you will get clear numbered steps here. If a step does not match your screen, tell us what you see and we will adjust.
+          </div>
+        {% endif %}
       </div>
     </div>
 
+    <hr class="divider" />
     <div class="footer">SQN Copilot Companion • TVA-safe guidance for Microsoft 365</div>
   </div>
 
@@ -59,8 +70,8 @@
       const sel=window.getSelection(), range=document.createRange();
       range.selectNodeContents(el); sel.removeAllRanges(); sel.addRange(range);
       document.execCommand('copy'); sel.removeAllRanges();
-      const btns=document.getElementsByClassName('btn copy');
-      for (let b of btns){ b.textContent='Copied'; setTimeout(()=> b.textContent='Copy',1200) }
+      const btns=document.getElementsByClassName('btn-soft');
+      for (let b of btns){ if (b.textContent === 'Copy steps'){ b.textContent='Copied'; setTimeout(()=> b.textContent='Copy steps',1200) } }
     }
     function fill(t){
       const el=document.getElementById('user_question'); el.value=t; el.focus();
