@@ -1,134 +1,116 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Learn {{ app }} – Copilot Academy</title>
-    <style>
-        body {
-            font-family: "Segoe UI", Tahoma, sans-serif;
-            background-color: #f4f8fb;
-            color: #003366;
-            margin: 0;
-            padding: 0;
-        }
-
-        .header {
-            background-color: #004785;
-            color: white;
-            padding: 40px 20px;
-            text-align: center;
-        }
-
-        .container {
-            max-width: 1000px;
-            margin: 40px auto;
-            background: white;
-            padding: 40px;
-            border-radius: 12px;
-            box-shadow: 0 6px 18px rgba(0,0,0,0.08);
-        }
-
-        h1 {
-            font-size: 28px;
-            margin-bottom: 5px;
-        }
-
-        h2 {
-            font-size: 20px;
-            margin-top: 30px;
-        }
-
-        p {
-            font-size: 16px;
-            line-height: 1.6;
-        }
-
-        form {
-            margin-top: 20px;
-        }
-
-        input[type="text"] {
-            width: 100%;
-            padding: 14px;
-            font-size: 16px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            margin-top: 8px;
-        }
-
-        button {
-            margin-top: 14px;
-            padding: 12px 20px;
-            font-size: 16px;
-            font-weight: bold;
-            background-color: #004785;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-        }
-
-        .lesson-box {
-            background-color: #f0f8ff;
-            border-left: 6px solid #004785;
-            padding: 25px;
-            margin-top: 30px;
-            border-radius: 8px;
-            white-space: pre-line;
-        }
-
-        .back-link {
-            display: inline-block;
-            margin-top: 30px;
-            text-decoration: none;
-            color: #004785;
-            font-weight: bold;
-        }
-
-        .tagline {
-            font-size: 16px;
-            color: #cce2f4;
-            margin-top: 8px;
-        }
-
-        .gray-label {
-            font-size: 15px;
-            color: #555;
-            margin-bottom: 5px;
-            font-weight: 600;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <title>Learn {{ app }} – SQN Copilot Companion</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f4f8fc;
+      color: #1a1a1a;
+    }
+    .container {
+      display: flex;
+    }
+    .sidebar {
+      width: 260px;
+      background-color: #003366;
+      color: white;
+      height: 100vh;
+      padding: 30px 20px;
+      box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+    }
+    .sidebar h2 {
+      font-size: 22px;
+      margin-bottom: 20px;
+    }
+    .sidebar a {
+      color: white;
+      display: block;
+      margin-bottom: 12px;
+      text-decoration: none;
+    }
+    .main {
+      flex-grow: 1;
+      padding: 40px;
+    }
+    .warning {
+      background-color: #fff3cd;
+      color: #856404;
+      border: 1px solid #ffeeba;
+      padding: 15px;
+      margin-bottom: 25px;
+      border-radius: 6px;
+      font-weight: bold;
+    }
+    h1 {
+      margin-bottom: 10px;
+    }
+    form {
+      margin-bottom: 30px;
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 10px;
+      font-size: 16px;
+      margin-top: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    button {
+      background-color: #005ea2;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      font-size: 16px;
+      border-radius: 4px;
+      margin-top: 15px;
+      cursor: pointer;
+    }
+    .lesson-block {
+      background-color: white;
+      border: 1px solid #ccc;
+      padding: 25px;
+      border-radius: 6px;
+      white-space: pre-wrap;
+    }
+  </style>
 </head>
 <body>
+<div class="container">
+  <div class="sidebar">
+    <h2>SQN Copilot</h2>
+    <a href="{{ url_for('home') }}">🏠 Home</a>
+    <a href="{{ url_for('learn_app', app_name='word') }}">📄 Learn Word</a>
+    <a href="{{ url_for('learn_app', app_name='excel') }}">📊 Learn Excel</a>
+    <a href="{{ url_for('learn_app', app_name='outlook') }}">📧 Learn Outlook</a>
+    <a href="{{ url_for('learn_app', app_name='teams') }}">💬 Learn Teams</a>
+    <a href="{{ url_for('learn_app', app_name='powerpoint') }}">📽 Learn PowerPoint</a>
+    <a href="{{ url_for('logout') }}">🔒 Logout</a>
+  </div>
 
-    <div class="header">
-        <h1>Learn {{ app }}</h1>
-        <p class="tagline">Step-by-step beginner lessons, powered by AI</p>
+  <div class="main">
+    <div class="warning">
+      ⚠️ Do not enter or upload any TVA-sensitive or personal information. This is an external tool for learning and general productivity only.
     </div>
 
-    <div class="container">
+    <h1>Learn Microsoft {{ app }}</h1>
+    <p>Get beginner-friendly, step-by-step instructions using AI.</p>
 
-        <h2>🧠 Full Lesson</h2>
-        <p>This lesson explains how to use Microsoft {{ app }} in beginner-friendly, plain language:</p>
+    <form method="POST">
+      <label for="topic">What do you want to learn about {{ app }}?</label>
+      <input type="text" name="topic" id="topic" value="{{ user_topic }}" placeholder="(Optional) Type a feature or action, like 'mail merge'">
+      <button type="submit">Generate Lesson</button>
+    </form>
 
-        {% if lesson %}
-            <div class="lesson-box">
-                {{ lesson }}
-            </div>
-        {% else %}
-            <div class="lesson-box">
-                ⏳ No lesson loaded yet. Submit the form below to generate a new lesson.
-            </div>
-        {% endif %}
-
-        <h2>🎯 Ask a Question About {{ app }}</h2>
-        <p class="gray-label">Not sure what to ask? Try: “How do I create a table in Word?” or “How do I build a chart in Excel?”</p>
-        <form method="post">
-            <input type="text" name="topic" placeholder="Type your question here..." value="{{ user_topic }}">
-            <button type="submit">Teach Me This</button>
-        </form>
-
-        <a class="back-link" href="/home">⬅ Back to Main Assistant</a>
+    {% if lesson %}
+    <div class="lesson-block">
+      {{ lesson | safe }}
     </div>
-
+    {% endif %}
+  </div>
+</div>
 </body>
 </html>
