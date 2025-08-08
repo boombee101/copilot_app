@@ -15,16 +15,51 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 APP_PASSWORD = os.getenv("APP_PASSWORD")
 client = OpenAI(api_key=OPENAI_API_KEY)
 
-@app.route('/', methods=['GET', 'POST'])
-def login():
+@app.route('/learn/<app_name>', methods=['GET', 'POST'])
+def learn_app(app_name):
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+
+    app_name = app_name.lower()
+    valid_apps = ['word', 'excel', 'outlook', 'teams', 'powerpoint']
+    if app_name not in valid_apps:
+        return "Invalid app", 404
+
+    lesson_content = ""
+    user_topic = ""
+
     if request.method == 'POST':
-        password = request.form.get('password')
-        if password == APP_PASSWORD:
-            session['logged_in'] = True
-            return redirect(url_for('home'))
+        user_topic = request.form.get('topic', '').strip()
+        if user_topic:
+            prompt = (
+                f"You are a friendly Microsoft 365 trainer helping a total beginner at TVA learn {app_name.title()}. "
+                f"Explain the topic: '{user_topic}' using step-by-step, plain-language instructions. "
+                "Avoid technical jargon. Write like you're teaching someone with no experience. Be very detailed and supportive."
+            )
         else:
-            return render_template('login.html', error="Incorrect password")
-    return render_template('login.html')
+            prompt = (
+                f"Teach a complete beginner how to use Microsoft {app_name.title()}. "
+                "Write a full, clear, detailed lesson. Use simple words and short steps. "
+                "Assume no prior knowledge. Make it feel like a live class for someone who has never used the app before."
+            )
+
+        try:
+            response = client.chat.completions.create(
+                model="gpt-4",
+                messages=[
+                    {"role": "system", "content": "You are a patient trainer who teaches Microsoft 365 apps in a beginner-friendly, for-dummies style."},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.6,
+                max_tokens=900
+            )
+            lesson_content = response.choices[0].message.content.strip()
+        except Exception as e:
+            print(f"⚠️ AI Lesson Error: {e}")
+            lesson_content = "⚠️ Sorry, something went wrong while generating your lesson."
+
+    return render_template("learn.html", app=app_name.title(), lesson=lesson_content, user_topic=user_topic)
+
 
 @app.route('/home', methods=['GET', 'POST'])
 def home():

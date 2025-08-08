@@ -1,103 +1,134 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Learn {{ app }} – SQN Copilot Companion</title>
+    <title>Learn {{ app }} – Copilot Academy</title>
     <style>
         body {
             font-family: "Segoe UI", Tahoma, sans-serif;
             background-color: #f4f8fb;
             color: #003366;
+            margin: 0;
+            padding: 0;
+        }
+
+        .header {
+            background-color: #004785;
+            color: white;
             padding: 40px 20px;
+            text-align: center;
         }
 
         .container {
-            max-width: 900px;
-            margin: auto;
+            max-width: 1000px;
+            margin: 40px auto;
             background: white;
             padding: 40px;
             border-radius: 12px;
-            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+            box-shadow: 0 6px 18px rgba(0,0,0,0.08);
         }
 
         h1 {
             font-size: 28px;
-            margin-bottom: 20px;
-            color: #002855;
+            margin-bottom: 5px;
         }
 
         h2 {
-            font-size: 22px;
-            color: #004785;
+            font-size: 20px;
             margin-top: 30px;
         }
 
-        ul {
-            margin-top: 10px;
-            padding-left: 20px;
+        p {
+            font-size: 16px;
+            line-height: 1.6;
+        }
+
+        form {
+            margin-top: 20px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 14px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            margin-top: 8px;
+        }
+
+        button {
+            margin-top: 14px;
+            padding: 12px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            background-color: #004785;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .lesson-box {
+            background-color: #f0f8ff;
+            border-left: 6px solid #004785;
+            padding: 25px;
+            margin-top: 30px;
+            border-radius: 8px;
+            white-space: pre-line;
         }
 
         .back-link {
             display: inline-block;
-            margin-top: 40px;
+            margin-top: 30px;
             text-decoration: none;
             color: #004785;
             font-weight: bold;
         }
 
-        .highlight-box {
-            background-color: #f0f8ff;
-            border-left: 6px solid #004785;
-            padding: 15px 20px;
-            margin-top: 15px;
-            border-radius: 8px;
+        .tagline {
+            font-size: 16px;
+            color: #cce2f4;
+            margin-top: 8px;
         }
 
-        .example-box {
-            background-color: #fff8e1;
-            border-left: 6px solid #ffb300;
-            padding: 15px 20px;
-            margin-top: 15px;
-            border-radius: 8px;
-        }
-
-        .logo {
-            width: 160px;
-            margin-bottom: 20px;
-        }
-
-        .topbar {
-            text-align: center;
+        .gray-label {
+            font-size: 15px;
+            color: #555;
+            margin-bottom: 5px;
+            font-weight: 600;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="topbar">
-            <img src="/static/images/tva_logo.png" class="logo" alt="TVA Logo">
-            <h1>Teach Me {{ app }}</h1>
-        </div>
 
-        <h2>📘 What is {{ app }} used for?</h2>
-        <p>{{ content.summary }}</p>
-
-        <h2>💬 What can Copilot help with in {{ app }}?</h2>
-        <ul>
-            {% for tip in content.copilot_uses %}
-                <li>{{ tip }}</li>
-            {% endfor %}
-        </ul>
-
-        <div class="example-box">
-            <strong>Example Copilot Prompt:</strong><br>
-            "{{ content.prompt_example }}"
-        </div>
-
-        <h2>👣 How to Do It Manually (No Copilot)</h2>
-        <div class="highlight-box">
-            <strong>Manual Tip:</strong> {{ content.manual_tip }}
-        </div>
-
-        <a href="/home" class="back-link">⬅ Back to Assistant</a>
+    <div class="header">
+        <h1>Learn {{ app }}</h1>
+        <p class="tagline">Step-by-step beginner lessons, powered by AI</p>
     </div>
+
+    <div class="container">
+
+        <h2>🧠 Full Lesson</h2>
+        <p>This lesson explains how to use Microsoft {{ app }} in beginner-friendly, plain language:</p>
+
+        {% if lesson %}
+            <div class="lesson-box">
+                {{ lesson }}
+            </div>
+        {% else %}
+            <div class="lesson-box">
+                ⏳ No lesson loaded yet. Submit the form below to generate a new lesson.
+            </div>
+        {% endif %}
+
+        <h2>🎯 Ask a Question About {{ app }}</h2>
+        <p class="gray-label">Not sure what to ask? Try: “How do I create a table in Word?” or “How do I build a chart in Excel?”</p>
+        <form method="post">
+            <input type="text" name="topic" placeholder="Type your question here..." value="{{ user_topic }}">
+            <button type="submit">Teach Me This</button>
+        </form>
+
+        <a class="back-link" href="/home">⬅ Back to Main Assistant</a>
+    </div>
+
 </body>
 </html>
