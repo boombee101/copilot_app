@@ -149,9 +149,22 @@
   <div class="container">
     <form method="post" autocomplete="off">
       <label class="label" for="user_question">
-        Describe your issue or question (Word, Excel, Outlook, Teams, etc.):
+        Tell us what you need help with in Microsoft 365.<br>
+        <span style="font-weight:400;">
+          <b>Type your question or describe your problem in as much detail as possible.</b><br>
+          Please mention the app you’re using (Word, Excel, Outlook, Teams, PowerPoint, etc.) and what you’re trying to do or what’s not working.<br>
+          <br>
+          <b>Examples:</b><br>
+          • “How do I combine two columns in Excel?”<br>
+          • “Outlook won’t send my emails—what can I do?”<br>
+          • “How do I schedule a recurring meeting in Teams?”<br>
+          • “Word isn’t saving my document. How do I fix this?”<br>
+          • “I want to format a chart in PowerPoint, but I don’t see the options.”
+          <br><br>
+          <i>No question is too small. We’re here to help with any Microsoft 365 issue!</i>
+        </span>
       </label>
-      <textarea name="user_question" id="user_question" placeholder="Example: How do I combine two columns in Excel? Or, why won’t my Outlook rules work?" required>{{ user_question }}</textarea>
+      <textarea name="user_question" id="user_question" placeholder="Describe your question or problem here..." required>{{ user_question }}</textarea>
       <button class="button" type="submit">Get Help</button>
     </form>
 
