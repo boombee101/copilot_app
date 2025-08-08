@@ -11,7 +11,6 @@ app = Flask(__name__)
 app.secret_key = os.urandom(24)
 app.config['SESSION_PERMANENT'] = False
 
-# Setup OpenAI client
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 APP_PASSWORD = os.getenv("APP_PASSWORD")
 client = OpenAI(api_key=OPENAI_API_KEY)
@@ -55,10 +54,7 @@ def home():
                     messages=[
                         {"role": "system", "content": (
                             f"You are a prompt assistant helping non-technical TVA employees use Microsoft {app_selected}. "
-                            "Break their vague task into extremely clear, detailed follow-up questions. "
-                            "Write the questions in plain language, like you're guiding someone with no technical background. "
-                            "Avoid jargon. If the task is about searching emails, use wording like: 'What are you trying to find in the emails?' "
-                            "Be supportive and step-by-step. Output only the questions."
+                            "Break their vague task into extremely clear, detailed follow-up questions. Use plain, supportive language."
                         )},
                         {"role": "user", "content": f"The user said: '{task}'"}
                     ],
@@ -85,16 +81,14 @@ def home():
             try:
                 smart_prompt = (
                     f"The user wants help using Microsoft Copilot in {app_selected}. Based on the goal and context below, write a clear, workplace-friendly prompt for Microsoft Copilot. "
-                    f"Do not write code. Do not assume the user is technical. Just write a normal Copilot prompt that an employee might type inside Word, Excel, Outlook, or Teams.\n\n"
-                    f"Task:\n{task}\n\nContext:\n{context}"
+                    f"Do not write code. Assume the user is non-technical.\n\nTask:\n{task}\n\nContext:\n{context}"
                 )
                 prompt_response = client.chat.completions.create(
                     model="gpt-4",
                     messages=[
                         {"role": "system", "content": (
                             "You are an expert at writing Microsoft Copilot prompts for Office apps (Word, Excel, Outlook, Teams). "
-                            "You help non-technical employees get their work done with natural-language Copilot commands. "
-                            "Avoid technical language, code, or developer terms."
+                            "Keep it simple, natural, and work-focused."
                         )},
                         {"role": "user", "content": smart_prompt}
                     ],
@@ -145,17 +139,15 @@ def how_to_manual():
         app_selected = data.get('app_selected', 'a Microsoft app')
 
         prompt = (
-            f"You are a friendly technical assistant for employees at TVA who are not familiar with Microsoft {app_selected}. "
-            f"The user wants to complete this task manually, without using Copilot:\n\n"
-            f"Task: {task}\n\nAdditional Details:\n{context}\n\n"
-            "Write step-by-step instructions in very simple, beginner-friendly language. "
-            "Break it down clearly. Assume they don’t know anything technical. Avoid jargon."
+            f"You are a friendly assistant for employees at TVA who are not familiar with Microsoft {app_selected}. "
+            f"The user wants to complete this task manually:\n\nTask: {task}\n\nContext:\n{context}\n\n"
+            "Write step-by-step instructions in very simple, beginner-friendly language. Avoid jargon."
         )
 
         response = client.chat.completions.create(
             model="gpt-4",
             messages=[
-                {"role": "system", "content": "You help people understand how to do Microsoft 365 tasks manually using clear, simple steps."},
+                {"role": "system", "content": "You help people understand Microsoft 365 using clear, simple steps."},
                 {"role": "user", "content": prompt}
             ],
             temperature=0.6,
@@ -179,8 +171,7 @@ def ask_gpt():
             model="gpt-4",
             messages=[
                 {"role": "system", "content": (
-                    "You're a friendly assistant guiding non-technical users at TVA to ask good Microsoft Copilot questions. "
-                    "Keep your response short, clear, and beginner-friendly."
+                    "You're a helpful assistant guiding non-technical users at TVA to write good Microsoft Copilot tasks."
                 )},
                 {"role": "user", "content": question}
             ],
@@ -191,6 +182,72 @@ def ask_gpt():
     except Exception as e:
         print(f"⚠️ /ask_gpt error: {e}")
         return jsonify({"answer": "⚠️ GPT error. Try again later."})
+
+@app.route('/learn/<app_name>')
+def learn_app(app_name):
+    lessons = {
+        'word': {
+            "summary": "Microsoft Word is used for creating and formatting documents such as reports, letters, and forms.",
+            "copilot_uses": [
+                "Summarize long documents",
+                "Fix grammar or improve tone",
+                "Generate drafts based on meeting notes",
+                "Insert tables or headings automatically"
+            ],
+            "manual_tip": "To insert a table in Word: Click 'Insert' > 'Table' > Select size.",
+            "prompt_example": "Summarize this document into bullet points for a quick briefing."
+        },
+        'excel': {
+            "summary": "Microsoft Excel is used for data organization, calculations, charts, and financial tracking.",
+            "copilot_uses": [
+                "Generate charts from tables",
+                "Summarize data trends",
+                "Write formulas for tasks",
+                "Clean up inconsistent data"
+            ],
+            "manual_tip": "To create a chart: Select data > Click 'Insert' > Choose a chart type.",
+            "prompt_example": "Create a bar chart showing monthly sales totals from this sheet."
+        },
+        'outlook': {
+            "summary": "Microsoft Outlook is used for email communication, calendars, and scheduling.",
+            "copilot_uses": [
+                "Summarize email threads",
+                "Draft responses",
+                "Find important deadlines",
+                "Schedule meetings"
+            ],
+            "manual_tip": "To schedule a meeting: Go to Calendar > New Event > Add attendees and time.",
+            "prompt_example": "Draft a polite reply confirming attendance at the meeting on Friday."
+        },
+        'teams': {
+            "summary": "Microsoft Teams is used for chat, meetings, and collaboration within TVA teams.",
+            "copilot_uses": [
+                "Summarize chat threads",
+                "Extract action items from meetings",
+                "Create agendas or notes",
+                "Draft announcements"
+            ],
+            "manual_tip": "To start a new post: Go to the channel > Click 'New conversation'.",
+            "prompt_example": "Summarize this Teams conversation into 3 key decisions and next steps."
+        },
+        'powerpoint': {
+            "summary": "Microsoft PowerPoint is used for creating slide-based presentations.",
+            "copilot_uses": [
+                "Generate slide outlines",
+                "Summarize reports into slides",
+                "Fix formatting or layout",
+                "Add speaker notes"
+            ],
+            "manual_tip": "To add a slide: Click 'New Slide' > Choose a layout.",
+            "prompt_example": "Create a 5-slide summary of our safety report with bullet points and visuals."
+        }
+    }
+
+    content = lessons.get(app_name.lower())
+    if not content:
+        return "App not found", 404
+
+    return render_template("learn.html", app=app_name.title(), content=content)
 
 @app.route('/logout')
 def logout():
