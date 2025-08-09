@@ -20,9 +20,10 @@
     </div>
   </div>
 
+  {% include '_nav.html' %}
+
   <div class="container">
     <div class="layout">
-      <!-- Left: form -->
       <div>
         <h1>Describe the issue</h1>
         <p class="lead">Tell us which app you are in and what is going wrong. Keep the wording general. Do not include private or sensitive data.</p>
@@ -55,7 +56,6 @@
         </form>
       </div>
 
-      <!-- Right: result -->
       <div>
         <h2>Step-by-step answer</h2>
         {% if result %}

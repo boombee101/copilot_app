@@ -17,8 +17,9 @@
     </div>
   </div>
 
+  {% include '_nav.html' %}
+
   <div class="wrap split">
-    <!-- Left: Lesson builder -->
     <div class="card">
       <h2>What do you want to learn</h2>
       <form method="POST">
@@ -57,7 +58,6 @@
       </div>
     </div>
 
-    <!-- Right: Lesson content -->
     <div class="card">
       <h2>Your lesson</h2>
       {% if lesson %}

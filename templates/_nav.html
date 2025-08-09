@@ -1,0 +1,24 @@
+<div class="container" style="padding:14px 18px 10px; margin-bottom:0">
+  <nav style="display:flex; gap:10px; flex-wrap:wrap; align-items:center">
+    <a class="btn-soft {% if active_page == 'home' %}active{% endif %}" href="{{ url_for('home') }}">Home</a>
+
+    <a class="btn-soft {% if active_page == 'help' %}active{% endif %}" href="{{ url_for('help_desk') }}">Help Desk</a>
+
+    <a class="btn-soft {% if active_page == 'ask_help' %}active{% endif %}" href="{{ url_for('ask_help') }}">Ask for Help</a>
+
+    <a class="btn-soft {% if active_page and active_page.startswith('learn_') %}active{% endif %}"
+       href="{{ url_for('learn_app', app_name='word') }}">Learn</a>
+
+    <div style="flex:1"></div>
+    <a class="btn-soft" href="{{ url_for('logout') }}">Log out</a>
+  </nav>
+</div>
+
+<style>
+  /* Optional: highlight active tab when active_page is passed from app.py */
+  .btn-soft.active {
+    background:#eaf3fb !important;
+    border-color:#cfe0f4 !important;
+    pointer-events:none;
+  }
+</style>
