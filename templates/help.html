@@ -7,146 +7,95 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='style_classic.css') }}">
 </head>
 <body>
-  <div class="disclaimer">⚠️ Do not input or share TVA-sensitive, personal, or confidential information. Use general descriptions only.</div>
+  <div class="disclaimer" role="note">
+    ⚠️ Do not input or share TVA-sensitive, personal, or confidential information. Use general descriptions only.
+  </div>
 
   <div class="header">
     <div class="header-content">
       <img src="/static/images/tva_logo.png" alt="TVA Logo" />
       <div class="title">Help Desk</div>
-      <div class="subtitle">Clear, step-by-step Microsoft 365 help for TVA employees</div>
+      <div class="subtitle">Type your question. Get simple, step‑by‑step help.</div>
     </div>
   </div>
 
-  <div class="container">
-    <div class="panel" style="margin-top:0">
-      <b>How to use this page</b>
-      <div style="margin-top:8px">
-        1) Tell us the app, the problem, and what you already tried. <br>
-        2) Click <b>Get Help</b> to receive numbered steps in plain language. <br>
-        3) Copy the <b>Copilot Prompt</b> if you want to try Copilot instead. <br>
-        Tip: Keep details general. Don’t include private data or screenshots with sensitive info.
+  <div class="container" role="main">
+    <div class="panel" style="margin-top:0" aria-labelledby="start-here">
+      <b id="start-here">Start here</b>
+      <div style="margin-top:8px; line-height:1.6">
+        1) Type your question in plain language (what you want to do or what’s broken).<br>
+        2) Keep it general. Do not include private data.<br>
+        3) Click <b>Get Help</b> to see numbered steps in a “for dummies” tone.<br>
+        Tip: Click an example to prefill the box.
       </div>
     </div>
 
-    <div class="layout">
-      <!-- Left column: Guided Troubleshooter -->
-      <div>
-        <h1>Guided Troubleshooter</h1>
-        <p class="lead">Fill this out in plain language. If you’re not sure, pick the closest option and write what you see on screen.</p>
-
-        <form method="post" autocomplete="off">
-          <label class="label" for="app_select">Which Microsoft app?</label>
-          <select id="app_select" name="app_select">
-            <option>Word</option>
-            <option>Excel</option>
-            <option>Outlook</option>
-            <option>Teams</option>
-            <option>PowerPoint</option>
-            <option>Other</option>
-          </select>
-
-          <label class="label" for="issue_type" style="margin-top:10px">What type of issue is it?</label>
-          <select id="issue_type" name="issue_type">
-            <option>How do I… (learn a feature)</option>
-            <option>Error or bug (something is broken)</option>
-            <option>Formatting or layout issue</option>
-            <option>File open/save/share problem</option>
-            <option>Account, permissions, or access</option>
-            <option>Other / not sure</option>
-          </select>
-
-          <label class="label" for="symptoms" style="margin-top:10px">Describe the problem (what you see)</label>
-          <textarea id="symptoms" name="symptoms" placeholder="Example: In Excel I try VLOOKUP for names. Some work, others show #N/A. My list has extra spaces."></textarea>
-          <div class="hint">Good details: exact error words, what button you clicked, what changed, file type (e.g., .docx, .xlsx).</div>
-
-          <label class="label" for="tried" style="margin-top:10px">What have you already tried?</label>
-          <textarea id="tried" name="tried" placeholder="Example: I tried CONCAT, checked column headers, restarted the app."></textarea>
-
-          <div class="badges" style="margin-top:10px">
-            <button class="btn-soft" type="button" onclick="fillPreset('Excel','Error or bug (something is broken)','VLOOKUP shows #N/A for some names','Checked spelling; trimmed spaces in one column')">Excel VLOOKUP</button>
-            <button class="btn-soft" type="button" onclick="fillPreset('Outlook','Error or bug (something is broken)','Messages stuck in Outbox','Restarted Outlook; toggled Work Offline')">Outlook send</button>
-            <button class="btn-soft" type="button" onclick="fillPreset('Teams','How do I… (learn a feature)','Need a recurring weekly meeting with time zone','Tried from Calendar, not sure about time zone')">Teams recurring</button>
-            <button class="btn-soft" type="button" onclick="fillPreset('Word','Formatting or layout issue','Large wall of text; need short summary','Tried selecting text and looking for summarize')">Word summary</button>
-            <button class="btn-soft" type="button" onclick="fillPreset('PowerPoint','How do I… (learn a feature)','Turn bullet notes into a clean outline','Tried Designer but results look messy')">PPT outline</button>
-          </div>
-
-          <input type="hidden" name="mode" value="guided">
-          <button class="button" type="submit" style="margin-top:12px">Get Help</button>
-          <a class="btn-soft" href="{{ url_for('home') }}" style="margin-left:8px">Back to Home</a>
-        </form>
-
-        <hr class="divider">
-
-        <h2>Instant Fix Library</h2>
-        <div class="badges">
-          <button class="btn-soft" type="button" onclick="quickAsk('Excel: Combine first and last name into one column (with a safe formula).')">Excel • Combine names</button>
-          <button class="btn-soft" type="button" onclick="quickAsk('Outlook: Fix emails stuck in Outbox and make sure new mails send.')">Outlook • Stuck Outbox</button>
-          <button class="btn-soft" type="button" onclick="quickAsk('Teams: Schedule a recurring weekly meeting with a custom time zone.')">Teams • Recurring mtg</button>
-          <button class="btn-soft" type="button" onclick="quickAsk('Word: Turn a long section into a short, readable summary for a shift handoff.')">Word • Summarize</button>
-          <button class="btn-soft" type="button" onclick="quickAsk('PowerPoint: Turn bullet notes into a clean slide outline with headings and sub-bullets.')">PPT • Outline</button>
-        </div>
-      </div>
-
-      <!-- Right column: Results -->
-      <div>
-        <h2>Results</h2>
-
-        {% if answer %}
-          <div class="panel">
-            <div style="display:flex;gap:8px;justify-content:flex-end;margin-bottom:8px">
-              <button class="btn-soft" onclick="copyText('stepsBox')">Copy steps</button>
-              <button class="btn-soft" onclick="copyText('promptBox')">Copy Copilot prompt</button>
-            </div>
-
-            <div id="stepsBox" class="mono">{{ answer|safe }}</div>
-
-            {% if prompt_text %}
-              <hr class="divider">
-              <b>Copilot Prompt</b>
-              <div id="promptBox" class="mono">{{ prompt_text|safe }}</div>
-            {% endif %}
-
-            {% if why_text %}
-              <hr class="divider">
-              <b>Why this works</b>
-              <div class="mono">{{ why_text|safe }}</div>
-            {% endif %}
-          </div>
-        {% else %}
-          <div class="panel">
-            Submit the Guided Troubleshooter or click an Instant Fix to see step-by-step instructions, a ready-to-use Copilot prompt, and a brief explanation of why the steps work.
-          </div>
-        {% endif %}
-      </div>
+    <h2 style="margin-top:18px">Examples (click to fill)</h2>
+    <div class="badges" aria-label="example questions">
+      <button class="btn-soft" type="button" onclick="fill('How do I search for the word &quot;help&quot; in a Word document?')">Word • Find a word</button>
+      <button class="btn-soft" type="button" onclick="fill('Excel shows #N/A in VLOOKUP for some names. How do I fix it?')">Excel • VLOOKUP #N/A</button>
+      <button class="btn-soft" type="button" onclick="fill('How do I schedule a recurring weekly Teams meeting with a custom time zone?')">Teams • Recurring meeting</button>
+      <button class="btn-soft" type="button" onclick="fill('Outlook won’t send. Messages are stuck in Outbox. How do I fix it?')">Outlook • Stuck Outbox</button>
+      <button class="btn-soft" type="button" onclick="fill('Turn bullet notes into a clean slide outline in PowerPoint.')">PowerPoint • Slide outline</button>
     </div>
+
+    <h1 style="margin-top:10px">Ask anything about Microsoft 365</h1>
+    <p class="lead">Example: “How do I search for the word ‘help’ in a Word document?”</p>
+
+    <form method="post" autocomplete="off" onsubmit="return onSubmit()" aria-describedby="hint">
+      <label class="label" for="user_question">Describe your issue or question (Word, Excel, Outlook, Teams, PowerPoint)</label>
+      <textarea
+        id="user_question"
+        name="user_question"
+        placeholder="Type your question in plain language. Example: In Word, I need to find every place the word help appears."
+        aria-required="true"
+        aria-describedby="hint counter"
+        autofocus
+      >{{ user_question }}</textarea>
+
+      <div class="hint" id="hint">Write 8–20 words so we can give precise steps. Do not paste sensitive info.</div>
+      <div class="hint" id="counter">0 characters</div>
+
+      <div style="margin-top:10px; display:flex; gap:8px; align-items:center">
+        <button id="submitBtn" class="button" type="submit" disabled>Get Help</button>
+        <a class="btn-soft" href="{{ url_for('home') }}">Back to Home</a>
+      </div>
+    </form>
+
+    <h2 style="margin-top:22px">Answer</h2>
+    {% if answer %}
+      <div class="panel mono" id="answerBox">{{ answer|safe }}</div>
+    {% else %}
+      <div class="panel" id="answerPlaceholder">Your beginner‑friendly steps will appear here after you click <b>Get Help</b>.</div>
+    {% endif %}
 
     <hr class="divider" />
     <div class="footer">SQN Copilot Companion • TVA-safe guidance for Microsoft 365</div>
   </div>
 
-  <form id="quickForm" method="post" style="display:none">
-    <input type="hidden" name="mode" value="quick">
-    <input type="hidden" name="user_question" id="quickQuestion">
-  </form>
-
   <script>
-    function copyText(id){
-      const el=document.getElementById(id); if(!el) return;
-      const sel=window.getSelection(), range=document.createRange();
-      range.selectNodeContents(el); sel.removeAllRanges(); sel.addRange(range);
-      document.execCommand('copy'); sel.removeAllRanges();
+    const ta = document.getElementById('user_question');
+    const counter = document.getElementById('counter');
+    const submitBtn = document.getElementById('submitBtn');
+
+    function updateCounter(){
+      const len = (ta.value || '').trim().length;
+      counter.textContent = len + ' characters';
+      submitBtn.disabled = len < 12; // require a bit of detail
     }
-    function fillPreset(app, type, symptoms, tried){
-      document.getElementById('app_select').value = app;
-      document.getElementById('issue_type').value = type;
-      document.getElementById('symptoms').value = symptoms;
-      document.getElementById('tried').value = tried;
-      document.getElementById('symptoms').focus();
+    function fill(text){
+      ta.value = text;
+      updateCounter();
+      ta.focus();
+      window.scrollTo({ top: ta.getBoundingClientRect().top + window.scrollY - 120, behavior: 'smooth' });
     }
-    function quickAsk(text){
-      document.getElementById('quickQuestion').value = text;
-      document.getElementById('quickForm').submit();
+    function onSubmit(){
+      submitBtn.textContent = 'Working...';
+      submitBtn.disabled = true;
+      return true;
     }
+    ta && ta.addEventListener('input', updateCounter);
+    updateCounter();
   </script>
 </body>
 </html>

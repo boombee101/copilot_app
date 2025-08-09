@@ -372,77 +372,50 @@ def ask_help():
 @app.route('/help', methods=['GET', 'POST'])
 def help_desk():
     """
-    Rebuilt Help Desk with Guided + Quick modes and structured output:
-      1) Clarifying Questions (if needed)
-      2) Numbered Steps
-      3) Copilot Prompt
-      4) Why This Works
+    Simple, one-box Help Desk:
+      - User types any question about Word/Excel/Outlook/Teams/PowerPoint
+      - We return beginner-friendly, numbered steps in plain language
     """
     if not session.get('logged_in'):
         return redirect(url_for('login'))
 
-    answer = None
-    prompt_text = None
-    why_text = None
     user_question = ""
+    answer = None
+    DEFAULT_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o")
 
-    try:
-        mode = (request.form.get('mode') or '').strip()
+    if request.method == 'POST':
+        user_question = (request.form.get('user_question') or '').strip()
 
-        if request.method == 'POST' and mode == 'guided':
-            app_sel   = (request.form.get('app_select') or '').strip()
-            issue_type = (request.form.get('issue_type') or '').strip()
-            symptoms  = (request.form.get('symptoms') or '').strip()
-            tried     = (request.form.get('tried') or '').strip()
-            user_question = f"App: {app_sel}\nIssue Type: {issue_type}\nSymptoms: {symptoms}\nTried: {tried}"
-
-        elif request.method == 'POST' and mode == 'quick':
-            user_question = (request.form.get('user_question') or '').strip()
-
-        if request.method == 'POST':
-            if not user_question:
-                answer = "Please describe your Microsoft 365 issue on the left."
-            else:
+        if not user_question:
+            answer = "Please type your question above."
+        else:
+            try:
                 prompt = (
-                    "You are a Microsoft 365 support agent for TVA employees. "
-                    "Return the following sections in this exact order and with those headings:\n\n"
-                    "Clarifying Questions\n"
-                    "Numbered Steps\n"
-                    "Copilot Prompt\n"
-                    "Why This Works\n\n"
-                    "Rules: Avoid jargon, no sensitive data. Use short sentences. "
-                    "Tailor the steps to the user's details. If they tried things already, incorporate that.\n\n"
-                    f"User details:\n{user_question}\n"
+                    "You are a Microsoft 365 help agent for TVA employees. "
+                    "Respond in a very clear, beginner-friendly 'for dummies' tone. "
+                    "Write short sentences. Avoid jargon. "
+                    "Always give numbered steps specific to the app the user implies. "
+                    "If the request could apply to multiple apps, pick the most likely one and proceed. "
+                    "Do not ask for sensitive information. Do not request screenshots.\n\n"
+                    f"User question:\n{user_question}\n"
                 )
 
                 resp = client.chat.completions.create(
                     model=DEFAULT_MODEL,
                     messages=[
-                        {"role": "system", "content": "Be direct, clear, beginner-friendly. Always produce the 4 sections listed, even if some are brief."},
+                        {"role": "system", "content": "Be simple, friendly, and precise. Only give helpful numbered steps and a short tip if useful."},
                         {"role": "user", "content": prompt}
                     ],
                     temperature=0.3,
-                    max_tokens=900
+                    max_tokens=800
                 )
-                full = resp.choices[0].message.content.strip()
+                answer = resp.choices[0].message.content.strip()
 
-                clarify, steps, copilot_p, whyw = split_helpdesk_sections(full)
+            except Exception as e:
+                print(f"⚠️ Help Desk error: {e}")
+                answer = "⚠️ Sorry, I could not load help right now. Please try again."
 
-                # In the UI we primarily show steps, then prompt, then why.
-                answer = steps or full
-                prompt_text = copilot_p
-                why_text = whyw
-
-    except Exception as e:
-        print(f"⚠️ Help Desk error: {e}")
-        answer = "⚠️ Sorry, we couldn't get an answer from the AI. Please try again later."
-
-    return render_template("help.html",
-                           answer=answer,
-                           prompt_text=prompt_text,
-                           why_text=why_text,
-                           user_question=user_question)
-
+    return render_template("help.html", answer=answer, user_question=user_question)
 
 # =========================
 # Main
