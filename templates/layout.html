@@ -1,7 +1,6 @@
 <!-- =============================
 FILE: templates/layout.html
 Shared base template with header + sidebar + styles.
-Use {% extends 'layout.html' %} and fill blocks.
 ============================= -->
 <!DOCTYPE html>
 <html lang="en">
@@ -85,10 +84,10 @@ Use {% extends 'layout.html' %} and fill blocks.
       <h1>SQN Copilot Companion<br><span style="font-weight:400;opacity:.8">for Microsoft 365</span></h1>
     </div>
     <nav class="nav">
-      <a class="{% if request.endpoint=='home' %}active{% endif %}" href="{{ url_for('home') if 'home' in globals() else '/home' }}">Home<span>›</span></a>
-      <a class="{% if request.endpoint=='help' %}active{% endif %}" href="{{ url_for('help') if 'help' in globals() else '/help' }}">Teach Me<span>›</span></a>
-      <a class="{% if request.endpoint=='troubleshooter' %}active{% endif %}" href="{{ url_for('troubleshooter') if 'troubleshooter' in globals() else '/troubleshooter' }}">Troubleshooter<span>›</span></a>
-      <a href="{{ url_for('logout') if 'logout' in globals() else '/logout' }}">Logout<span>›</span></a>
+      <a class="{% if request.endpoint=='home' %}active{% endif %}" href="{{ url_for('home') }}">Home<span>›</span></a>
+      <a class="{% if request.endpoint=='help' %}active{% endif %}" href="{{ url_for('help') }}">Teach Me<span>›</span></a>
+      <a class="{% if request.endpoint=='troubleshooter' %}active{% endif %}" href="{{ url_for('troubleshooter') }}">Troubleshooter<span>›</span></a>
+      <a href="{{ url_for('logout') }}">Logout<span>›</span></a>
     </nav>
   </aside>
 
