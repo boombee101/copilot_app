@@ -125,7 +125,7 @@
     <div class="header-content">
       <img src="/static/images/tva_logo.png" alt="TVA Logo" />
       <h1>TVA Copilot Help Center</h1>
-      <div class="subtitle">Smart support for Microsoft 365 — built for TVA employees</div>
+      <div class="subtitle">Smart support for Microsoft 365, built for TVA employees</div>
     </div>
   </div>
 
@@ -133,23 +133,23 @@
 
   <div class="container">
     <div class="welcome">
-      Welcome to the <b>TVA Copilot Help Center</b>! This tool gets you fast, beginner‑friendly help with
-      <b>Word, Excel, Outlook, Teams, and PowerPoint</b> — either by giving you clear manual steps or by writing a clean Copilot prompt you can paste directly.
+      Welcome to the <b>TVA Copilot Help Center</b>. This tool gives beginner friendly help for
+      <b>Word, Excel, Outlook, Teams, and PowerPoint</b>. You can get clear manual steps or a clean Copilot prompt that you can paste directly.
     </div>
 
     <!-- Detailed About / Welcome section -->
     <div class="welcome-section">
       <h2>About this tool</h2>
       <p>
-        This assistant is designed for TVA employees who want quick, plain‑English help using Microsoft 365.
-        For every task, you can get two kinds of help:
+        This assistant is designed for TVA employees who want quick, plain English help with Microsoft 365.
+        For every task, you get two kinds of help:
       </p>
       <ul>
-        <li><b>Step‑by‑step manual instructions</b> — simple, “for dummies” style directions so you can do it yourself.</li>
-        <li><b>A ready‑to‑use Copilot prompt</b> — crafted to get high‑quality results inside your chosen Microsoft app.</li>
+        <li><b>Step by step manual instructions</b> - simple directions so you can do it yourself.</li>
+        <li><b>A ready to use Copilot prompt</b> - crafted to get high quality results inside your chosen Microsoft app.</li>
       </ul>
       <p style="margin-top:8px">
-        Use either path (or both). No technical jargon. No sensitive data.
+        Use either path or both. No technical jargon. No sensitive data.
       </p>
     </div>
 
@@ -157,19 +157,26 @@
     <div class="how-it-works">
       <div class="how-it-works-title">How it works</div>
       <ol>
-        <li><b>Pick your Microsoft app</b> — Word, Excel, Outlook, Teams, or PowerPoint.</li>
-        <li><b>Describe your goal or problem</b> in plain language (no tech terms needed).</li>
-        <li><b>You’ll get two outputs:</b>
+        <li><b>Pick your Microsoft app</b> - Word, Excel, Outlook, Teams, or PowerPoint.</li>
+        <li><b>Describe your goal or problem</b> in plain language.</li>
+        <li><b>You get two outputs:</b>
           <ul>
-            <li>Beginner‑friendly manual steps you can follow now</li>
-            <li>A ready‑to‑copy Copilot prompt tailored to your task</li>
+            <li>Beginner friendly manual steps you can follow now</li>
+            <li>A ready to copy Copilot prompt tailored to your task</li>
           </ul>
         </li>
-        <li><b>Use your preferred path</b> — follow the steps or paste the prompt into Copilot.</li>
+        <li><b>Use your preferred path</b> - follow the steps or paste the prompt into Copilot.</li>
       </ol>
     </div>
 
     <div class="feature-list">
+      <div class="feature-block">
+        <span class="icon">🩺</span>
+        <h3>Microsoft 365 Troubleshooter</h3>
+        <p>Paste an error or describe what is not working in Word, Excel, Outlook, Teams, or another app. Get simple steps and a Copilot prompt. If it looks like a network issue, you will be told to contact TVA IT.</p>
+        <a href="{{ url_for('troubleshooter') }}" class="button">Open Troubleshooter</a>
+      </div>
+
       <div class="feature-block">
         <span class="icon">💬</span>
         <h3>Ask for Help (Help Desk)</h3>
@@ -180,15 +187,15 @@
       <div class="feature-block">
         <span class="icon">⚙️</span>
         <h3>Prompt Builder</h3>
-        <p>Not sure how to ask Copilot? Build a clean, work‑ready prompt in seconds.</p>
+        <p>Not sure how to ask Copilot? Build a clean, work ready prompt in seconds.</p>
         <a href="{{ url_for('prompt_builder') }}" class="button">Start Prompt Builder</a>
       </div>
 
       <div class="feature-block">
         <span class="icon">🛠️</span>
         <h3>Manual Instructions</h3>
-        <p>Prefer doing it yourself? Get beginner‑friendly steps to complete your task in Microsoft 365.</p>
-        <a href="{{ url_for('home') }}" class="button">Try Manual Instructions</a>
+        <p>Prefer doing it yourself? Get beginner friendly steps to complete your task in Microsoft 365.</p>
+        <a href="{{ url_for('how_to_manual') }}" class="button">Try Manual Instructions</a>
       </div>
     </div>
 
