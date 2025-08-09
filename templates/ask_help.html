@@ -2,82 +2,84 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Ask for Help – TVA Copilot Help Center</title>
+  <title>Ask for Help</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="stylesheet" href="{{ url_for('static', filename='style_classic.css') }}">
+  <style>
+    body { font-family: "Segoe UI", Tahoma, Arial, sans-serif; background: #f4f8fb; color: #003366; margin: 0; }
+    .disclaimer {
+      background: linear-gradient(90deg, #fffbe5 85%, #f6f7f8 100%);
+      color: #755000; border: 1.5px solid #f5df95; font-weight: 500; text-align: center;
+      padding: 13px 10px 11px; font-size: 15.5px; letter-spacing: 0.01em; border-radius: 0 0 10px 10px;
+      box-shadow: 0 2px 8px rgba(227,193,72,0.05);
+    }
+    .header {
+      background: url('/static/images/sqn2.jpg') center center/cover no-repeat, linear-gradient(90deg, #003366 65%, #426da9 100%);
+      color: #fff; padding: 54px 20px 34px; text-align: center; position: relative; box-shadow: 0 5px 18px rgba(0,34,85,0.10);
+    }
+    .header::after { content: ""; position: absolute; inset: 0; background: rgba(0, 40, 85, 0.40); }
+    .header-content { position: relative; z-index: 1; }
+    .header img { max-width: 110px; margin-bottom: 10px; filter: drop-shadow(0 3px 9px rgba(0,0,0,0.22)); }
+
+    .container { max-width: 980px; margin: -36px auto 30px; background: #fff; padding: 28px; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
+    h1 { margin: 0 0 12px; }
+    label { font-weight: 600; display:block; margin-top:10px; }
+    select, textarea {
+      width:100%; padding:10px; border:1px solid #c9d8ea; border-radius:6px; font-size:14px; margin-top:5px; background:#f7fbff;
+    }
+    textarea { min-height: 120px; resize: vertical; }
+    .button { background:#004785; color:#fff; border:none; padding:10px 18px; font-size:15px; border-radius:6px; cursor:pointer; font-weight:600; margin-top:10px; }
+    .button:hover { background:#002d5d; }
+    .panel { background:#f8fafc; border:1px solid #dce6f5; border-radius:8px; padding:16px; margin-top:16px; }
+
+    /* Card-style steps */
+    .steps { display: grid; gap: 10px; }
+    .step { background:#f7fbff; border:1px solid #c9d8ea; border-radius:10px; padding:12px 12px 12px 48px; position:relative; line-height:1.5; }
+    .step-num { position:absolute; left:12px; top:12px; width:28px; height:28px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-weight:700; background:#004785; color:#fff; }
+    .step.warning { border-color:#ffcf8a; background:#fff8ef; }
+    .step.warning .step-num { background:#d9480f; }
+
+    .footer { text-align:center; font-size:14.5px; color:#7d91ab; margin-top:32px; }
+  </style>
 </head>
 <body>
-
-  <div class="disclaimer">
-    ⚠️ Do not enter any TVA-sensitive or private information. This is a support tool only.
-  </div>
+  <div class="disclaimer">Do not input TVA-sensitive, personal, or confidential information.</div>
 
   <div class="header">
     <div class="header-content">
       <img src="/static/images/tva_logo.png" alt="TVA Logo" />
-      <div class="title">Ask for Help</div>
-      <div class="subtitle">Get expert help with any Microsoft 365 problem</div>
+      <h1>Ask for Help</h1>
     </div>
   </div>
 
   {% include '_nav.html' %}
 
   <div class="container">
-    <div class="layout">
-      <div>
-        <h1>Describe the issue</h1>
-        <p class="lead">Tell us which app you are in and what is going wrong. Keep the wording general. Do not include private or sensitive data.</p>
+    <p>Pick an app and describe the problem. You’ll get a short diagnosis and clear, numbered steps.</p>
 
-        <form method="POST">
-          <label for="app">Which Microsoft app are you using?</label>
-          <select name="app" id="app" required>
-            <option value="Word" {% if app_selected == "Word" %}selected{% endif %}>Word</option>
-            <option value="Excel" {% if app_selected == "Excel" %}selected{% endif %}>Excel</option>
-            <option value="Outlook" {% if app_selected == "Outlook" %}selected{% endif %}>Outlook</option>
-            <option value="Teams" {% if app_selected == "Teams" %}selected{% endif %}>Teams</option>
-            <option value="PowerPoint" {% if app_selected == "PowerPoint" %}selected{% endif %}>PowerPoint</option>
-            <option value="Other" {% if app_selected == "Other" %}selected{% endif %}>Other</option>
-          </select>
+    <form method="POST">
+      <label for="app">Which app?</label>
+      <select id="app" name="app" required>
+        <option {{ 'selected' if app_selected=='Word' else '' }}>Word</option>
+        <option {{ 'selected' if app_selected=='Excel' else '' }}>Excel</option>
+        <option {{ 'selected' if app_selected=='Outlook' else '' }}>Outlook</option>
+        <option {{ 'selected' if app_selected=='Teams' else '' }}>Teams</option>
+        <option {{ 'selected' if app_selected=='PowerPoint' else '' }}>PowerPoint</option>
+      </select>
 
-          <label for="problem" style="margin-top:10px">Describe the issue or question</label>
-          <textarea name="problem" id="problem" rows="6" placeholder="Example: In Excel my VLOOKUP shows errors when the name does not exist. How do I fix it?" required>{{ problem or '' }}</textarea>
-          <div class="hint">Examples: “Combine two columns in Excel”, “Outlook messages stuck in Outbox”, “Create a recurring Teams meeting”, “Word will not save my file”.</div>
+      <label for="problem">What’s happening?</label>
+      <textarea id="problem" name="problem" placeholder="Example: My Word document won’t save to OneDrive.">{{ problem }}</textarea>
 
-          <div class="badges" style="margin-top:10px">
-            <button class="btn-soft" type="button" onclick="fill('In Word I need a clean summary for a shift handoff from a long document.')">Word summary</button>
-            <button class="btn-soft" type="button" onclick="fill('In Excel I need a formula that pulls the last 4 characters from a cell.')">Excel formula</button>
-            <button class="btn-soft" type="button" onclick="fill('Outlook shows messages stuck in Outbox. How can I fix send errors?')">Outlook send error</button>
-            <button class="btn-soft" type="button" onclick="fill('In Teams I need a recurring weekly meeting with a custom time zone.')">Teams meeting</button>
-            <button class="btn-soft" type="button" onclick="fill('In PowerPoint I want a simple slide outline from bullet notes.')">PowerPoint outline</button>
-          </div>
+      <button class="button" type="submit">Get Steps</button>
+    </form>
 
-          <button class="button" type="submit">Get Help</button>
-          <a class="btn-soft" href="{{ url_for('home') }}" style="margin-left:8px">Back to Home</a>
-        </form>
+    {% if result_html or result %}
+      <div class="panel">
+        <h3>Steps to Try</h3>
+        <div>{{ (result_html or result)|safe }}</div>
       </div>
+    {% endif %}
 
-      <div>
-        <h2>Step-by-step answer</h2>
-        {% if result %}
-          <div class="panel mono">{{ result | safe }}</div>
-        {% else %}
-          <div class="panel">
-            You will see numbered, beginner-friendly steps here after you submit the form. If a step does not match your screen, tell us what you see and we will adjust.
-          </div>
-        {% endif %}
-      </div>
-    </div>
-
-    <hr class="divider" />
-    <div class="footer">SQN Copilot Companion • TVA-safe guidance for Microsoft 365</div>
+    <div class="footer">SQN Copilot Companion</div>
   </div>
-
-  <script>
-    function fill(text){
-      const el = document.getElementById('problem');
-      el.value = text;
-      el.focus();
-    }
-  </script>
 </body>
 </html>

@@ -5,81 +5,33 @@
   <title>TVA Copilot Help Center</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    body {
-      font-family: "Segoe UI", Tahoma, Arial, sans-serif;
-      background: #f4f8fb;
-      color: #003366;
-      margin: 0;
-      padding: 0;
-    }
-
+    body { font-family: "Segoe UI", Tahoma, Arial, sans-serif; background: #f4f8fb; color: #003366; margin: 0; padding: 0; }
     .disclaimer {
       background: linear-gradient(90deg, #fffbe5 85%, #f6f7f8 100%);
-      color: #755000;
-      border: 1.5px solid #f5df95;
-      font-weight: 500;
-      text-align: center;
-      padding: 13px 10px 11px 10px;
-      font-size: 15.5px;
-      letter-spacing: 0.01em;
-      margin-bottom: 0;
-      border-radius: 0 0 10px 10px;
-      box-shadow: 0 2px 8px rgba(227, 193, 72, 0.05);
-      position: relative;
-      z-index: 10;
+      color: #755000; border: 1.5px solid #f5df95; font-weight: 500; text-align: center;
+      padding: 13px 10px 11px; font-size: 15.5px; letter-spacing: 0.01em; margin-bottom: 0;
+      border-radius: 0 0 10px 10px; box-shadow: 0 2px 8px rgba(227, 193, 72, 0.05); position: relative; z-index: 10;
     }
     .disclaimer .icon { font-size: 22px; vertical-align: middle; margin-right: 8px; display: inline-block; }
 
     .header {
       background: url('/static/images/sqn2.jpg') center center/cover no-repeat, linear-gradient(90deg, #003366 65%, #426da9 100%);
-      color: #fff;
-      padding: 54px 20px 34px 20px;
-      text-align: center;
-      position: relative;
-      box-shadow: 0 5px 18px rgba(0,34,85,0.10);
+      color: #fff; padding: 54px 20px 34px; text-align: center; position: relative; box-shadow: 0 5px 18px rgba(0,34,85,0.10);
     }
-    .header::after {
-      content: "";
-      position: absolute;
-      left: 0; top: 0; width: 100%; height: 100%;
-      background: rgba(0, 40, 85, 0.40);
-      pointer-events: none;
-      z-index: 1;
-    }
+    .header::after { content: ""; position: absolute; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0, 40, 85, 0.40); pointer-events: none; z-index: 1; }
     .header-content { position: relative; z-index: 2; }
     .header img { max-width: 110px; margin-bottom: 10px; filter: drop-shadow(0 3px 9px rgba(0,0,0,0.22)); }
     .header .subtitle { font-size: 22px; color: #d2e6f7; margin-top: 7px; margin-bottom: 10px; }
 
-    .container {
-      max-width: 980px;
-      margin: -36px auto 30px auto;
-      background: white;
-      padding: 42px 38px 32px 38px;
-      border-radius: 16px;
-      box-shadow: 0 10px 28px rgba(0,0,0,0.11);
-    }
-
+    .container { max-width: 980px; margin: -36px auto 30px; background: white; padding: 42px 38px 32px; border-radius: 16px; box-shadow: 0 10px 28px rgba(0,0,0,0.11); }
     h1 { font-size: 30px; margin-bottom: 2px; letter-spacing: 1px; font-weight: 700; }
-    h2 { font-size: 22px; color: #004785; margin: 34px 0 12px 0; }
-
+    h2 { font-size: 22px; color: #004785; margin: 34px 0 12px; }
     .welcome { font-size: 16px; line-height: 1.7; margin-bottom: 18px; }
 
-    .welcome-section {
-      margin-top: 26px;
-      padding: 18px 22px;
-      background: #f8fafc;
-      border-left: 5px solid #004b87;
-      border-radius: 8px;
-    }
+    .welcome-section { margin-top: 26px; padding: 18px 22px; background: #f8fafc; border-left: 5px solid #004b87; border-radius: 8px; }
     .welcome-section ul, .welcome-section ol { margin: 10px 0 0 18px; }
 
-    .how-it-works {
-      background: #eaf3fb;
-      border-left: 5px solid #003366;
-      border-radius: 7px;
-      padding: 18px 24px 10px 24px;
-      margin: 30px 0 28px 0;
-    }
+    .how-it-works { background: #eaf3fb; border-left: 5px solid #003366; border-radius: 7px; padding: 18px 24px 10px; margin: 30px 0 28px; }
     .how-it-works-title { font-size: 17px; font-weight: 600; color: #003366; margin-bottom: 5px; letter-spacing: 0.3px; }
     .how-it-works ol { margin: 10px 0 0 18px; }
     .how-it-works ul { margin: 8px 0 12px 18px; }
@@ -87,27 +39,29 @@
     .feature-list { display: flex; flex-wrap: wrap; gap: 28px; justify-content: space-between; margin-bottom: 25px; margin-top: 25px; }
     .feature-block {
       flex: 1 1 260px; min-width: 255px; background: #f0f6fc; border-radius: 11px; box-shadow: 0 3px 12px rgba(0,34,85,0.04);
-      padding: 22px 18px 20px 18px; margin-bottom: 18px; display: flex; flex-direction: column; align-items: flex-start;
+      padding: 22px 18px 20px; margin-bottom: 18px; display: flex; flex-direction: column; align-items: flex-start;
       border-left: 5px solid #004785; transition: box-shadow .2s;
     }
     .feature-block:hover { box-shadow: 0 7px 18px rgba(0,41,105,0.09); }
     .feature-block .icon { font-size: 27px; margin-bottom: 10px; color: #004785; }
-    .feature-block h3 { margin: 0 0 6px 0; font-size: 19px; color: #003366; font-weight: 600; }
-    .feature-block p { margin: 0 0 8px 0; font-size: 15.4px; color: #1c3553; }
+    .feature-block h3 { margin: 0 0 6px; font-size: 19px; color: #003366; font-weight: 600; }
+    .feature-block p { margin: 0 0 8px; font-size: 15.4px; color: #1c3553; }
 
-    .button {
-      background: #004785; color: white; border: none; padding: 13px 24px; font-size: 16.5px; border-radius: 7px;
-      cursor: pointer; text-decoration: none; font-weight: 600; margin-top: 13px; box-shadow: 0 3px 7px rgba(0,50,100,0.07);
-      transition: background 0.14s, box-shadow 0.17s; letter-spacing: 0.1px; display: inline-block;
-    }
+    .button { background: #004785; color: white; border: none; padding: 13px 24px; font-size: 16.5px; border-radius: 7px; cursor: pointer; text-decoration: none; font-weight: 600; margin-top: 13px; box-shadow: 0 3px 7px rgba(0,50,100,0.07); transition: background .14s, box-shadow .17s; letter-spacing: .1px; display: inline-block; }
     .button:hover { background: #002d5d; box-shadow: 0 6px 14px rgba(0,50,100,0.11); }
-
     .footer { text-align: center; font-size: 14.5px; color: #7d91ab; margin-top: 52px; margin-bottom: 12px; }
 
+    /* Card-style steps for results on Home (optional section) */
+    .steps { display: grid; gap: 10px; }
+    .step { background:#f7fbff; border:1px solid #c9d8ea; border-radius:10px; padding:12px 12px 12px 48px; position:relative; line-height:1.5; }
+    .step-num { position:absolute; left:12px; top:12px; width:28px; height:28px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-weight:700; background:#004785; color:#fff; }
+    .step.warning { border-color:#ffcf8a; background:#fff8ef; }
+    .step.warning .step-num { background:#d9480f; }
+
     @media (max-width: 700px) {
-      .container {padding: 15px 6px 20px 6px;}
-      .feature-list {flex-direction: column;}
-      .feature-block {min-width: 0;}
+      .container { padding: 15px 6px 20px; }
+      .feature-list { flex-direction: column; }
+      .feature-block { min-width: 0; }
     }
   </style>
 </head>
@@ -137,23 +91,16 @@
       <b>Word, Excel, Outlook, Teams, and PowerPoint</b>. You can get clear manual steps or a clean Copilot prompt that you can paste directly.
     </div>
 
-    <!-- Detailed About / Welcome section -->
     <div class="welcome-section">
       <h2>About this tool</h2>
-      <p>
-        This assistant is designed for TVA employees who want quick, plain English help with Microsoft 365.
-        For every task, you get two kinds of help:
-      </p>
+      <p>This assistant is designed for TVA employees who want quick, plain English help with Microsoft 365. For every task, you get two kinds of help:</p>
       <ul>
         <li><b>Step by step manual instructions</b> - simple directions so you can do it yourself.</li>
         <li><b>A ready to use Copilot prompt</b> - crafted to get high quality results inside your chosen Microsoft app.</li>
       </ul>
-      <p style="margin-top:8px">
-        Use either path or both. No technical jargon. No sensitive data.
-      </p>
+      <p style="margin-top:8px">Use either path or both. No technical jargon. No sensitive data.</p>
     </div>
 
-    <!-- Clearer How It Works -->
     <div class="how-it-works">
       <div class="how-it-works-title">How it works</div>
       <ol>
@@ -199,9 +146,21 @@
       </div>
     </div>
 
-    <div class="footer">
-      SQN Copilot Companion
-    </div>
+    {% if manual_instructions_html or final_prompt %}
+      <div class="welcome-section">
+        <h2>Your Results</h2>
+        {% if manual_instructions_html %}
+          <h3>Manual Steps</h3>
+          <div>{{ manual_instructions_html|safe }}</div>
+        {% endif %}
+        {% if final_prompt %}
+          <h3 style="margin-top:16px;">Copilot Prompt</h3>
+          <textarea style="width:100%;height:180px;">{{ final_prompt }}</textarea>
+        {% endif %}
+      </div>
+    {% endif %}
+
+    <div class="footer">SQN Copilot Companion</div>
   </div>
 </body>
 </html>
