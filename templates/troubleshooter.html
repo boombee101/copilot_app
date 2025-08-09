@@ -1,82 +1,79 @@
-<!-- =============================
-FILE: templates/troubleshooter.html (updated to extend layout)
-============================= -->
 {% extends 'layout.html' %}
 {% block title %}SQN Copilot Companion — Troubleshooter{% endblock %}
 {% block page_title %}Microsoft 365 Troubleshooter{% endblock %}
-{% block page_meta %}Plain‑English fixes • Safe for TVA workflows{% endblock %}
+{% block page_meta %}Plain-English fixes • Safe for TVA workflows{% endblock %}
 
 {% block content %}
-  <div class="grid" style="grid-template-columns:1.15fr .85fr">
-    <!-- Troubleshoot form -->
-    <div class="card">
-      <h2>Tell us what’s wrong</h2>
-      <p class="sub">Paste any error text or explain what you’re trying to do. We’ll walk you through the simple checks first.</p>
-      <form action="{{ url_for('ask_help') if 'ask_help' in globals() else '/ask_help' }}" method="post">
-        <div class="field">
-          <label for="ts_app">Which app?</label>
-          <select id="ts_app" name="app" required>
-            <option value="Word">Word</option>
-            <option value="Excel">Excel</option>
-            <option value="Outlook">Outlook</option>
-            <option value="Teams">Teams</option>
-            <option value="PowerPoint">PowerPoint</option>
-          </select>
-        </div>
-        <div class="field">
-          <label for="issue">Describe the issue or paste the error</label>
-          <textarea id="issue" name="issue" placeholder="Example: Outlook keeps asking for my password and won’t connect. Error code 0x800CCC0E."></textarea>
-        </div>
-        <div class="row">
-          <button class="btn" type="submit" name="mode" value="diagnose">Run guided troubleshooting</button>
-          <button class="btn secondary" type="reset">Clear</button>
-        </div>
-      </form>
-    </div>
+<div class="grid" style="grid-template-columns:1.15fr .85fr">
+  <!-- Troubleshoot form -->
+  <div class="card">
+    <h2>Tell us what’s wrong</h2>
+    <p class="sub">Paste any error text or explain what you’re trying to do. We’ll walk you through the simple checks first.</p>
+    <form action="{{ url_for('ask_help') if 'ask_help' in globals() else '/ask_help' }}" method="post">
+      <div class="field">
+        <label for="ts_app">Which app?</label>
+        <select id="ts_app" name="app" required>
+          <option value="Word">Word</option>
+          <option value="Excel">Excel</option>
+          <option value="Outlook">Outlook</option>
+          <option value="Teams">Teams</option>
+          <option value="PowerPoint">PowerPoint</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="issue">Describe the issue or paste the error</label>
+        <textarea id="issue" name="issue" placeholder="Example: Outlook keeps asking for my password and won’t connect. Error code 0x800CCC0E."></textarea>
+      </div>
+      <div class="row">
+        <button class="btn" type="submit" name="mode" value="diagnose">Run guided troubleshooting</button>
+        <button class="btn secondary" type="reset">Clear</button>
+      </div>
+    </form>
+  </div>
 
-    <!-- First‑aid checklist -->
-    <div class="card">
-      <h2>Quick first‑aid checklist</h2>
-      <p class="sub">Try these universal checks while we analyze your issue.</p>
-      <div class="checklist">
-        <div class="check-item">
-          <div class="flag">Tip</div>
-          <div><strong>Restart the app</strong><br/>Close the app completely, then reopen it. This clears temporary glitches.</div>
-        </div>
-        <div class="check-item">
-          <div class="flag">Account</div>
-          <div><strong>Confirm you’re signed in</strong><br/>In the app, check your account profile. If you see sign‑in errors, re‑enter credentials.</div>
-        </div>
-        <div class="check-item">
-          <div class="flag">Update</div>
-          <div><strong>Check for updates</strong><br/>Open any Office app → Account → Update Options → Update Now.</div>
-        </div>
-        <div class="check-item">
-          <div class="flag">Policy</div>
-          <div><strong>TVA or SQN policy</strong><br/>If a feature looks disabled, it may be restricted. Ask your supervisor which policy applies.</div>
-        </div>
-        <div class="check-item">
-          <div class="flag">Network</div>
-          <div><strong>Network or VPN</strong><br/>If you suspect a network problem, contact <em>TVA IT</em>. Avoid changing network settings yourself.</div>
-        </div>
+  <!-- First-aid checklist -->
+  <div class="card">
+    <h2>Quick first-aid checklist</h2>
+    <p class="sub">Try these universal checks while we analyze your issue.</p>
+    <div class="checklist">
+      <div class="check-item">
+        <div class="flag">Tip</div>
+        <div><strong>Restart the app</strong><br/>Close the app completely, then reopen it. This clears temporary glitches.</div>
+      </div>
+      <div class="check-item">
+        <div class="flag">Account</div>
+        <div><strong>Confirm you’re signed in</strong><br/>In the app, check your account profile. If you see sign-in errors, re-enter credentials.</div>
+      </div>
+      <div class="check-item">
+        <div class="flag">Update</div>
+        <div><strong>Check for updates</strong><br/>Open any Office app → Account → Update Options → Update Now.</div>
+      </div>
+      <div class="check-item">
+        <div class="flag">Policy</div>
+        <div><strong>TVA or SQN policy</strong><br/>If a feature looks disabled, it may be restricted. Ask your supervisor which policy applies.</div>
+      </div>
+      <div class="check-item">
+        <div class="flag">Network</div>
+        <div><strong>Network or VPN</strong><br/>If you suspect a network problem, contact <em>TVA IT</em>. Avoid changing network settings yourself.</div>
       </div>
     </div>
   </div>
+</div>
 
-  <!-- Results (rendered by server if present) -->
-  {% set _diag = diagnosis if diagnosis is defined else (result if result is defined else None) %}
-  {% set _steps = steps if steps is defined else (manual_steps if manual_steps is defined else None) %}
+<!-- Results -->
+{% set _diag = diagnosis if diagnosis is defined else (result if result is defined else None) %}
+{% set _steps = steps if steps is defined else (manual_steps if manual_steps is defined else None) %}
 
-  {% if _diag or _steps %}
-  <div class="grid" style="margin-top:var(--gap)">
-    <div class="card">
-      <h2>What we found</h2>
-      <pre>{{ _diag if _diag else 'Submit an issue above to see the analysis here.' }}</pre>
-    </div>
-    <div class="card">
-      <h2>Step‑by‑step fix</h2>
-      <pre>{{ _steps if _steps else 'We will generate a plain, step‑by‑step guide here.' }}</pre>
-    </div>
+{% if _diag or _steps %}
+<div class="grid" style="margin-top:var(--gap)">
+  <div class="card">
+    <h2>What we found</h2>
+    <pre>{{ _diag if _diag else 'Submit an issue above to see the analysis here.' }}</pre>
   </div>
-  {% endif %}
+  <div class="card">
+    <h2>Step-by-step fix</h2>
+    <pre>{{ _steps if _steps else 'We will generate a plain, step-by-step guide here.' }}</pre>
+  </div>
+</div>
+{% endif %}
 {% endblock %}
