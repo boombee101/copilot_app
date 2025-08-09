@@ -56,29 +56,22 @@ def split_helpdesk_sections(full_text):
     Returns (clarify, steps, prompt_text, why)
     If parsing fails, returns None for missing sections.
     """
-    # Normalize line endings
     text = full_text.strip()
-
-    # Create a robust split by recognized headings (tolerates numbering and colons)
     pattern = r"(?im)^(?:\s*(?:\d+\)|\d+\.)?\s*(Clarifying Questions|Numbered Steps|Copilot Prompt|Why This Works)\s*:?\s*)$"
     parts = re.split(pattern, text)
 
-    # parts structure after split: [pre, H1, body1, H2, body2, ...]
     if len(parts) == 1:
-        # No headings detected; treat entire text as "Numbered Steps"
         return (None, text, None, None)
 
     section_map = {}
     current = None
     body = []
 
-    # Start at index 1 to skip any preface
     for i in range(1, len(parts)):
         piece = parts[i]
         if piece is None:
             continue
         if piece.strip() in ["Clarifying Questions", "Numbered Steps", "Copilot Prompt", "Why This Works"]:
-            # Save previous section
             if current and body:
                 section_map[current] = "\n".join(body).strip()
                 body = []
@@ -93,7 +86,6 @@ def split_helpdesk_sections(full_text):
     steps   = section_map.get("Numbered Steps")
     promptt = section_map.get("Copilot Prompt")
     why     = section_map.get("Why This Works")
-
     return (clarify, steps, promptt, why)
 
 
@@ -153,7 +145,8 @@ def home():
                 questions=questions,
                 original_task=task,
                 app_selected=app_selected,
-                history=history
+                history=history,
+                active_page="home"
             )
 
         # Phase 2: Generate final Copilot prompt and manual steps
@@ -219,11 +212,12 @@ def home():
                 task=task,
                 context=context,
                 manual_instructions=manual_instructions,
-                history=history
+                history=history,
+                active_page="home"
             )
 
     # GET
-    return render_template("home.html", history=history)
+    return render_template("home.html", history=history, active_page="home")
 
 
 @app.route('/ask_gpt', methods=['POST'])
@@ -320,7 +314,11 @@ def learn_app(app_name):
         print(f"⚠️ learn error: {e}")
         lesson_content = "⚠️ Sorry, we couldn’t load your lesson right now. Please try again later."
 
-    return render_template("learn.html", app=app_name_l.title(), lesson=lesson_content, user_topic=user_topic)
+    return render_template("learn.html",
+                           app=app_name_l.title(),
+                           lesson=lesson_content,
+                           user_topic=user_topic,
+                           active_page=f"learn_{app_name_l}")
 
 
 @app.route('/logout')
@@ -365,7 +363,8 @@ def ask_help():
         'ask_help.html',
         app_selected=app_selected or 'Word',
         problem=problem or '',
-        result=result
+        result=result,
+        active_page="ask_help"
     )
 
 
@@ -409,7 +408,54 @@ def help_desk():
                 print(f"⚠️ Help Desk error: {e}")
                 answer = "⚠️ Sorry, there was an error fetching help. Please try again."
 
-    return render_template("help.html", answer=answer)
+    return render_template("help.html", answer=answer, active_page="help")
+
+
+# ------- Prompt Builder -------
+@app.route("/prompt_builder", methods=["GET", "POST"])
+def prompt_builder():
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+
+    prompt_text = None
+    app_selected = (request.form.get("app") or "Word").strip()
+    task = (request.form.get("task") or "").strip()
+    outcome = (request.form.get("outcome") or "").strip()
+    audience = (request.form.get("audience") or "").strip()
+    tone = (request.form.get("tone") or "professional").strip()
+    format_pref = (request.form.get("format_pref") or "").strip()
+    constraints = (request.form.get("constraints") or "").strip()
+
+    if request.method == "POST":
+        safety = (
+            "Do not include any TVA‑sensitive, personal, or confidential information. "
+            "Use generic placeholders instead of real names, emails, or files."
+        )
+        lines = []
+        lines.append(f"You are Copilot inside Microsoft {app_selected}.")
+        lines.append(f"Goal: {task or 'Help me accomplish a task in this app.'}")
+        if outcome:
+            lines.append(f"Desired outcome: {outcome}.")
+        if audience:
+            lines.append(f"Audience: {audience}.")
+        lines.append(f"Tone: {tone}.")
+        if format_pref:
+            lines.append(f"Output format: {format_pref}.")
+        if constraints:
+            lines.append(f"Constraints or notes: {constraints}.")
+        lines.append(
+            "Instructions: Provide clear, numbered steps in beginner‑friendly language. "
+            "Offer a short example if helpful. End with a quick checklist of what the user should verify."
+        )
+        lines.append(f"Safety: {safety}")
+        prompt_text = "\n".join(lines)
+
+    return render_template(
+        "prompt_builder.html",
+        prompt_text=prompt_text,
+        app_selected=app_selected,
+        active_page="prompt"
+    )
 
 
 # =========================

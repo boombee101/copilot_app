@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Prompt Builder • SQN Copilot Companion</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='style_classic.css') }}">
+  <style>
+    .copybar { display:flex; gap:8px; justify-content:flex-end; margin-bottom:8px; }
+    .monoarea { white-space:pre-wrap; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+  </style>
+</head>
+<body>
+  <div class="disclaimer">⚠️ Do not input or share TVA-sensitive, personal, or confidential information.</div>
+
+  <div class="header">
+    <div class="header-content">
+      <img src="/static/images/tva_logo.png" alt="TVA Logo" />
+      <div class="title">Prompt Builder</div>
+      <div class="subtitle">Create a clear, work-ready Copilot prompt for Microsoft 365</div>
+    </div>
+  </div>
+
+  {% include '_nav.html' %}
+
+  <div class="container">
+    <div class="layout">
+      <!-- Left: form -->
+      <div>
+        <h1>Build your prompt</h1>
+        <form method="POST">
+          <label class="label" for="app">Which app?</label>
+          <select id="app" name="app">
+            <option value="Word" {% if app_selected=='Word' %}selected{% endif %}>Word</option>
+            <option value="Excel" {% if app_selected=='Excel' %}selected{% endif %}>Excel</option>
+            <option value="Outlook" {% if app_selected=='Outlook' %}selected{% endif %}>Outlook</option>
+            <option value="Teams" {% if app_selected=='Teams' %}selected{% endif %}>Teams</option>
+            <option value="PowerPoint" {% if app_selected=='PowerPoint' %}selected{% endif %}>PowerPoint</option>
+          </select>
+
+          <label class="label" for="task" style="margin-top:10px">What do you want Copilot to do?</label>
+          <textarea id="task" name="task" rows="3" placeholder="Example: Summarize a 2-page shift handoff document into 5 bullet points."></textarea>
+
+          <label class="label" for="outcome" style="margin-top:10px">Desired outcome (optional)</label>
+          <input id="outcome" name="outcome" type="text" placeholder="Example: A short email draft to my team" />
+
+          <label class="label" for="audience" style="margin-top:10px">Audience (optional)</label>
+          <input id="audience" name="audience" type="text" placeholder="Example: Non-technical office staff" />
+
+          <label class="label" for="tone" style="margin-top:10px">Tone</label>
+          <input id="tone" name="tone" type="text" value="professional" />
+
+          <label class="label" for="format_pref" style="margin-top:10px">Preferred output format (optional)</label>
+          <input id="format_pref" name="format_pref" type="text" placeholder="Example: Numbered steps, then a checklist" />
+
+          <label class="label" for="constraints" style="margin-top:10px">Constraints or notes (optional)</label>
+          <textarea id="constraints" name="constraints" rows="3" placeholder="Example: Keep names generic. Avoid screenshots."></textarea>
+
+          <div style="margin-top:12px; display:flex; gap:8px; align-items:center">
+            <button class="button" type="submit">Generate Prompt</button>
+            <a class="btn-soft" href="{{ url_for('home') }}">Back to Home</a>
+          </div>
+        </form>
+      </div>
+
+      <!-- Right: result -->
+      <div>
+        <h2>Your Copilot prompt</h2>
+        {% if prompt_text %}
+          <div class="copybar">
+            <button class="btn-soft" onclick="copyText('promptBox')">Copy prompt</button>
+          </div>
+          <div id="promptBox" class="panel mono monoarea">{{ prompt_text }}</div>
+        {% else %}
+          <div class="panel">Fill out the form and click Generate Prompt. Your prompt will appear here, ready to copy into Copilot.</div>
+        {% endif %}
+      </div>
+    </div>
+
+    <hr class="divider" />
+    <div class="footer">SQN Copilot Companion • TVA-safe guidance for Microsoft 365</div>
+  </div>
+
+  <script>
+    function copyText(id){
+      const el = document.getElementById(id); if(!el) return;
+      const r = document.createRange(); r.selectNodeContents(el);
+      const sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(r);
+      document.execCommand('copy'); sel.removeAllRanges();
+    }
+  </script>
+</body>
+</html>

@@ -9,6 +9,9 @@
     <a href="{{ url_for('ask_help') }}"
        class="sqn-nav-link {% if active_page == 'ask_help' %}active{% endif %}">Ask for Help</a>
 
+    <a href="{{ url_for('prompt_builder') }}"
+       class="sqn-nav-link {% if active_page == 'prompt' %}active{% endif %}">Prompt Builder</a>
+
     <a href="{{ url_for('learn_app', app_name='word') }}"
        class="sqn-nav-link {% if active_page and active_page.startswith('learn_') %}active{% endif %}">Learn</a>
 
@@ -19,17 +22,16 @@
 </nav>
 
 <style>
-  /* Full-width, high-contrast bar that sits below the header */
   .sqn-nav {
-    background: #002855;            /* TVA dark blue */
+    background: #002855;
     border-bottom: 1px solid #001a3d;
-    position: sticky;                /* stays visible on scroll */
+    position: sticky;
     top: 0;
     z-index: 50;
     box-shadow: 0 2px 8px rgba(0,0,0,0.15);
   }
   .sqn-nav-inner {
-    max-width: 980px;                /* matches your .container width */
+    max-width: 980px;
     margin: 0 auto;
     padding: 10px 18px;
     display: flex;
@@ -52,11 +54,11 @@
     border-color: rgba(255,255,255,0.25);
   }
   .sqn-nav-link.active {
-    background: #ffc72c;             /* TVA yellow highlight */
+    background: #ffc72c;
     color: #002855;
     border-color: #e6b300;
   }
-  .sqn-nav-spacer { flex: 1; }       /* pushes Log out to the right */
+  .sqn-nav-spacer { flex: 1; }
 
   @media (max-width: 700px) {
     .sqn-nav-inner { padding: 8px 12px; gap: 8px; }
