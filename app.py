@@ -369,6 +369,7 @@ def ask_help():
     )
 
 
+# ======== HELP DESK (RESTORED SIMPLE ONE-BOX FLOW) ========
 @app.route('/help', methods=['GET', 'POST'])
 def help_desk():
     """
@@ -379,43 +380,37 @@ def help_desk():
     if not session.get('logged_in'):
         return redirect(url_for('login'))
 
-    user_question = ""
     answer = None
-    DEFAULT_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o")
 
     if request.method == 'POST':
-        user_question = (request.form.get('user_question') or '').strip()
-
-        if not user_question:
-            answer = "Please type your question above."
-        else:
+        user_question = (request.form.get('question') or '').strip()
+        if user_question:
             try:
-                prompt = (
-                    "You are a Microsoft 365 help agent for TVA employees. "
-                    "Respond in a very clear, beginner-friendly 'for dummies' tone. "
-                    "Write short sentences. Avoid jargon. "
-                    "Always give numbered steps specific to the app the user implies. "
-                    "If the request could apply to multiple apps, pick the most likely one and proceed. "
-                    "Do not ask for sensitive information. Do not request screenshots.\n\n"
-                    f"User question:\n{user_question}\n"
-                )
-
-                resp = client.chat.completions.create(
+                response = client.chat.completions.create(
                     model=DEFAULT_MODEL,
                     messages=[
-                        {"role": "system", "content": "Be simple, friendly, and precise. Only give helpful numbered steps and a short tip if useful."},
-                        {"role": "user", "content": prompt}
+                        {
+                            "role": "system",
+                            "content": (
+                                "You are a friendly Microsoft 365 help assistant for TVA employees. "
+                                "When given a question about Microsoft Word, Excel, Outlook, Teams, or PowerPoint, "
+                                "explain the answer in very clear, numbered, step-by-step instructions in a 'for dummies' style. "
+                                "Avoid technical jargon unless absolutely necessary, and if you must use a term, explain it briefly in plain language. "
+                                "Do not include or request any sensitive information."
+                            ),
+                        },
+                        {"role": "user", "content": user_question},
                     ],
-                    temperature=0.3,
-                    max_tokens=800
+                    temperature=0.4,
+                    max_tokens=700
                 )
-                answer = resp.choices[0].message.content.strip()
-
+                answer = response.choices[0].message.content.strip()
             except Exception as e:
                 print(f"⚠️ Help Desk error: {e}")
-                answer = "⚠️ Sorry, I could not load help right now. Please try again."
+                answer = "⚠️ Sorry, there was an error fetching help. Please try again."
 
-    return render_template("help.html", answer=answer, user_question=user_question)
+    return render_template("help.html", answer=answer)
+
 
 # =========================
 # Main
