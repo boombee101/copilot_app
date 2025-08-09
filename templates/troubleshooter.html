@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Microsoft 365 Troubleshooter</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: "Segoe UI", Tahoma, Arial, sans-serif;
+      background: #f4f8fb;
+      color: #003366;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 980px;
+      margin: 30px auto;
+      background: white;
+      padding: 28px;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+    }
+    h1 {
+      font-size: 28px;
+      margin-bottom: 10px;
+      font-weight: 700;
+    }
+    .intro {
+      background: #f0f6fc;
+      border-left: 5px solid #004785;
+      padding: 16px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+    .panel {
+      background: #f8fafc;
+      border: 1px solid #dce6f5;
+      border-radius: 8px;
+      padding: 16px;
+      margin-top: 16px;
+    }
+    label {
+      font-weight: 600;
+      margin-top: 10px;
+      display: block;
+    }
+    select, input[type="text"], textarea {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #c9d8ea;
+      border-radius: 6px;
+      font-size: 14px;
+      margin-top: 5px;
+    }
+    textarea { min-height: 140px; resize: vertical; }
+    .button {
+      background: #004785;
+      color: white;
+      border: none;
+      padding: 10px 18px;
+      font-size: 15px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      margin-top: 16px;
+    }
+    .button:hover {
+      background: #002d5d;
+    }
+    .note {
+      font-size: 13px;
+      color: #375a7f;
+      margin-top: 5px;
+    }
+    .result {
+      margin-top: 24px;
+      display: grid;
+      gap: 16px;
+    }
+    .result-panel {
+      background: #f7fbff;
+      border: 1px solid #c9d8ea;
+      border-radius: 8px;
+      padding: 14px;
+    }
+    .result-panel h3 {
+      margin-top: 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Microsoft 365 Troubleshooter</h1>
+    <div class="intro">
+      <p><strong>What this tool does:</strong></p>
+      <ul>
+        <li>Understands your error or description</li>
+        <li>Gives short, plain steps to try in order</li>
+        <li>Creates a Copilot prompt you can paste into Microsoft 365</li>
+      </ul>
+      <p><strong>When to use it:</strong> You see an error, a feature is not working, or you are unsure what to click next.</p>
+      <p><strong>Safety note:</strong> Do not enter or upload TVA-sensitive, personal, or confidential information. If it appears to be a network issue, please contact TVA IT.</p>
+    </div>
+
+    <form method="POST">
+      <label for="m365_app">Which app?</label>
+      <select id="m365_app" name="m365_app" required>
+        <option value="Auto-detect">Auto-detect</option>
+        <option>Word</option>
+        <option>Excel</option>
+        <option>Outlook</option>
+        <option>Teams</option>
+        <option>PowerPoint</option>
+        <option>OneDrive</option>
+        <option>SharePoint</option>
+        <option>Other</option>
+      </select>
+
+      <label for="error_code">Error code (optional)</label>
+      <input id="error_code" name="error_code" type="text" placeholder="Example: 0x80070005">
+
+      <label for="description">What is happening?</label>
+      <textarea id="description" name="description" placeholder="Describe the problem in your own words. Include exact error text if possible."></textarea>
+      <div class="note">Example: Teams camera is not detected on Windows 11 laptop.</div>
+
+      <button class="button" type="submit">Run Troubleshooter</button>
+    </form>
+
+    {% if manual_steps or copilot_prompt or network_note %}
+    <div class="result">
+      <div class="result-panel">
+        <h3>Step-by-Step Fix</h3>
+        {% if network_note %}
+          <p><strong>Note:</strong> {{ network_note }}</p>
+        {% endif %}
+        {% if manual_steps %}
+          <div>{{ manual_steps|safe }}</div>
+        {% else %}
+          <p>No steps yet. Submit a description to get instructions.</p>
+        {% endif %}
+      </div>
+
+      <div class="result-panel">
+        <h3>Copilot Prompt</h3>
+        {% if copilot_prompt %}
+          <textarea style="width:100%;height:200px;">{{ copilot_prompt }}</textarea>
+        {% else %}
+          <p>No prompt yet. Submit a description to generate one.</p>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</body>
+</html>
+

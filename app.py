@@ -296,7 +296,7 @@ def learn_app(app_name):
             f"You're teaching a brand new TVA employee how to use Microsoft {app_name_l.title()} from scratch. "
             "Assume they have zero experience. Walk them through it slowly, like a beginner class. "
             "Use very plain language, examples, and short, clear steps. No technical terms. "
-            "The tone should be friendly and for-dummies style."
+            "The tone should be friendly and for dummies style."
         )
 
     try:
@@ -428,7 +428,7 @@ def prompt_builder():
 
     if request.method == "POST":
         safety = (
-            "Do not include any TVA‑sensitive, personal, or confidential information. "
+            "Do not include any TVA-sensitive, personal, or confidential information. "
             "Use generic placeholders instead of real names, emails, or files."
         )
         lines = []
@@ -444,7 +444,7 @@ def prompt_builder():
         if constraints:
             lines.append(f"Constraints or notes: {constraints}.")
         lines.append(
-            "Instructions: Provide clear, numbered steps in beginner‑friendly language. "
+            "Instructions: Provide clear, numbered steps in beginner friendly language. "
             "Offer a short example if helpful. End with a quick checklist of what the user should verify."
         )
         lines.append(f"Safety: {safety}")
@@ -455,6 +455,105 @@ def prompt_builder():
         prompt_text=prompt_text,
         app_selected=app_selected,
         active_page="prompt"
+    )
+
+
+# =========================
+# Microsoft 365 Troubleshooter
+# =========================
+
+# Network keyword check to nudge users to TVA IT when it looks like connectivity
+NETWORK_KEYWORDS = [
+    "network", "offline", "no internet", "cannot connect", "connection lost",
+    "proxy", "vpn", "firewall", "gateway", "dns", "ssl", "tls", "server unreachable",
+    "status.microsoft", "service health", "outage"
+]
+
+def _looks_network_related(text: str) -> bool:
+    text = (text or "").lower()
+    return any(k in text for k in NETWORK_KEYWORDS)
+
+@app.route("/troubleshooter", methods=["GET", "POST"])
+def troubleshooter():
+    """
+    Microsoft 365 Troubleshooter:
+      - Form posts m365_app, error_code, description
+      - Returns Step-by-Step Fix and a Copilot Prompt
+      - If it looks like network trouble, shows a TVA IT note
+    """
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+
+    manual_steps_html = None
+    copilot_prompt_text = None
+    network_note = None
+    chosen_app = None
+
+    if request.method == "POST":
+        m365_app = request.form.get("m365_app", "Auto-detect")
+        error_code = request.form.get("error_code", "").strip()
+        description = request.form.get("description", "").strip()
+        chosen_app = m365_app
+
+        # Friendly TVA IT note if it smells like connectivity
+        if _looks_network_related(" ".join([m365_app or "", error_code or "", description or ""])):
+            network_note = "This may be a network or connectivity issue. Please contact TVA IT."
+
+        # Prompts
+        system_prompt = (
+            "You are a Microsoft 365 Troubleshooter for beginner users at a utility. "
+            "Output two sections:\n"
+            "Step-by-Step Fix: Numbered, plain-language instructions with short steps. Avoid jargon. "
+            "Warn before any step that could risk data loss.\n"
+            "Copilot Prompt: A single prompt the user can paste into Microsoft 365 Copilot."
+        )
+        user_prompt = (
+            f"App: {m365_app}\n"
+            f"Error Code: {error_code or 'None'}\n"
+            f"Description: {description or 'None provided'}"
+        )
+
+        # Call OpenAI
+        try:
+            resp = client.chat.completions.create(
+                model=DEFAULT_MODEL,
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt}
+                ],
+                temperature=0.3,
+            )
+            text = resp.choices[0].message.content.strip()
+
+            # Split into two panels on "Copilot Prompt:"
+            lower = text.lower()
+            marker = "copilot prompt"
+            split_idx = lower.find(marker)
+
+            if split_idx != -1:
+                fix_text = text[:split_idx].strip()
+                prompt_text = text[split_idx + len(marker):].lstrip(":").strip()
+            else:
+                # If the model did not label sections perfectly, put everything in steps
+                fix_text = text
+                prompt_text = ""
+
+            # Render newlines as basic HTML breaks
+            manual_steps_html = "<br>".join(line.strip() for line in fix_text.splitlines() if line.strip())
+            copilot_prompt_text = prompt_text
+
+        except Exception as e:
+            print(f"⚠️ Troubleshooter error: {e}")
+            manual_steps_html = "<p>Sorry, something went wrong generating steps. Please try again.</p>"
+            copilot_prompt_text = None
+
+    return render_template(
+        "troubleshooter.html",
+        manual_steps=manual_steps_html,
+        copilot_prompt=copilot_prompt_text,
+        network_note=network_note,
+        chosen_app=chosen_app,
+        active_page="troubleshooter"
     )
 
 
