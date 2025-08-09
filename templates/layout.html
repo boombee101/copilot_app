@@ -9,18 +9,7 @@ Shared base template with header + sidebar + styles.
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>{% block title %}SQN Copilot Companion{% endblock %}</title>
   <style>
-    :root{
-      --tva-navy:#002855; /* primary */
-      --tva-blue:#004e98; /* accents */
-      --tva-slate:#5b6b7a; /* secondary text */
-      --tva-bg:#f1f6fb; /* page background */
-      --card:#ffffff; /* cards */
-      --ok:#116149; /* success */
-      --warn:#8a3b12; /* warning */
-      --shadow:0 10px 30px rgba(0,0,0,.08);
-      --radius:16px;
-      --gap:18px;
-    }
+    :root{--tva-navy:#002855;--tva-blue:#004e98;--tva-slate:#5b6b7a;--tva-bg:#f1f6fb;--card:#fff;--ok:#116149;--warn:#8a3b12;--shadow:0 10px 30px rgba(0,0,0,.08);--radius:16px;--gap:18px}
     *{box-sizing:border-box}
     body{margin:0;font-family:"Segoe UI",Tahoma,Arial,sans-serif;background:var(--tva-bg);color:var(--tva-navy)}
     a{color:var(--tva-blue);text-decoration:none}
@@ -32,12 +21,10 @@ Shared base template with header + sidebar + styles.
     .nav{display:flex;flex-direction:column;gap:6px}
     .nav a{padding:10px 12px;border-radius:10px;color:#d7e7ff;display:flex;justify-content:space-between}
     .nav a:hover,.nav a.active{background:rgba(255,255,255,.12);color:#fff}
-
-    header{background:#ffffff;box-shadow:var(--shadow);position:sticky;top:0;z-index:2}
+    header{background:#fff;box-shadow:var(--shadow);position:sticky;top:0;z-index:2}
     .bar{display:flex;align-items:center;justify-content:space-between;padding:14px 22px}
     .bar .title{font-size:18px;color:var(--tva-navy);font-weight:600}
     .bar .meta{font-size:12px;color:var(--tva-slate)}
-
     main{padding:28px}
     .grid{display:grid;grid-template-columns:1.35fr .65fr;gap:var(--gap)}
     .card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px}
@@ -45,53 +32,41 @@ Shared base template with header + sidebar + styles.
     .sub{color:var(--tva-slate);font-size:13px;margin:0 0 14px}
     .field{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
     label{font-size:13px;color:var(--tva-slate)}
-    select,textarea,input[type=text]{width:100%;padding:12px 12px;border:1px solid #dbe6f3;border-radius:12px;background:#fbfdff;font-size:14px;color:#0a2b4f}
+    select,textarea,input[type=text]{width:100%;padding:12px;border:1px solid #dbe6f3;border-radius:12px;background:#fbfdff;font-size:14px;color:#0a2b4f}
     textarea{min-height:120px;resize:vertical}
     .row{display:flex;gap:10px;flex-wrap:wrap}
     .btn{appearance:none;border:0;border-radius:12px;padding:12px 16px;background:var(--tva-blue);color:#fff;font-weight:600;cursor:pointer}
     .btn.secondary{background:#e9f0fb;color:#0a2b4f}
     .btn.ghost{background:transparent;border:1px solid #cfe1fb;color:#0a2b4f}
-
     .result-wrap{display:grid;grid-template-columns:1fr 1fr;gap:var(--gap)}
     .result-title{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
     .badge{font-size:11px;border-radius:999px;padding:4px 8px;background:#ecf5ef;color:var(--ok);border:1px solid #cfe9da}
     pre{white-space:pre-wrap;word-wrap:break-word;margin:0;background:#f8fbff;border:1px solid #e4eefb;border-radius:12px;padding:14px;font-size:13px;color:#0a2b4f}
-
     .helper{display:grid;gap:var(--gap)}
     .helper .quick{display:grid;gap:8px}
     .disclosure{font-size:12px;color:#42586f;background:#f7fbff;border:1px solid #d9e8fa;border-radius:12px;padding:12px}
-
     .checklist{display:grid;gap:10px}
     .check-item{display:flex;gap:10px;align-items:flex-start;background:#f7fbff;border:1px solid #d9e8fa;border-radius:12px;padding:10px}
-
-    /* Mobile */
-    @media (max-width: 1024px){
-      .app{grid-template-columns:1fr}
-      .sidebar{height:auto;position:relative}
-      .grid{grid-template-columns:1fr}
-      .result-wrap{grid-template-columns:1fr}
-    }
+    @media (max-width: 1024px){.app{grid-template-columns:1fr}.sidebar{height:auto;position:relative}.grid{grid-template-columns:1fr}.result-wrap{grid-template-columns:1fr}}
   </style>
-
   {% block extra_styles %}{% endblock %}
 </head>
 <body>
 <div class="app">
-  <!-- Sidebar -->
   <aside class="sidebar">
     <div class="brand">
       <div class="logo" aria-hidden="true"></div>
       <h1>SQN Copilot Companion<br><span style="font-weight:400;opacity:.8">for Microsoft 365</span></h1>
     </div>
     <nav class="nav">
-      <a class="{% if request.endpoint=='home' %}active{% endif %}" href="{{ url_for('home') }}">Home<span>›</span></a>
-      <a class="{% if request.endpoint=='help' %}active{% endif %}" href="{{ url_for('help') }}">Teach Me<span>›</span></a>
-      <a class="{% if request.endpoint=='troubleshooter' %}active{% endif %}" href="{{ url_for('troubleshooter') }}">Troubleshooter<span>›</span></a>
+      <a class="{{ 'active' if (active_page=='home') else '' }}" href="{{ url_for('home') }}">Home<span>›</span></a>
+      <!-- Use literal /help so we don't need a route named 'help' -->
+      <a class="{{ 'active' if (active_page=='teach') else '' }}" href="/help">Teach Me<span>›</span></a>
+      <a class="{{ 'active' if (active_page=='troubleshooter') else '' }}" href="{{ url_for('troubleshooter') }}">Troubleshooter<span>›</span></a>
       <a href="{{ url_for('logout') }}">Logout<span>›</span></a>
     </nav>
   </aside>
 
-  <!-- Content -->
   <section>
     <header>
       <div class="bar">
@@ -99,7 +74,6 @@ Shared base template with header + sidebar + styles.
         <div class="meta">{% block page_meta %}{% endblock %}</div>
       </div>
     </header>
-
     <main>
       {% block content %}{% endblock %}
     </main>
