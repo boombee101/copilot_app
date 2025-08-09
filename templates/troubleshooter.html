@@ -1,143 +1,82 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>Microsoft 365 Troubleshooter</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <style>
-    /* Shared look & feel (matches home) */
-    body { font-family: "Segoe UI", Tahoma, Arial, sans-serif; background: #f4f8fb; color: #003366; margin: 0; padding: 0; }
-    .disclaimer {
-      background: linear-gradient(90deg, #fffbe5 85%, #f6f7f8 100%);
-      color: #755000; border: 1.5px solid #f5df95; font-weight: 500; text-align: center;
-      padding: 13px 10px 11px; font-size: 15.5px; letter-spacing: 0.01em; margin-bottom: 0;
-      border-radius: 0 0 10px 10px; box-shadow: 0 2px 8px rgba(227,193,72,0.05); position: relative; z-index: 10;
-    }
-    .disclaimer .icon { font-size: 22px; vertical-align: middle; margin-right: 8px; display: inline-block; }
-    .header {
-      background: url('/static/images/sqn2.jpg') center center/cover no-repeat, linear-gradient(90deg, #003366 65%, #426da9 100%);
-      color: #fff; padding: 54px 20px 34px; text-align: center; position: relative; box-shadow: 0 5px 18px rgba(0,34,85,0.10);
-    }
-    .header::after { content: ""; position: absolute; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0, 40, 85, 0.40); pointer-events: none; z-index: 1; }
-    .header-content { position: relative; z-index: 2; }
-    .header img { max-width: 110px; margin-bottom: 10px; filter: drop-shadow(0 3px 9px rgba(0,0,0,0.22)); }
-    .header .subtitle { font-size: 22px; color: #d2e6f7; margin-top: 7px; margin-bottom: 10px; }
+<!-- =============================
+FILE: templates/troubleshooter.html (updated to extend layout)
+============================= -->
+{% extends 'layout.html' %}
+{% block title %}SQN Copilot Companion — Troubleshooter{% endblock %}
+{% block page_title %}Microsoft 365 Troubleshooter{% endblock %}
+{% block page_meta %}Plain‑English fixes • Safe for TVA workflows{% endblock %}
 
-    .container { max-width: 980px; margin: -36px auto 30px; background: #fff; padding: 28px; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
-    h1 { font-size: 28px; margin-bottom: 10px; font-weight: 700; }
-    .intro { background: #eaf3fb; border-left: 5px solid #003366; padding: 16px; border-radius: 8px; margin-bottom: 20px; }
-    .panel { background: #f8fafc; border: 1px solid #dce6f5; border-radius: 8px; padding: 16px; margin-top: 16px; }
-    label { font-weight: 600; margin-top: 10px; display: block; }
-    select, input[type="text"], textarea {
-      width: 100%; padding: 10px; border: 1px solid #c9d8ea; border-radius: 6px; font-size: 14px; margin-top: 5px; background: #f7fbff;
-    }
-    textarea { min-height: 140px; resize: vertical; }
-    .button { background: #004785; color: #fff; border: none; padding: 10px 18px; font-size: 15px; border-radius: 6px; cursor: pointer; font-weight: 600; margin-top: 16px; }
-    .button:hover { background: #002d5d; }
-    .note { font-size: 13px; color: #375a7f; margin-top: 5px; }
-
-    .result { margin-top: 24px; display: grid; gap: 16px; }
-    .result-panel { background: #f7fbff; border: 1px solid #c9d8ea; border-radius: 8px; padding: 14px; }
-    .result-panel h3 { margin-top: 0; }
-    .result-panel textarea { width: 100%; height: 200px; }
-
-    /* Card-style steps */
-    .steps { display: grid; gap: 10px; }
-    .step { background:#f7fbff; border:1px solid #c9d8ea; border-radius:10px; padding:12px 12px 12px 48px; position:relative; line-height:1.5; }
-    .step-num {
-      position:absolute; left:12px; top:12px; width:28px; height:28px; border-radius:50%;
-      display:inline-flex; align-items:center; justify-content:center; font-weight:700; background:#004785; color:#fff;
-    }
-    .step.warning { border-color:#ffcf8a; background:#fff8ef; }
-    .step.warning .step-num { background:#d9480f; }
-
-    .footer { text-align: center; font-size: 14.5px; color: #7d91ab; margin-top: 32px; }
-  </style>
-</head>
-<body>
-  <div class="disclaimer" title="TVA Policy">
-    <span class="icon">⚠️</span>
-    <span>
-      Do not input, upload, or share any TVA-sensitive, personal, or confidential information in this tool.<br>
-      Unauthorized use may violate TVA cybersecurity policies.<br>
-      This resource is intended for general learning, support, and productivity purposes only.
-    </span>
-  </div>
-
-  <div class="header">
-    <div class="header-content">
-      <img src="/static/images/tva_logo.png" alt="TVA Logo" />
-      <h1>TVA Copilot Help Center</h1>
-      <div class="subtitle">Smart support for Microsoft 365, built for TVA employees</div>
-    </div>
-  </div>
-
-  {% include '_nav.html' %}
-
-  <div class="container">
-    <h1>Microsoft 365 Troubleshooter</h1>
-
-    <div class="intro">
-      <p><strong>What this tool does:</strong></p>
-      <ul>
-        <li>Understands your error or description</li>
-        <li>Gives short, plain steps to try in order</li>
-        <li>Creates a Copilot prompt you can paste into Microsoft 365</li>
-      </ul>
-      <p><strong>When to use it:</strong> You see an error, a feature is not working, or you are unsure what to click next.</p>
-      <p><strong>Safety note:</strong> Do not enter or upload TVA-sensitive, personal, or confidential information. If it appears to be a network issue, please contact TVA IT.</p>
-    </div>
-
-    <form method="POST">
-      <label for="m365_app">Which app?</label>
-      <select id="m365_app" name="m365_app" required>
-        <option value="Auto-detect">Auto-detect</option>
-        <option>Word</option>
-        <option>Excel</option>
-        <option>Outlook</option>
-        <option>Teams</option>
-        <option>PowerPoint</option>
-        <option>OneDrive</option>
-        <option>SharePoint</option>
-        <option>Other</option>
-      </select>
-
-      <label for="error_code">Error code (optional)</label>
-      <input id="error_code" name="error_code" type="text" placeholder="Example: 0x80070005" />
-
-      <label for="description">What is happening?</label>
-      <textarea id="description" name="description" placeholder="Describe the problem in your own words. Include exact error text if possible."></textarea>
-      <div class="note">Example: Teams camera is not detected on Windows 11 laptop.</div>
-
-      <button class="button" type="submit">Run Troubleshooter</button>
-    </form>
-
-    {% if manual_steps or copilot_prompt or network_note %}
-      <div class="result">
-        <div class="result-panel">
-          <h3>Step-by-Step Fix</h3>
-          {% if network_note %}<p><strong>Note:</strong> {{ network_note }}</p>{% endif %}
-          {% if manual_steps %}
-            <div>{{ manual_steps|safe }}</div>
-          {% else %}
-            <p>No steps yet. Submit a description to get instructions.</p>
-          {% endif %}
+{% block content %}
+  <div class="grid" style="grid-template-columns:1.15fr .85fr">
+    <!-- Troubleshoot form -->
+    <div class="card">
+      <h2>Tell us what’s wrong</h2>
+      <p class="sub">Paste any error text or explain what you’re trying to do. We’ll walk you through the simple checks first.</p>
+      <form action="{{ url_for('ask_help') if 'ask_help' in globals() else '/ask_help' }}" method="post">
+        <div class="field">
+          <label for="ts_app">Which app?</label>
+          <select id="ts_app" name="app" required>
+            <option value="Word">Word</option>
+            <option value="Excel">Excel</option>
+            <option value="Outlook">Outlook</option>
+            <option value="Teams">Teams</option>
+            <option value="PowerPoint">PowerPoint</option>
+          </select>
         </div>
+        <div class="field">
+          <label for="issue">Describe the issue or paste the error</label>
+          <textarea id="issue" name="issue" placeholder="Example: Outlook keeps asking for my password and won’t connect. Error code 0x800CCC0E."></textarea>
+        </div>
+        <div class="row">
+          <button class="btn" type="submit" name="mode" value="diagnose">Run guided troubleshooting</button>
+          <button class="btn secondary" type="reset">Clear</button>
+        </div>
+      </form>
+    </div>
 
-        <div class="result-panel">
-          <h3>Copilot Prompt</h3>
-          {% if copilot_prompt %}
-            <textarea readonly>{{ copilot_prompt }}</textarea>
-            <p class="note">Copy and paste this into Copilot inside your Microsoft 365 app.</p>
-          {% else %}
-            <p>No prompt yet. Submit a description to generate one.</p>
-          {% endif %}
+    <!-- First‑aid checklist -->
+    <div class="card">
+      <h2>Quick first‑aid checklist</h2>
+      <p class="sub">Try these universal checks while we analyze your issue.</p>
+      <div class="checklist">
+        <div class="check-item">
+          <div class="flag">Tip</div>
+          <div><strong>Restart the app</strong><br/>Close the app completely, then reopen it. This clears temporary glitches.</div>
+        </div>
+        <div class="check-item">
+          <div class="flag">Account</div>
+          <div><strong>Confirm you’re signed in</strong><br/>In the app, check your account profile. If you see sign‑in errors, re‑enter credentials.</div>
+        </div>
+        <div class="check-item">
+          <div class="flag">Update</div>
+          <div><strong>Check for updates</strong><br/>Open any Office app → Account → Update Options → Update Now.</div>
+        </div>
+        <div class="check-item">
+          <div class="flag">Policy</div>
+          <div><strong>TVA or SQN policy</strong><br/>If a feature looks disabled, it may be restricted. Ask your supervisor which policy applies.</div>
+        </div>
+        <div class="check-item">
+          <div class="flag">Network</div>
+          <div><strong>Network or VPN</strong><br/>If you suspect a network problem, contact <em>TVA IT</em>. Avoid changing network settings yourself.</div>
         </div>
       </div>
-    {% endif %}
-
-    <div class="footer">SQN Copilot Companion</div>
+    </div>
   </div>
-</body>
-</html>
 
+  <!-- Results (rendered by server if present) -->
+  {% set _diag = diagnosis if diagnosis is defined else (result if result is defined else None) %}
+  {% set _steps = steps if steps is defined else (manual_steps if manual_steps is defined else None) %}
+
+  {% if _diag or _steps %}
+  <div class="grid" style="margin-top:var(--gap)">
+    <div class="card">
+      <h2>What we found</h2>
+      <pre>{{ _diag if _diag else 'Submit an issue above to see the analysis here.' }}</pre>
+    </div>
+    <div class="card">
+      <h2>Step‑by‑step fix</h2>
+      <pre>{{ _steps if _steps else 'We will generate a plain, step‑by‑step guide here.' }}</pre>
+    </div>
+  </div>
+  {% endif %}
+{% endblock %}
