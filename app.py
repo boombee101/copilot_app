@@ -4,6 +4,7 @@ from openai import OpenAI
 import os
 import csv
 import re
+import html as html_module
 
 # =========================
 # App & configuration
@@ -87,6 +88,56 @@ def split_helpdesk_sections(full_text):
     promptt = section_map.get("Copilot Prompt")
     why     = section_map.get("Why This Works")
     return (clarify, steps, promptt, why)
+
+
+# ========= Pretty formatters for AI text -> clean HTML cards =========
+STEP_LINE = re.compile(r"^\s*(?:\d+[\.\)]\s+|\-\s+|\•\s+)(.+)$", re.IGNORECASE)
+
+def format_steps_html(text: str) -> str:
+    """
+    Convert AI text with numbered/bulleted lines into clean HTML 'cards'.
+    - Detects lines starting with '1. ', '1) ', '-', or '•'
+    - Wraps each detected step in a .step block with a visible number
+    - Any line with the word 'warning' becomes an orange warning card
+    - Continuation lines are appended to the prior step
+    """
+    if not text:
+        return ""
+    lines = [l.rstrip() for l in text.splitlines() if l.strip()]
+
+    steps = []
+    n = 0
+    for line in lines:
+        m = STEP_LINE.match(line)
+        body = m.group(1).strip() if m else line.strip()
+        if m:
+            n += 1
+            is_warning = bool(re.search(r"\bwarning\b", body, re.IGNORECASE))
+            steps.append({
+                "num": n,
+                "html": html_module.escape(body),
+                "warning": is_warning
+            })
+        else:
+            if steps:
+                steps[-1]["html"] += "<br>" + html_module.escape(body)
+            else:
+                n += 1
+                steps.append({"num": n, "html": html_module.escape(body), "warning": False})
+
+    out = ['<div class="steps">']
+    for s in steps:
+        cls = "step warning" if s["warning"] else "step"
+        out.append(f'<div class="{cls}"><span class="step-num">{s["num"]}</span> {s["html"]}</div>')
+    out.append("</div>")
+    return "\n".join(out)
+
+def format_paragraphs_html(text: str) -> str:
+    """Basic paragraph wrapper for non-step text."""
+    if not text:
+        return ""
+    parts = [f"<p>{html_module.escape(p.strip())}</p>" for p in text.split("\n") if p.strip()]
+    return "\n".join(parts)
 
 
 # =========================
@@ -199,10 +250,11 @@ def home():
                     max_tokens=700
                 )
                 manual_instructions = manual_response.choices[0].message.content.strip()
+                manual_instructions_html = format_steps_html(manual_instructions)
             except Exception as e:
                 print(f"⚠️ Manual error: {e}")
                 manual_instructions = "⚠️ Could not generate manual steps."
-
+                manual_instructions_html = ""
             write_history(task, context, final_prompt)
 
             return render_template(
@@ -211,7 +263,8 @@ def home():
                 app_selected=app_selected,
                 task=task,
                 context=context,
-                manual_instructions=manual_instructions,
+                manual_instructions=manual_instructions,          # original text (kept)
+                manual_instructions_html=manual_instructions_html,# pretty cards
                 history=history,
                 active_page="home"
             )
@@ -228,7 +281,7 @@ def ask_gpt():
         if not question:
             return jsonify({"answer": "Please enter a question."})
 
-        response = client.chat.completions.create(
+        response = client.chat_completions.create(  # backward compatibility if needed
             model=DEFAULT_MODEL,
             messages=[
                 {"role": "system", "content": "You are a helpful assistant supporting Microsoft 365 users at TVA."},
@@ -238,9 +291,22 @@ def ask_gpt():
             max_tokens=300
         )
         return jsonify({"answer": response.choices[0].message.content.strip()})
-    except Exception as e:
-        print(f"⚠️ ask_gpt error: {e}")
-        return jsonify({"answer": "⚠️ Failed to respond. Try again later."})
+    except Exception:
+        # Use the current API style
+        try:
+            response = client.chat.completions.create(
+                model=DEFAULT_MODEL,
+                messages=[
+                    {"role": "system", "content": "You are a helpful assistant supporting Microsoft 365 users at TVA."},
+                    {"role": "user", "content": question}
+                ],
+                temperature=0.5,
+                max_tokens=300
+            )
+            return jsonify({"answer": response.choices[0].message.content.strip()})
+        except Exception as e2:
+            print(f"⚠️ ask_gpt error: {e2}")
+            return jsonify({"answer": "⚠️ Failed to respond. Try again later."})
 
 
 @app.route('/how_to_manual', methods=['POST'])
@@ -337,6 +403,7 @@ def ask_help():
         return redirect(url_for('login'))
 
     result = None
+    result_html = ""
     app_selected = (request.form.get('app') or '').strip()
     problem = (request.form.get('problem') or '').strip()
 
@@ -355,15 +422,18 @@ def ask_help():
                 max_tokens=550
             )
             result = resp.choices[0].message.content.strip()
+            result_html = format_steps_html(result)
         except Exception as e:
             print(f"⚠️ ask_help AI error: {e}")
             result = "⚠️ Sorry, we could not generate help right now. Try again."
+            result_html = ""
 
     return render_template(
         'ask_help.html',
         app_selected=app_selected or 'Word',
         problem=problem or '',
-        result=result,
+        result=result,             # original text
+        result_html=result_html,   # pretty cards
         active_page="ask_help"
     )
 
@@ -380,6 +450,7 @@ def help_desk():
         return redirect(url_for('login'))
 
     answer = None
+    answer_html = ""
 
     if request.method == 'POST':
         user_question = (request.form.get('question') or '').strip()
@@ -404,11 +475,16 @@ def help_desk():
                     max_tokens=700
                 )
                 answer = response.choices[0].message.content.strip()
+                answer_html = format_steps_html(answer)
             except Exception as e:
                 print(f"⚠️ Help Desk error: {e}")
                 answer = "⚠️ Sorry, there was an error fetching help. Please try again."
+                answer_html = ""
 
-    return render_template("help.html", answer=answer, active_page="help")
+    return render_template("help.html",
+                           answer=answer,           # original text
+                           answer_html=answer_html, # pretty cards
+                           active_page="help")
 
 
 # ------- Prompt Builder -------
@@ -495,11 +571,9 @@ def troubleshooter():
         description = request.form.get("description", "").strip()
         chosen_app = m365_app
 
-        # Friendly TVA IT note if it smells like connectivity
         if _looks_network_related(" ".join([m365_app or "", error_code or "", description or ""])):
             network_note = "This may be a network or connectivity issue. Please contact TVA IT."
 
-        # Prompts
         system_prompt = (
             "You are a Microsoft 365 Troubleshooter for beginner users at a utility. "
             "Output two sections:\n"
@@ -513,7 +587,6 @@ def troubleshooter():
             f"Description: {description or 'None provided'}"
         )
 
-        # Call OpenAI
         try:
             resp = client.chat.completions.create(
                 model=DEFAULT_MODEL,
@@ -525,7 +598,6 @@ def troubleshooter():
             )
             text = resp.choices[0].message.content.strip()
 
-            # Split into two panels on "Copilot Prompt:"
             lower = text.lower()
             marker = "copilot prompt"
             split_idx = lower.find(marker)
@@ -534,12 +606,10 @@ def troubleshooter():
                 fix_text = text[:split_idx].strip()
                 prompt_text = text[split_idx + len(marker):].lstrip(":").strip()
             else:
-                # If the model did not label sections perfectly, put everything in steps
                 fix_text = text
                 prompt_text = ""
 
-            # Render newlines as basic HTML breaks
-            manual_steps_html = "<br>".join(line.strip() for line in fix_text.splitlines() if line.strip())
+            manual_steps_html = format_steps_html(fix_text)
             copilot_prompt_text = prompt_text
 
         except Exception as e:
@@ -549,7 +619,7 @@ def troubleshooter():
 
     return render_template(
         "troubleshooter.html",
-        manual_steps=manual_steps_html,
+        manual_steps=manual_steps_html,  # pretty cards already
         copilot_prompt=copilot_prompt_text,
         network_note=network_note,
         chosen_app=chosen_app,
