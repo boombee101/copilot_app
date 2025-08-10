@@ -1,17 +1,67 @@
+<!-- =============================
+FILE: templates/home.html
+Enhanced Home with hero intro, how-it-works, feature spotlight. Extends layout and keeps all form/results features.
+============================= -->
 {% extends 'layout.html' %}
 {% block title %}SQN Copilot Companion — Home{% endblock %}
 {% block page_title %}Home{% endblock %}
-{% block page_meta %}Beginner-friendly guidance • Manual steps + Copilot prompts{% endblock %}
+{% block page_meta %}Beginner friendly guidance • Manual steps + Copilot prompts{% endblock %}
+
+{% block extra_styles %}
+<style>
+  .hero{display:grid;gap:12px;margin-bottom:var(--gap)}
+  .hero h1{font-size:28px;margin:0}
+  .hero p{margin:0;color:var(--tva-slate);font-size:15px}
+  .cta-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
+  .pill{display:inline-block;border:1px solid #d9e8fa;background:#f7fbff;border-radius:999px;padding:6px 10px;font-size:12px;color:#0a2b4f}
+  .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--gap)}
+  .mini{display:flex;gap:10px;align-items:flex-start;background:#ffffff;border-radius:var(--radius);box-shadow:var(--shadow);padding:16px}
+  .mini .ic{width:28px;height:28px;border-radius:9px;background:#e9f0fb;display:inline-flex;align-items:center;justify-content:center;font-weight:700}
+  .feature-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--gap)}
+  .feature{background:#ffffff;border-radius:var(--radius);box-shadow:var(--shadow);padding:18px;display:grid;gap:8px}
+  .feature a{font-weight:600}
+  @media (max-width: 1024px){.grid-3,.feature-grid{grid-template-columns:1fr}}
+</style>
+{% endblock %}
 
 {% block content %}
+
+<!-- Hero Intro -->
+<div class="hero card" id="top">
+  <h1>Welcome to SQN Copilot Companion</h1>
+  <p>
+    Your AI assistant for Microsoft 365. Tell it what you want to do and it will guide you to the finish. 
+    You get smart follow up questions, a polished Copilot prompt built for your app, and clear manual steps you can follow right now.
+  </p>
+  <div class="cta-row">
+    <a class="pill" href="#task-form">Start a task</a>
+    <a class="pill" href="#how">How it works</a>
+    <a class="pill" href="#features">What you can do</a>
+    <a class="pill" href="#safety">Safety and privacy</a>
+  </div>
+</div>
+
+<!-- How it works -->
+<div class="grid-3" id="how" style="margin-bottom:var(--gap)">
+  <div class="mini">
+    <div class="ic">1</div>
+    <div><strong>Choose your app</strong><br><span class="sub">Word, Excel, Outlook, Teams, or PowerPoint.</span></div>
+  </div>
+  <div class="mini">
+    <div class="ic">2</div>
+    <div><strong>Describe the goal</strong><br><span class="sub">Use plain English. We ask for missing details.</span></div>
+  </div>
+  <div class="mini">
+    <div class="ic">3</div>
+    <div><strong>Act with confidence</strong><br><span class="sub">Copy the AI prompt or follow the manual steps.</span></div>
+  </div>
+</div>
+
 <div class="grid">
   <!-- Task card -->
-  <div class="card">
+  <div class="card" id="task-form">
     <h2>What do you want to do?</h2>
-    <p class="sub">
-      Pick your Microsoft 365 app and describe your task in plain English. We’ll ask for any missing details,
-      then show both a Copilot prompt and manual steps.
-    </p>
+    <p class="sub">Pick your Microsoft 365 app and describe your task in plain English. We will ask for any missing details, then show both a Copilot prompt and manual steps.</p>
 
     <form action="{{ url_for('ask_gpt') }}" method="post">
       <div class="field">
@@ -28,9 +78,7 @@
 
       <div class="field">
         <label for="task">Describe your task or problem</label>
-        <textarea id="task" name="task" required
-          placeholder="Example: Clean up a messy table and create a chart that highlights the 5 biggest cost drivers.">
-{{ task if task is defined else request.form.get('task','') }}</textarea>
+        <textarea id="task" name="task" required placeholder="Example: Clean up a messy table and create a chart that highlights the 5 biggest cost drivers.">{{ task if task is defined else request.form.get('task','') }}</textarea>
       </div>
 
       <div class="row">
@@ -41,19 +89,25 @@
     </form>
   </div>
 
-  <!-- Helper / Explainer -->
-  <div class="card helper">
-    <div>
-      <h2>How this page works</h2>
-      <p class="sub">We keep it simple and practical.</p>
-      <div class="quick">
-        <div>• You type your goal in your own words.</div>
-        <div>• We ask follow-up questions when needed.</div>
-        <div>• You always get two outputs: a polished Copilot prompt and plain manual steps.</div>
+  <!-- Feature spotlight -->
+  <div class="card" id="features">
+    <h2>What you can do here</h2>
+    <div class="feature-grid">
+      <div class="feature">
+        <strong>Teach Me</strong>
+        <div class="sub">Short, beginner friendly lessons for Word and Excel with plain language steps.</div>
+        <a href="/help">Open Teach Me</a>
       </div>
-    </div>
-    <div class="disclosure">
-      <strong>Reminder:</strong> Do not enter sensitive or confidential TVA information. Use sample or generic data. This tool is for learning and productivity.
+      <div class="feature">
+        <strong>Troubleshooter</strong>
+        <div class="sub">Paste an error or describe the problem. Get a clear analysis and a step by step fix.</div>
+        <a href="{{ url_for('troubleshooter') }}">Open Troubleshooter</a>
+      </div>
+      <div class="feature">
+        <strong>Prompt Builder</strong>
+        <div class="sub">Tell us the goal and copy a tailored Copilot prompt for your Microsoft 365 app.</div>
+        <a href="#task-form">Start a task</a>
+      </div>
     </div>
   </div>
 </div>
@@ -68,15 +122,14 @@
     {% if _questions %}
     <div class="card">
       <div class="result-title">
-        <h2>Follow-up questions</h2>
+        <h2>Follow up questions</h2>
         <span class="badge">Help us be specific</span>
       </div>
-
       <form action="{{ url_for('ask_gpt') }}" method="post">
         <input type="hidden" name="app" value="{{ selected_app }}" />
         <input type="hidden" name="task" value="{{ task if task is defined else request.form.get('task','') }}" />
         <div class="field">
-          <label>Answer the questions below. You can skip any that don’t apply.</label>
+          <label>Answer any that apply.</label>
           {% for q in _questions %}
             <div class="field">
               <label>{{ q }}</label>
@@ -102,10 +155,9 @@
           {% if _prompt %}
             <pre>{{ _prompt }}</pre>
           {% else %}
-            <pre>Run “Generate Copilot prompt” to see your prompt here.</pre>
+            <pre>Run "Generate Copilot prompt" to see your prompt here.</pre>
           {% endif %}
         </div>
-
         <div>
           <div class="result-title">
             <h2>Manual steps</h2>
@@ -114,7 +166,7 @@
           {% if _manual %}
             <pre>{{ _manual }}</pre>
           {% else %}
-            <pre>Run “Show manual steps” to get a simple, step-by-step guide here.</pre>
+            <pre>Run "Show manual steps" to get a simple, step by step guide here.</pre>
           {% endif %}
         </div>
       </div>
@@ -122,4 +174,11 @@
     {% endif %}
   </div>
 {% endif %}
+
+<!-- Safety and privacy -->
+<div class="card" id="safety" style="margin-top:var(--gap)">
+  <h2>Safety and privacy</h2>
+  <p class="sub">Do not enter sensitive or confidential TVA information. Use sample or generic data. This tool is for learning and productivity.</p>
+</div>
+
 {% endblock %}
