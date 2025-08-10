@@ -141,6 +141,102 @@ def format_paragraphs_html(text: str) -> str:
 
 
 # =========================
+# New: Smarter follow‑up generation (unlimited) + “I’m Not Sure”
+# =========================
+def _ai_followups_for(app_selected: str, task: str) -> list[str]:
+    """
+    Ask AI for as many targeted follow‑up questions as it needs.
+    Returns a clean Python list of question strings (no hard limit).
+    """
+    system = (
+        "You are a Microsoft 365 assistant for TVA employees. "
+        "Given a user task and the selected app, ask all follow‑up questions you need to fully understand the task. "
+        "Keep each question short, plain-language, and specific. Avoid jargon unless you explain it. "
+        "Do not use 'we'; address the user directly. Output questions as a simple numbered list."
+    )
+    user = f"App: {app_selected}\nTask: {task}\nWrite ALL follow‑up questions now."
+
+    try:
+        resp = client.chat.completions.create(
+            model=DEFAULT_MODEL,
+            messages=[
+                {"role": "system", "content": system},
+                {"role": "user", "content": user}
+            ],
+            temperature=0.5,
+            max_tokens=700
+        )
+        text = (resp.choices[0].message.content or "").strip()
+    except Exception as e:
+        print(f"⚠️ Follow-up API error: {e}")
+        return ["What outcome do you want?", "Any constraints or details we should know?"]
+
+    # Try to parse either JSON array or numbered/bulleted list
+    questions = []
+
+    # JSON array detection
+    if "[" in text and "]" in text:
+        try:
+            import json
+            parsed = json.loads(text)
+            if isinstance(parsed, list):
+                questions = [str(x).strip() for x in parsed if str(x).strip()]
+        except Exception:
+            questions = []
+
+    # Fallback: split lines, strip bullets/numbers
+    if not questions:
+        lines = [ln.strip() for ln in text.splitlines() if ln.strip()]
+        for ln in lines:
+            q = re.sub(r"^\s*(?:\d+[\.\)]\s*|[\-\•]\s*)", "", ln).strip()
+            if len(q) > 5:
+                questions.append(q)
+
+    # Deduplicate while preserving order
+    seen = set()
+    cleaned = []
+    for q in questions:
+        if q not in seen:
+            seen.add(q)
+            cleaned.append(q)
+
+    # Do NOT hard-cap; allow AI to ask what it needs (safety: cap at 25 to avoid runaway)
+    return cleaned[:25] if len(cleaned) > 25 else cleaned
+
+
+def _ai_explain_question(app_selected: str, task: str, question: str) -> str:
+    """
+    Explain a follow‑up question in plain language and offer 2–4 example answers.
+    """
+    system = (
+        "You explain follow-up questions to beginners. "
+        "Write in plain, friendly language and give 2–4 example answers to choose from."
+    )
+    user = (
+        f"Context — App: {app_selected}\nTask: {task}\n"
+        f"The user didn't understand this question: {question}\n\n"
+        "1) Explain what the question means and why it matters.\n"
+        "2) Offer 2–4 example answers (short bullets)."
+    )
+    try:
+        resp = client.chat.completions.create(
+            model=DEFAULT_MODEL,
+            messages=[
+                {"role": "system", "content": system},
+                {"role": "user", "content": user}
+            ],
+            temperature=0.4,
+            max_tokens=300
+        )
+        text = (resp.choices[0].message.content or "").strip()
+        # Escape to keep HTML safe in the browser
+        return html_module.escape(text)
+    except Exception as e:
+        print(f"⚠️ Explain API error: {e}")
+        return "This question is asking for more specifics. If you aren’t sure, you can leave it blank."
+
+
+# =========================
 # Routes
 # =========================
 @app.route('/', methods=['GET', 'POST'])
@@ -163,34 +259,21 @@ def home():
     history = read_history(max_items=10)
 
     if request.method == 'POST':
-        # Phase 1: Generate follow-up questions
-        if 'task' in request.form and 'app' in request.form:
+        # Phase 1: Generate follow-up questions (smarter, unlimited, app-aware)
+        if 'task' in request.form and 'app' in request.form and 'original_task' not in request.form:
             task = request.form['task'].strip()
             app_selected = request.form['app'].strip()
             session['task'] = task
             session['app_selected'] = app_selected
 
             try:
-                response = client.chat.completions.create(
-                    model=DEFAULT_MODEL,
-                    messages=[
-                        {"role": "system", "content":
-                            f"You are a Copilot helper guiding a TVA employee using Microsoft {app_selected}. "
-                            f"Break this vague task into very clear, non-technical follow-up questions."
-                         },
-                        {"role": "user", "content": f"The user said: '{task}'"}
-                    ],
-                    temperature=0.5,
-                    max_tokens=600
-                )
-                raw = response.choices[0].message.content
-                questions = [line.strip("-•1234567890. ").strip() for line in raw.splitlines() if line.strip()]
-                questions = [q for q in questions if len(q) > 5][:10]
+                questions = _ai_followups_for(app_selected, task)
+                # Keep also in session for Phase 2
+                session['questions'] = questions
             except Exception as e:
                 print(f"⚠️ Error generating questions: {e}")
-                questions = ["⚠️ Error generating questions. Try again."]
+                questions = ["What outcome do you want to achieve?", "Any constraints or details we should know?"]
 
-            session['questions'] = questions
             return render_template(
                 "home.html",
                 questions=questions,
@@ -200,24 +283,34 @@ def home():
                 active_page="home"
             )
 
-        # Phase 2: Generate final Copilot prompt and manual steps
+        # Phase 2: Generate final Copilot prompt and manual steps (unchanged API usage)
         elif 'original_task' in request.form:
             task = request.form['original_task'].strip()
             app_selected = session.get('app_selected', 'a Microsoft app')
             questions = session.get('questions', []) or []
 
             answers = []
+            # Using answer_0, answer_1, ... from the Follow-up form
             for i in range(len(questions)):
-                ans = request.form.get(f'answer_{i}', '').strip()
-                if ans:
+                ans = (request.form.get(f'answer_{i}') or '').strip()
+                # If the UI passes "NOT_SURE::<question>" we can treat as skipped
+                if ans.upper().startswith("NOT_SURE::"):
+                    q_txt = ans.split("::", 1)[1] if "::" in ans else questions[i]
+                    answers.append(f"Q: {q_txt}\nA: User was not sure.")
+                elif ans:
                     answers.append(f"Q: {questions[i]}\nA: {ans}")
+                else:
+                    # allow blanks (user skipped)
+                    answers.append(f"Q: {questions[i]}\nA: (skipped)")
+
             context = "\n".join(answers) if answers else "No extra context provided."
 
             # Copilot prompt
             try:
                 smart_prompt = (
                     f"Write a clear, work-appropriate Copilot prompt for Microsoft {app_selected}.\n\n"
-                    f"Task:\n{task}\n\nContext:\n{context}"
+                    f"Task:\n{task}\n\nContext:\n{context}\n\n"
+                    "Make it specific, avoid jargon, and keep it suitable for a TVA workplace."
                 )
                 response = client.chat.completions.create(
                     model=DEFAULT_MODEL,
@@ -226,9 +319,9 @@ def home():
                         {"role": "user", "content": smart_prompt}
                     ],
                     temperature=0.5,
-                    max_tokens=400
+                    max_tokens=500
                 )
-                final_prompt = response.choices[0].message.content.strip()
+                final_prompt = (response.choices[0].message.content or "").strip()
             except Exception as e:
                 print(f"⚠️ Prompt error: {e}")
                 final_prompt = "⚠️ Could not generate prompt."
@@ -247,14 +340,16 @@ def home():
                         {"role": "user", "content": manual_instructions_prompt}
                     ],
                     temperature=0.6,
-                    max_tokens=700
+                    max_tokens=900
                 )
-                manual_instructions = manual_response.choices[0].message.content.strip()
+                manual_instructions = (manual_response.choices[0].message.content or "").strip()
                 manual_instructions_html = format_steps_html(manual_instructions)
             except Exception as e:
                 print(f"⚠️ Manual error: {e}")
                 manual_instructions = "⚠️ Could not generate manual steps."
                 manual_instructions_html = ""
+
+            # Log to CSV history (safe)
             write_history(task, context, final_prompt)
 
             return render_template(
@@ -273,6 +368,32 @@ def home():
     return render_template("home.html", history=history, active_page="home")
 
 
+@app.route('/explain_question', methods=['POST'])
+def explain_question():
+    """
+    JSON endpoint used by the 'I'm Not Sure' buttons.
+    Body: { "app": "...", "task": "...", "question": "..." }
+    Returns: { "explanation": "..." }
+    """
+    if not session.get('logged_in'):
+        return jsonify({"error": "Not logged in"}), 403
+
+    try:
+        data = request.get_json(force=True) or {}
+        app_selected = (data.get("app") or session.get("app_selected") or "Microsoft 365").strip()
+        task = (data.get("task") or session.get("task") or "").strip()
+        question = (data.get("question") or "").strip()
+
+        if not question:
+            return jsonify({"explanation": "This follow-up is asking for more detail. If you're not sure, you can skip it."})
+
+        explanation = _ai_explain_question(app_selected, task, question)
+        return jsonify({"explanation": explanation})
+    except Exception as e:
+        print(f"⚠️ explain_question error: {e}")
+        return jsonify({"explanation": "Sorry, we couldn't clarify that question right now."}), 500
+
+
 @app.route('/ask_gpt', methods=['POST'])
 def ask_gpt():
     try:
@@ -281,20 +402,9 @@ def ask_gpt():
         if not question:
             return jsonify({"answer": "Please enter a question."})
 
-        response = client.chat_completions.create(  # backward compatibility if needed
-            model=DEFAULT_MODEL,
-            messages=[
-                {"role": "system", "content": "You are a helpful assistant supporting Microsoft 365 users at TVA."},
-                {"role": "user", "content": question}
-            ],
-            temperature=0.5,
-            max_tokens=300
-        )
-        return jsonify({"answer": response.choices[0].message.content.strip()})
-    except Exception:
-        # Use the current API style
+        # Older client style (if available)
         try:
-            response = client.chat.completions.create(
+            response = client.chat_completions.create(
                 model=DEFAULT_MODEL,
                 messages=[
                     {"role": "system", "content": "You are a helpful assistant supporting Microsoft 365 users at TVA."},
@@ -304,9 +414,23 @@ def ask_gpt():
                 max_tokens=300
             )
             return jsonify({"answer": response.choices[0].message.content.strip()})
-        except Exception as e2:
-            print(f"⚠️ ask_gpt error: {e2}")
-            return jsonify({"answer": "⚠️ Failed to respond. Try again later."})
+        except Exception:
+            pass
+
+        # Current API style
+        response = client.chat.completions.create(
+            model=DEFAULT_MODEL,
+            messages=[
+                {"role": "system", "content": "You are a helpful assistant supporting Microsoft 365 users at TVA."},
+                {"role": "user", "content": question}
+            ],
+            temperature=0.5,
+            max_tokens=300
+        )
+        return jsonify({"answer": (response.choices[0].message.content or "").strip()})
+    except Exception as e2:
+        print(f"⚠️ ask_gpt error: {e2}")
+        return jsonify({"answer": "⚠️ Failed to respond. Try again later."})
 
 
 @app.route('/how_to_manual', methods=['POST'])
@@ -332,7 +456,7 @@ def how_to_manual():
             temperature=0.6,
             max_tokens=700
         )
-        return jsonify({"manual_steps": response.choices[0].message.content.strip()})
+        return jsonify({"manual_steps": (response.choices[0].message.content or "").strip()})
     except Exception as e:
         print(f"⚠️ manual API error: {e}")
         return jsonify({"manual_steps": "⚠️ Manual instructions unavailable."})
@@ -375,7 +499,7 @@ def learn_app(app_name):
             temperature=0.6,
             max_tokens=900
         )
-        lesson_content = response.choices[0].message.content.strip()
+        lesson_content = (response.choices[0].message.content or "").strip()
     except Exception as e:
         print(f"⚠️ learn error: {e}")
         lesson_content = "⚠️ Sorry, we couldn’t load your lesson right now. Please try again later."
@@ -385,21 +509,6 @@ def learn_app(app_name):
                            lesson=lesson_content,
                            user_topic=user_topic,
                            active_page=f"learn_{app_name_l}")
-
-@app.route('/teach_me', methods=['GET', 'POST'])
-def teach_me():
-    if not session.get('logged_in'):
-        return redirect(url_for('login'))
-
-    if request.method == 'POST':
-        # form select named "app" from teach_me.html
-        chosen = (request.form.get('app') or '').strip().lower()
-        valid = {'word', 'excel', 'outlook', 'teams', 'powerpoint'}
-        if chosen.lower() in valid:
-            return redirect(url_for('learn_app', app_name=chosen))
-        # if nothing valid selected, just reload page
-    return render_template('teach_me.html', active_page='teach_me')
-
 
 
 @app.route('/logout')
@@ -436,7 +545,7 @@ def ask_help():
                 temperature=0.3,
                 max_tokens=550
             )
-            result = resp.choices[0].message.content.strip()
+            result = (resp.choices[0].message.content or "").strip()
             result_html = format_steps_html(result)
         except Exception as e:
             print(f"⚠️ ask_help AI error: {e}")
@@ -489,7 +598,7 @@ def help_desk():
                     temperature=0.4,
                     max_tokens=700
                 )
-                answer = response.choices[0].message.content.strip()
+                answer = (response.choices[0].message.content or "").strip()
                 answer_html = format_steps_html(answer)
             except Exception as e:
                 print(f"⚠️ Help Desk error: {e}")
@@ -611,7 +720,7 @@ def troubleshooter():
                 ],
                 temperature=0.3,
             )
-            text = resp.choices[0].message.content.strip()
+            text = (resp.choices[0].message.content or "").strip()
 
             lower = text.lower()
             marker = "copilot prompt"

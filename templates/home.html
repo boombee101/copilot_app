@@ -133,15 +133,24 @@
       margin-top: 0;
       color: #004080;
     }
-  </style>
-  <script>
-    function scrollToFollowUp() {
-      document.getElementById("followup").style.display = "block";
-      document.getElementById("followup").scrollIntoView({ behavior: "smooth" });
-      let firstInput = document.querySelector("#followup input, #followup textarea");
-      if (firstInput) firstInput.focus();
+    .followup-question {
+      margin-bottom: 15px;
     }
-  </script>
+    .not-sure-btn {
+      display: inline-block;
+      margin-left: 10px;
+      background-color: #ff9800;
+      color: white;
+      border: none;
+      padding: 6px 10px;
+      border-radius: 4px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .not-sure-btn:hover {
+      background-color: #e68a00;
+    }
+  </style>
 </head>
 <body>
   <div class="container">
@@ -166,7 +175,7 @@
       </div>
 
       <div class="form-section">
-        <form onsubmit="scrollToFollowUp(); return false;">
+        <form id="main-form">
           <label for="app">Choose your Microsoft 365 app:</label>
           <select id="app" name="app" required>
             <option value="">Select an app</option>
@@ -187,11 +196,63 @@
       <div id="followup" class="followup-section">
         <h3>Follow-up Questions</h3>
         <p>To assist you better, please answer the following:</p>
-        <!-- Example follow-up -->
-        <label for="details1">Please provide more details:</label>
-        <input type="text" id="details1" name="details1" />
+        <form id="followup-form">
+          <div id="followup-questions"></div>
+          <button type="submit">Submit Answers</button>
+        </form>
       </div>
     </div>
   </div>
+
+  <script>
+    document.getElementById("main-form").addEventListener("submit", function(e) {
+      e.preventDefault();
+      // Simulate getting questions from backend
+      const questions = [
+        "What is the exact version of Microsoft Word you are using?",
+        "Can you describe the document layout you want?",
+        "Do you want changes applied to the whole document or only certain sections?"
+      ];
+      renderFollowupQuestions(questions);
+      document.getElementById("followup").style.display = "block";
+      document.getElementById("followup").scrollIntoView({ behavior: "smooth" });
+    });
+
+    function renderFollowupQuestions(questions) {
+      const container = document.getElementById("followup-questions");
+      container.innerHTML = "";
+      questions.forEach((q, index) => {
+        const wrapper = document.createElement("div");
+        wrapper.className = "followup-question";
+
+        const label = document.createElement("label");
+        label.textContent = q;
+
+        const input = document.createElement("input");
+        input.type = "text";
+        input.name = `q${index}`;
+        input.style.width = "80%";
+
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.textContent = "I'm Not Sure";
+        btn.className = "not-sure-btn";
+        btn.onclick = async () => {
+          try {
+            const res = await fetch(`/explain_question?index=${index}`);
+            const data = await res.json();
+            alert(`Tip: ${data.explanation}`);
+          } catch (err) {
+            alert("Error getting explanation.");
+          }
+        };
+
+        wrapper.appendChild(label);
+        wrapper.appendChild(input);
+        wrapper.appendChild(btn);
+        container.appendChild(wrapper);
+      });
+    }
+  </script>
 </body>
 </html>
