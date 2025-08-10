@@ -1,6 +1,11 @@
 <!-- =============================
 FILE: templates/home.html
-Updated home page with highlighted follow-up section, auto-scroll, and auto-focus
+SQN Copilot Companion – streamlined home:
+- Strong "How it works" overview (covers all features)
+- No "What you can do here" section
+- Main form posts to /home (matches app.py)
+- Follow-up answers named answer_0, answer_1, ...
+- Auto-scroll & auto-focus to follow-ups (or results if none)
 ============================= -->
 {% extends 'layout.html' %}
 {% block title %}SQN Copilot Companion — Home{% endblock %}
@@ -16,22 +21,19 @@ Updated home page with highlighted follow-up section, auto-scroll, and auto-focu
   .hero h1{font-size:28px;margin:0}
   .hero p{margin:0;color:var(--tva-slate);font-size:15px}
 
-  .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--gap)}
-  .mini{display:flex;gap:10px;align-items:flex-start;background:#ffffff;border-radius:var(--radius);box-shadow:var(--shadow);padding:16px}
-  .mini .ic{width:28px;height:28px;border-radius:9px;background:#e9f0fb;display:inline-flex;align-items:center;justify-content:center;font-weight:700}
-
-  .feature-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--gap)}
-  .feature{background:#ffffff;border-radius:var(--radius);box-shadow:var(--shadow);padding:18px;display:grid;gap:8px}
-  .feature a{font-weight:600;text-decoration:none;color:#0b5fd7}
-  .feature a:hover{text-decoration:underline}
-
-  @media (max-width:1024px){
-    .grid-3,.feature-grid{grid-template-columns:1fr}
-  }
+  /* Overview / How it works */
+  .overview.card{background:#f7fbff;border:1px solid #d6e8ff}
+  .overview h2{margin:0 0 8px 0}
+  .overview .intro{margin:0 0 12px 0;color:#214}
+  .overview .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+  .ov-item{background:#fff;border:1px solid #e6edf7;border-radius:12px;padding:14px}
+  .ov-item h4{margin:0 0 6px 0;color:#0b3a75;font-size:16px}
+  .ov-item p{margin:0 0 6px 0;color:#223}
+  .ov-item ul{margin:0;padding-left:18px;color:#445}
+  .ov-item ul li{margin:2px 0}
 
   /* Follow-up highlight */
   .followup-card{
-    position: relative;
     background:#f7fbff;
     border:1px solid #d6e8ff;
     border-left:5px solid #0b5fd7;
@@ -48,109 +50,112 @@ Updated home page with highlighted follow-up section, auto-scroll, and auto-focu
     0%{transform: translateY(6px); opacity:0}
     100%{transform: translateY(0); opacity:1}
   }
-
-  /* Make inputs comfy */
   .followup-card .field input[type="text"]{
-    padding:10px 12px;
-    border:1px solid #cfe0ff;
-    border-radius:8px;
+    padding:10px 12px;border:1px solid #cfe0ff;border-radius:8px
   }
   .followup-card .field input[type="text"]:focus{
-    outline:none;
-    border-color:#0b5fd7;
-    box-shadow:0 0 0 3px rgba(11,95,215,0.15);
+    outline:none;border-color:#0b5fd7;box-shadow:0 0 0 3px rgba(11,95,215,0.15)
   }
 </style>
 {% endblock %}
 
 {% block content %}
 
-<!-- Hero Intro -->
+<!-- Hero -->
 <section class="hero card" id="top">
   <h1>Welcome to SQN Copilot Companion</h1>
   <p>
-    Your guide for Microsoft 365. Describe the goal or problem, missing details are collected automatically,
-    then a tailored Copilot prompt and simple manual steps appear.
+    A Microsoft 365 assistant for TVA employees. Describe the goal or problem, and AI gathers missing details,
+    then provides a ready‑to‑use Copilot prompt and clear manual steps. Designed for Word, Excel, Outlook, Teams, and PowerPoint.
   </p>
 </section>
 
-<!-- How it works -->
-<section id="how" style="margin-bottom:var(--gap)">
-  <h2 style="margin:0 0 8px 0;">How it works</h2>
-  <p class="sub" style="margin:0 0 12px 0;">In three simple steps:</p>
+<!-- How it works (single, comprehensive overview) -->
+<section class="overview card" id="how">
+  <h2>How it works</h2>
+  <p class="intro">
+    This tool uses AI to turn plain‑English requests into accurate Copilot prompts and beginner‑friendly instructions.
+    It’s built for everyday TVA work—simple, safe, and fast.
+  </p>
 
-  <div class="grid-3">
-    <div class="mini">
-      <div class="ic">1</div>
-      <div><strong>Choose your Microsoft 365 app</strong><br><span class="sub">Covers Word, Excel, Outlook, Teams, and PowerPoint.</span></div>
-    </div>
-    <div class="mini">
-      <div class="ic">2</div>
-      <div><strong>Describe your goal or issue</strong><br><span class="sub">Use plain English. Follow-up questions appear if more detail is needed.</span></div>
-    </div>
-    <div class="mini">
-      <div class="ic">3</div>
-      <div><strong>Get results</strong><br><span class="sub">Copy the Copilot prompt or follow the step-by-step manual guide.</span></div>
-    </div>
+  <div class="grid">
+    <article class="ov-item">
+      <h4>1) Pick the app</h4>
+      <p>Choose Word, Excel, Outlook, Teams, or PowerPoint.</p>
+      <ul>
+        <li>Unsure which app fits? Just describe the goal.</li>
+        <li>New to an app? The instructions are beginner‑friendly.</li>
+      </ul>
+    </article>
+
+    <article class="ov-item">
+      <h4>2) Describe the goal</h4>
+      <p>Type what needs to happen in plain English.</p>
+      <ul>
+        <li>AI asks targeted follow‑up questions if more detail is needed.</li>
+        <li>Examples: “Clean this table and chart the top five costs” or “Draft a short update from these notes.”</li>
+      </ul>
+    </article>
+
+    <article class="ov-item">
+      <h4>3) Get results fast</h4>
+      <p>See two outputs side by side:</p>
+      <ul>
+        <li><strong>Copilot prompt</strong> — tailored to your app and task.</li>
+        <li><strong>Manual steps</strong> — short, numbered steps you can do now.</li>
+      </ul>
+    </article>
+
+    <article class="ov-item">
+      <h4>Help when things break</h4>
+      <p>Describe an error or problem to get a simple diagnosis and fix steps.</p>
+      <ul>
+        <li>For network or account issues, contact TVA IT.</li>
+      </ul>
+    </article>
+
+    <article class="ov-item">
+      <h4>Safety</h4>
+      <p>Use sample or generic data. Do not include sensitive or confidential TVA information.</p>
+      <ul>
+        <li>Prompts are work‑appropriate and privacy‑conscious.</li>
+      </ul>
+    </article>
   </div>
 </section>
 
-<div class="grid">
-  <!-- Task form -->
-  <section class="card" id="task-form">
-    <h2>What do you want to do?</h2>
-    <p class="sub">Select your app and describe the task. The tool produces a Copilot prompt and a simple manual guide.</p>
+<!-- Task form -->
+<section class="card" id="task-form">
+  <h2>What do you want to do?</h2>
+  <p class="sub">Select your app and describe the task. Follow‑up questions appear if needed, then the Copilot prompt and manual steps are shown.</p>
 
-    <form action="{{ url_for('home') }}" method="post">
-      <div class="field">
-        <label for="app">Microsoft 365 app</label>
-        {% set selected_app = (app_selected if app_selected is defined else request.form.get('app','')) %}
-        <select id="app" name="app" required>
-          <option value="Word" {% if selected_app=='Word' %}selected{% endif %}>Word</option>
-          <option value="Excel" {% if selected_app=='Excel' %}selected{% endif %}>Excel</option>
-          <option value="Outlook" {% if selected_app=='Outlook' %}selected{% endif %}>Outlook</option>
-          <option value="Teams" {% if selected_app=='Teams' %}selected{% endif %}>Teams</option>
-          <option value="PowerPoint" {% if selected_app=='PowerPoint' %}selected{% endif %}>PowerPoint</option>
-        </select>
-      </div>
-
-      <div class="field">
-        <label for="task">Describe your task or problem</label>
-        <textarea id="task" name="task" required placeholder="Example: Clean this table and create a chart that highlights the five biggest cost drivers.">{{ task if task is defined else request.form.get('task','') }}</textarea>
-      </div>
-
-      <div class="row">
-        <button class="btn" type="submit" name="mode" value="generate">Generate Copilot prompt</button>
-        <button class="btn secondary" type="submit" name="mode" value="manual">Show manual steps</button>
-        <button class="btn ghost" type="reset">Clear</button>
-      </div>
-    </form>
-  </section>
-
-  <!-- Feature spotlight -->
-  <section class="card" id="features">
-    <h2>What you can do here</h2>
-    <div class="feature-grid">
-      <div class="feature">
-        <strong>Teach Me</strong>
-        <div class="sub">Beginner-friendly lessons for Word, Excel, Outlook, Teams, and PowerPoint.</div>
-        <a href="{{ url_for('learn_app', app_name='word') }}">Open Teach Me</a>
-      </div>
-      <div class="feature">
-        <strong>Troubleshooter</strong>
-        <div class="sub">Paste an error or describe the issue to get a simple diagnosis and a fix. For network problems, contact TVA IT.</div>
-        <a href="{{ url_for('troubleshooter') }}">Open Troubleshooter</a>
-      </div>
-      <div class="feature">
-        <strong>Prompt Builder</strong>
-        <div class="sub">Describe the goal, audience, and format to receive a ready-to-paste Copilot prompt.</div>
-        <a href="{{ url_for('prompt_builder') }}">Open Prompt Builder</a>
-      </div>
+  <form action="{{ url_for('home') }}" method="post">
+    <div class="field">
+      <label for="app">Microsoft 365 app</label>
+      {% set selected_app = (app_selected if app_selected is defined else request.form.get('app','')) %}
+      <select id="app" name="app" required>
+        <option value="Word" {% if selected_app=='Word' %}selected{% endif %}>Word</option>
+        <option value="Excel" {% if selected_app=='Excel' %}selected{% endif %}>Excel</option>
+        <option value="Outlook" {% if selected_app=='Outlook' %}selected{% endif %}>Outlook</option>
+        <option value="Teams" {% if selected_app=='Teams' %}selected{% endif %}>Teams</option>
+        <option value="PowerPoint" {% if selected_app=='PowerPoint' %}selected{% endif %}>PowerPoint</option>
+      </select>
     </div>
-  </section>
-</div>
 
-{# Resolve variables from app.py #}
+    <div class="field">
+      <label for="task">Describe your task or problem</label>
+      <textarea id="task" name="task" required placeholder="Example: Clean this table and create a chart that highlights the five biggest cost drivers.">{{ task if task is defined else request.form.get('task','') }}</textarea>
+    </div>
+
+    <div class="row">
+      <button class="btn" type="submit" name="mode" value="generate">Generate Copilot prompt</button>
+      <button class="btn secondary" type="submit" name="mode" value="manual">Show manual steps</button>
+      <button class="btn ghost" type="reset">Clear</button>
+    </div>
+  </form>
+</section>
+
+{# Pull values from app.py #}
 {% set _prompt = final_prompt if final_prompt is defined else None %}
 {% set _manual_text = manual_instructions if manual_instructions is defined else None %}
 {% set _manual_html = manual_instructions_html if manual_instructions_html is defined else None %}
@@ -161,7 +166,7 @@ Updated home page with highlighted follow-up section, auto-scroll, and auto-focu
     {% if _questions %}
     <section class="card followup-card" id="follow-up">
       <div class="result-title">
-        <h2>Follow-up questions</h2>
+        <h2>Follow‑up questions</h2>
         <span class="badge">Help refine the task</span>
       </div>
       <form action="{{ url_for('home') }}" method="post">
@@ -205,7 +210,7 @@ Updated home page with highlighted follow-up section, auto-scroll, and auto-focu
           {% elif _manual_text %}
             <pre>{{ _manual_text }}</pre>
           {% else %}
-            <pre>Click "Show manual steps" to get a step-by-step guide here.</pre>
+            <pre>Click "Show manual steps" to get a step‑by‑step guide here.</pre>
           {% endif %}
         </div>
       </div>
@@ -214,7 +219,7 @@ Updated home page with highlighted follow-up section, auto-scroll, and auto-focu
   </div>
 {% endif %}
 
-<!-- Safety and privacy -->
+<!-- Safety -->
 <section class="card" id="safety" style="margin-top:var(--gap)">
   <h2>Safety and privacy</h2>
   <p class="sub">Do not enter sensitive or confidential TVA information. Use sample or generic data. This tool is for learning and productivity.</p>
