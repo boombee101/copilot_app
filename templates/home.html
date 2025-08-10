@@ -1,6 +1,12 @@
 <!-- =============================
 FILE: templates/home.html
-Enhanced Home with hero intro, how-it-works, feature spotlight. Extends layout and keeps all form/results features.
+Home page wired to app.py routes:
+- Main form POSTs to /home
+- Uses app_selected and original_task
+- Follow-up answers named answer_0, answer_1, ...
+- Teach Me → /learn/word
+- Troubleshooter → /troubleshooter
+- Prompt Builder → /prompt_builder
 ============================= -->
 {% extends 'layout.html' %}
 {% block title %}SQN Copilot Companion — Home{% endblock %}
@@ -9,29 +15,37 @@ Enhanced Home with hero intro, how-it-works, feature spotlight. Extends layout a
 
 {% block extra_styles %}
 <style>
+  html { scroll-behavior: smooth; }
+  section { scroll-margin-top: 80px; }
+
   .hero{display:grid;gap:12px;margin-bottom:var(--gap)}
   .hero h1{font-size:28px;margin:0}
   .hero p{margin:0;color:var(--tva-slate);font-size:15px}
   .cta-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
-  .pill{display:inline-block;border:1px solid #d9e8fa;background:#f7fbff;border-radius:999px;padding:6px 10px;font-size:12px;color:#0a2b4f}
+  .pill{display:inline-block;border:1px solid #d9e8fa;background:#f7fbff;border-radius:999px;padding:6px 10px;font-size:12px;color:#0a2b4f;text-decoration:none}
+  .pill:hover{background:#eef6ff}
+
   .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--gap)}
   .mini{display:flex;gap:10px;align-items:flex-start;background:#ffffff;border-radius:var(--radius);box-shadow:var(--shadow);padding:16px}
   .mini .ic{width:28px;height:28px;border-radius:9px;background:#e9f0fb;display:inline-flex;align-items:center;justify-content:center;font-weight:700}
+
   .feature-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--gap)}
   .feature{background:#ffffff;border-radius:var(--radius);box-shadow:var(--shadow);padding:18px;display:grid;gap:8px}
-  .feature a{font-weight:600}
-  @media (max-width: 1024px){.grid-3,.feature-grid{grid-template-columns:1fr}}
+  .feature a{font-weight:600;text-decoration:none;color:#0b5fd7}
+  .feature a:hover{text-decoration:underline}
+
+  @media (max-width:1024px){.grid-3,.feature-grid{grid-template-columns:1fr}}
 </style>
 {% endblock %}
 
 {% block content %}
 
 <!-- Hero Intro -->
-<div class="hero card" id="top">
+<section class="hero card" id="top">
   <h1>Welcome to SQN Copilot Companion</h1>
   <p>
-    Your AI assistant for Microsoft 365. Tell it what you want to do and it will guide you to the finish. 
-    You get smart follow up questions, a polished Copilot prompt built for your app, and clear manual steps you can follow right now.
+    Your AI assistant for Microsoft 365. Describe what you want to do. We will ask for missing details,
+    build a clean Copilot prompt, and show simple manual steps.
   </p>
   <div class="cta-row">
     <a class="pill" href="#task-form">Start a task</a>
@@ -39,35 +53,41 @@ Enhanced Home with hero intro, how-it-works, feature spotlight. Extends layout a
     <a class="pill" href="#features">What you can do</a>
     <a class="pill" href="#safety">Safety and privacy</a>
   </div>
-</div>
+</section>
 
 <!-- How it works -->
-<div class="grid-3" id="how" style="margin-bottom:var(--gap)">
-  <div class="mini">
-    <div class="ic">1</div>
-    <div><strong>Choose your app</strong><br><span class="sub">Word, Excel, Outlook, Teams, or PowerPoint.</span></div>
+<section id="how" style="margin-bottom:var(--gap)">
+  <h2 style="margin:0 0 8px 0;">How it works</h2>
+  <p class="sub" style="margin:0 0 12px 0;">Follow these three steps.</p>
+
+  <div class="grid-3">
+    <div class="mini">
+      <div class="ic">1</div>
+      <div><strong>Choose your app</strong><br><span class="sub">Word, Excel, Outlook, Teams, or PowerPoint.</span></div>
+    </div>
+    <div class="mini">
+      <div class="ic">2</div>
+      <div><strong>Describe the goal</strong><br><span class="sub">Use plain English. We will ask for missing details.</span></div>
+    </div>
+    <div class="mini">
+      <div class="ic">3</div>
+      <div><strong>Act with confidence</strong><br><span class="sub">Copy the Copilot prompt or follow the manual steps.</span></div>
+    </div>
   </div>
-  <div class="mini">
-    <div class="ic">2</div>
-    <div><strong>Describe the goal</strong><br><span class="sub">Use plain English. We ask for missing details.</span></div>
-  </div>
-  <div class="mini">
-    <div class="ic">3</div>
-    <div><strong>Act with confidence</strong><br><span class="sub">Copy the AI prompt or follow the manual steps.</span></div>
-  </div>
-</div>
+</section>
 
 <div class="grid">
   <!-- Task card -->
-  <div class="card" id="task-form">
+  <section class="card" id="task-form">
     <h2>What do you want to do?</h2>
-    <p class="sub">Pick your Microsoft 365 app and describe your task in plain English. We will ask for any missing details, then show both a Copilot prompt and manual steps.</p>
+    <p class="sub">Pick your app and describe your task. We will ask follow‑up questions, then show both the Copilot prompt and manual steps.</p>
 
-    <form action="{{ url_for('ask_gpt') }}" method="post">
+    <!-- IMPORTANT: Post to /home, matching app.py -->
+    <form action="{{ url_for('home') }}" method="post">
       <div class="field">
         <label for="app">Microsoft 365 app</label>
+        {% set selected_app = (app_selected if app_selected is defined else request.form.get('app','')) %}
         <select id="app" name="app" required>
-          {% set selected_app = (app if app is defined else request.form.get('app','')) %}
           <option value="Word" {% if selected_app=='Word' %}selected{% endif %}>Word</option>
           <option value="Excel" {% if selected_app=='Excel' %}selected{% endif %}>Excel</option>
           <option value="Outlook" {% if selected_app=='Outlook' %}selected{% endif %}>Outlook</option>
@@ -78,7 +98,7 @@ Enhanced Home with hero intro, how-it-works, feature spotlight. Extends layout a
 
       <div class="field">
         <label for="task">Describe your task or problem</label>
-        <textarea id="task" name="task" required placeholder="Example: Clean up a messy table and create a chart that highlights the 5 biggest cost drivers.">{{ task if task is defined else request.form.get('task','') }}</textarea>
+        <textarea id="task" name="task" required placeholder="Example: Clean up a messy table and create a chart that highlights the five biggest cost drivers.">{{ task if task is defined else request.form.get('task','') }}</textarea>
       </div>
 
       <div class="row">
@@ -87,65 +107,67 @@ Enhanced Home with hero intro, how-it-works, feature spotlight. Extends layout a
         <button class="btn ghost" type="reset">Clear</button>
       </div>
     </form>
-  </div>
+  </section>
 
   <!-- Feature spotlight -->
-  <div class="card" id="features">
+  <section class="card" id="features">
     <h2>What you can do here</h2>
     <div class="feature-grid">
       <div class="feature">
         <strong>Teach Me</strong>
-        <div class="sub">Short, beginner friendly lessons for Word and Excel with plain language steps.</div>
-        <a href="/help">Open Teach Me</a>
+        <div class="sub">Short, beginner friendly lessons for Word and Excel.</div>
+        <!-- Match your learn route -->
+        <a href="{{ url_for('learn_app', app_name='word') }}">Open Teach Me</a>
       </div>
       <div class="feature">
         <strong>Troubleshooter</strong>
-        <div class="sub">Paste an error or describe the problem. Get a clear analysis and a step by step fix.</div>
+        <div class="sub">Paste an error or describe the issue. Get clear steps to fix it.</div>
         <a href="{{ url_for('troubleshooter') }}">Open Troubleshooter</a>
       </div>
       <div class="feature">
         <strong>Prompt Builder</strong>
-        <div class="sub">Tell us the goal and copy a tailored Copilot prompt for your Microsoft 365 app.</div>
-        <a href="#task-form">Start a task</a>
+        <div class="sub">Tell us the goal. We will build a clean Copilot prompt for your app.</div>
+        <a href="{{ url_for('prompt_builder') }}">Open Prompt Builder</a>
       </div>
     </div>
-  </div>
+  </section>
 </div>
 
-<!-- Results area (only shows when data exists) -->
-{% set _prompt = prompt if prompt is defined else (final_prompt if final_prompt is defined else (prompt_output if prompt_output is defined else None)) %}
-{% set _manual = manual_instructions if manual_instructions is defined else (manual_steps if manual_steps is defined else (manual_output if manual_output is defined else None)) %}
-{% set _questions = questions if questions is defined else (follow_up_questions if follow_up_questions is defined else None) %}
+{# Resolve variables from app.py #}
+{% set _prompt = final_prompt if final_prompt is defined else None %}
+{% set _manual_text = manual_instructions if manual_instructions is defined else None %}
+{% set _manual_html = manual_instructions_html if manual_instructions_html is defined else None %}
+{% set _questions = questions if questions is defined else None %}
 
-{% if _questions or _prompt or _manual %}
+{% if _questions or _prompt or _manual_text or _manual_html %}
   <div class="grid" style="margin-top:var(--gap)">
     {% if _questions %}
-    <div class="card">
+    <!-- Follow up questions form. Names must be answer_0, answer_1, ... -->
+    <section class="card">
       <div class="result-title">
         <h2>Follow up questions</h2>
         <span class="badge">Help us be specific</span>
       </div>
-      <form action="{{ url_for('ask_gpt') }}" method="post">
-        <input type="hidden" name="app" value="{{ selected_app }}" />
-        <input type="hidden" name="task" value="{{ task if task is defined else request.form.get('task','') }}" />
+      <form action="{{ url_for('home') }}" method="post">
+        <input type="hidden" name="original_task" value="{{ original_task or task or '' }}" />
         <div class="field">
           <label>Answer any that apply.</label>
           {% for q in _questions %}
             <div class="field">
               <label>{{ q }}</label>
-              <input type="text" name="q{{ loop.index }}" placeholder="Your answer" />
+              <input type="text" name="answer_{{ loop.index0 }}" placeholder="Your answer" />
             </div>
           {% endfor %}
         </div>
         <div class="row">
-          <button class="btn" type="submit" name="mode" value="refine">Update prompt</button>
+          <button class="btn" type="submit">Update prompt</button>
         </div>
       </form>
-    </div>
+    </section>
     {% endif %}
 
-    {% if _prompt or _manual %}
-    <div class="card" style="grid-column:1 / -1">
+    {% if _prompt or _manual_text or _manual_html %}
+    <section class="card" style="grid-column:1 / -1">
       <div class="result-wrap">
         <div>
           <div class="result-title">
@@ -163,22 +185,24 @@ Enhanced Home with hero intro, how-it-works, feature spotlight. Extends layout a
             <h2>Manual steps</h2>
             <span class="badge">Do it now</span>
           </div>
-          {% if _manual %}
-            <pre>{{ _manual }}</pre>
+          {% if _manual_html %}
+            {{ _manual_html | safe }}
+          {% elif _manual_text %}
+            <pre>{{ _manual_text }}</pre>
           {% else %}
             <pre>Run "Show manual steps" to get a simple, step by step guide here.</pre>
           {% endif %}
         </div>
       </div>
-    </div>
+    </section>
     {% endif %}
   </div>
 {% endif %}
 
 <!-- Safety and privacy -->
-<div class="card" id="safety" style="margin-top:var(--gap)">
+<section class="card" id="safety" style="margin-top:var(--gap)">
   <h2>Safety and privacy</h2>
   <p class="sub">Do not enter sensitive or confidential TVA information. Use sample or generic data. This tool is for learning and productivity.</p>
-</div>
+</section>
 
 {% endblock %}
