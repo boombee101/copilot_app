@@ -1,10 +1,11 @@
-<!-- help.html -->
+<!-- teach_me.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Help & Support - TVA Copilot Companion</title>
+    <title>Teach Me - TVA Copilot Companion</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <style>
         body {
             font-family: "Segoe UI", Tahoma, sans-serif;
@@ -49,22 +50,7 @@
         }
         h1 {
             font-size: 26px;
-            margin-bottom: 10px;
-        }
-        .help-section {
-            background: white;
-            border-radius: 8px;
-            padding: 20px;
-            box-shadow: 0 0 8px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
-        }
-        textarea, input[type="text"] {
-            width: 100%;
-            padding: 10px;
-            margin-top: 6px;
-            border-radius: 6px;
-            border: 1px solid #ccc;
-            font-family: inherit;
+            margin-bottom: 15px;
         }
         button {
             background-color: #0055a5;
@@ -74,7 +60,6 @@
             border-radius: 6px;
             cursor: pointer;
             font-size: 15px;
-            margin-top: 10px;
         }
         button:hover {
             background-color: #003f7d;
@@ -87,6 +72,11 @@
             color: #666;
         }
     </style>
+    <script>
+        window.onload = function () {
+            document.getElementById("main-content").scrollIntoView({ behavior: "smooth" });
+        };
+    </script>
 </head>
 <body>
 
@@ -95,7 +85,7 @@
         <a href="{{ url_for('home') }}">
             🏠 Home
         </a>
-        <a href="{{ url_for('teach_me') }}">
+        <a href="{{ url_for('teach_me') }}" class="active">
             📘 Teach Me
         </a>
         <a href="{{ url_for('troubleshooter') }}">
@@ -104,45 +94,34 @@
         <a href="{{ url_for('prompt_builder') }}">
             ✏️ Prompt Builder
         </a>
-        <a href="{{ url_for('help') }}" class="active">
-            ❓ Help
-        </a>
         <a href="{{ url_for('logout') }}">
             🚪 Logout
         </a>
     </div>
 
     <!-- Main Content -->
-    <div class="main">
-        <h1>Help & Support</h1>
+    <div class="main" id="main-content">
+        <h1>Teach Me</h1>
+        <p>Select a Microsoft 365 app and access beginner-friendly, plain-language lessons.</p>
         
-        <div class="help-section">
-            <h2>About This Page</h2>
-            <p>
-                This Help page is here to assist you in using the TVA Copilot Companion effectively.  
-                You can find answers to common questions, learn how to navigate features, and even ask AI for quick guidance.
-            </p>
-            <ul>
-                <li><strong>Teach Me:</strong> Learn Microsoft 365 tools in a beginner-friendly way with step-by-step instructions.</li>
-                <li><strong>Troubleshooter:</strong> Paste in an error message or describe an issue to get a plain-language fix.</li>
-                <li><strong>Prompt Builder:</strong> Describe your goal, and AI will create a ready-to-use Copilot prompt.</li>
-            </ul>
-        </div>
+        <form method="POST" action="{{ url_for('teach_me') }}">
+            <label for="app_select">Choose your app:</label><br>
+            <select id="app_select" name="app" required>
+                <option value="">-- Select an app --</option>
+                <option value="Word">Word</option>
+                <option value="Excel">Excel</option>
+                <option value="Outlook">Outlook</option>
+                <option value="Teams">Teams</option>
+                <option value="PowerPoint">PowerPoint</option>
+            </select><br><br>
+            
+            <button type="submit">Open Lesson</button>
+        </form>
 
-        <div class="help-section">
-            <h2>Ask AI for Quick Help</h2>
-            <form method="POST" action="{{ url_for('ask_help') }}">
-                <label for="question">Type your question below:</label>
-                <textarea name="question" id="question" placeholder="Example: How do I merge cells in Excel?"></textarea>
-                <button type="submit">Get AI Help</button>
-            </form>
-        </div>
-
-        {% if ai_response %}
-        <div class="help-section">
-            <h2>AI Response:</h2>
-            <p>{{ ai_response }}</p>
-        </div>
+        {% if lesson %}
+            <div class="lesson-content">
+                {{ lesson|safe }}
+            </div>
         {% endif %}
     </div>
 

@@ -1,86 +1,133 @@
-<!-- =============================
-FILE: templates/troubleshooter.html
-Extends base. Guided troubleshooting with clear CTA. Posts to /ask_help.
-============================= -->
-Extends base. Guided troubleshooting with clear CTA. Posts to /ask_help.
-============================= -->
-{% extends 'layout.html' %}
-{% set page_id='troubleshooter' %}
-{% set page_title='SQN Copilot Companion — Troubleshooter' %}
-{% set header_title='Microsoft 365 Troubleshooter' %}
-{% set page_meta='Plain‑English fixes • Safe for TVA workflows' %}
+<!-- troubleshooter.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Troubleshooter - TVA Copilot Companion</title>
+    <style>
+        body {
+            font-family: "Segoe UI", Tahoma, sans-serif;
+            margin: 0;
+            background-color: #f0f4f9;
+            color: #003366;
+        }
+        /* Sidebar */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 220px;
+            height: 100%;
+            background-color: #002855;
+            padding-top: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .sidebar a {
+            color: white;
+            padding: 12px;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            width: 100%;
+            justify-content: flex-start;
+            gap: 10px;
+            transition: background 0.3s;
+        }
+        .sidebar a:hover {
+            background-color: #004080;
+        }
+        .sidebar a.active {
+            background-color: #0055a5;
+        }
+        /* Main Content */
+        .main {
+            margin-left: 240px;
+            padding: 20px;
+        }
+        h1 {
+            font-size: 26px;
+            margin-bottom: 15px;
+        }
+        textarea {
+            width: 100%;
+            height: 120px;
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            font-family: inherit;
+        }
+        button {
+            background-color: #0055a5;
+            color: white;
+            padding: 10px 18px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 15px;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #003f7d;
+        }
+        /* Footer */
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            font-size: 13px;
+            color: #666;
+        }
+    </style>
+    <script>
+        window.onload = function () {
+            document.getElementById("main-content").scrollIntoView({ behavior: "smooth" });
+        };
+    </script>
+</head>
+<body>
 
-{% block content %}
-  <div class="grid" style="grid-template-columns:1.15fr .85fr">
-    <!-- Troubleshoot form -->
-    <div class="card">
-      <h2>Tell us what’s wrong</h2>
-      <p class="sub">Paste any error text or explain what you’re trying to do. We’ll walk you through the simple checks first.</p>
-      <form action="{{ url_for('ask_help') if 'ask_help' in globals() else '/ask_help' }}" method="post">
-        <div class="field">
-          <label for="ts_app">Which app?</label>
-          <select id="ts_app" name="app" required>
-            <option value="Word">Word</option>
-            <option value="Excel">Excel</option>
-            <option value="Outlook">Outlook</option>
-            <option value="Teams">Teams</option>
-            <option value="PowerPoint">PowerPoint</option>
-          </select>
-        </div>
-        <div class="field">
-          <label for="issue">Describe the issue or paste the error</label>
-          <textarea id="issue" name="issue" placeholder="Example: Outlook keeps asking for my password and won’t connect. Error code 0x800CCC0E."></textarea>
-        </div>
-        <div class="row">
-          <button class="btn" type="submit" name="mode" value="diagnose">Run guided troubleshooting</button>
-          <button class="btn secondary" type="reset">Clear</button>
-        </div>
-      </form>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <a href="{{ url_for('home') }}">
+            🏠 Home
+        </a>
+        <a href="{{ url_for('teach_me') }}">
+            📘 Teach Me
+        </a>
+        <a href="{{ url_for('troubleshooter') }}" class="active">
+            🛠️ Troubleshooter
+        </a>
+        <a href="{{ url_for('prompt_builder') }}">
+            ✏️ Prompt Builder
+        </a>
+        <a href="{{ url_for('logout') }}">
+            🚪 Logout
+        </a>
     </div>
 
-    <!-- First‑aid checklist -->
-    <div class="card">
-      <h2>Quick first‑aid checklist</h2>
-      <p class="sub">Try these universal checks while we analyze your issue.</p>
-      <div class="checklist" style="display:grid;gap:10px">
-        <div class="check-item" style="display:flex;gap:10px;align-items:flex-start;background:#f7fbff;border:1px solid #d9e8fa;border-radius:12px;padding:10px">
-          <div class="flag" style="font-size:12px;padding:6px 10px;border-radius:999px;background:#fff3cd;color:#7a4c00;border:1px solid #ffe39c">Tip</div>
-          <div><strong>Restart the app</strong><br/>Close the app completely, then reopen it. This clears temporary glitches.</div>
-        </div>
-        <div class="check-item" style="display:flex;gap:10px;align-items:flex-start;background:#f7fbff;border:1px solid #d9e8fa;border-radius:12px;padding:10px">
-          <div class="flag" style="font-size:12px;padding:6px 10px;border-radius:999px;background:#fff3cd;color:#7a4c00;border:1px solid #ffe39c">Account</div>
-          <div><strong>Confirm you’re signed in</strong><br/>In the app, check your account profile. If you see sign‑in errors, re‑enter credentials.</div>
-        </div>
-        <div class="check-item" style="display:flex;gap:10px;align-items:flex-start;background:#f7fbff;border:1px solid #d9e8fa;border-radius:12px;padding:10px">
-          <div class="flag" style="font-size:12px;padding:6px 10px;border-radius:999px;background:#fff3cd;color:#7a4c00;border:1px solid #ffe39c">Update</div>
-          <div><strong>Check for updates</strong><br/>Open any Office app → Account → Update Options → Update Now.</div>
-        </div>
-        <div class="check-item" style="display:flex;gap:10px;align-items:flex-start;background:#f7fbff;border:1px solid #d9e8fa;border-radius:12px;padding:10px">
-          <div class="flag" style="font-size:12px;padding:6px 10px;border-radius:999px;background:#fff3cd;color:#7a4c00;border:1px solid #ffe39c">Policy</div>
-          <div><strong>TVA or SQN policy</strong><br/>If a feature looks disabled, it may be restricted. Ask your supervisor which policy applies.</div>
-        </div>
-        <div class="check-item" style="display:flex;gap:10px;align-items:flex-start;background:#f7fbff;border:1px solid #d9e8fa;border-radius:12px;padding:10px">
-          <div class="flag" style="font-size:12px;padding:6px 10px;border-radius:999px;background:#fff3cd;color:#7a4c00;border:1px solid #ffe39c">Network</div>
-          <div><strong>Network or VPN</strong><br/>If you suspect a network problem, contact <em>TVA IT</em>. Avoid changing network settings yourself.</div>
-        </div>
-      </div>
-    </div>
-  </div>
+    <!-- Main Content -->
+    <div class="main" id="main-content">
+        <h1>Troubleshooter</h1>
+        <p>Enter your Microsoft 365 issue or paste an error code. The AI will guide you through a simple, step-by-step solution.</p>
+        
+        <form method="POST" action="{{ url_for('troubleshooter') }}">
+            <textarea name="issue" placeholder="Example: Teams won't load or Excel shows #VALUE! error" required></textarea><br>
+            <button type="submit">Analyze & Fix</button>
+        </form>
 
-  <!-- Results (rendered by server if present) -->
-  {% set _diag = diagnosis if diagnosis is defined else (result if result is defined else None) %}
-  {% set _steps = steps if steps is defined else (manual_steps if manual_steps is defined else None) %}
+        {% if solution %}
+            <div class="solution-content" style="margin-top:20px;">
+                {{ solution|safe }}
+            </div>
+        {% endif %}
+    </div>
 
-  {% if _diag or _steps %}
-  <div class="grid" style="margin-top:var(--gap)">
-    <div class="card">
-      <h2>What we found</h2>
-      <pre>{{ _diag if _diag else 'Submit an issue above to see the analysis here.' }}</pre>
-    </div>
-    <div class="card">
-      <h2>Step‑by‑step fix</h2>
-      <pre>{{ _steps if _steps else 'We will generate a plain, step‑by‑step guide here.' }}</pre>
-    </div>
-  </div>
-  {% endif %}
-{% endblock %}
+    <!-- Footer -->
+    <footer>
+        TVA Copilot Companion — Powered by AI for Microsoft 365
+    </footer>
+
+</body>
+</html>

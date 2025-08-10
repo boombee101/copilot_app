@@ -386,6 +386,21 @@ def learn_app(app_name):
                            user_topic=user_topic,
                            active_page=f"learn_{app_name_l}")
 
+@app.route('/teach_me', methods=['GET', 'POST'])
+def teach_me():
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+
+    if request.method == 'POST':
+        # form select named "app" from teach_me.html
+        chosen = (request.form.get('app') or '').strip().lower()
+        valid = {'word', 'excel', 'outlook', 'teams', 'powerpoint'}
+        if chosen.lower() in valid:
+            return redirect(url_for('learn_app', app_name=chosen))
+        # if nothing valid selected, just reload page
+    return render_template('teach_me.html', active_page='teach_me')
+
+
 
 @app.route('/logout')
 def logout():

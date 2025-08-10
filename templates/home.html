@@ -1,248 +1,197 @@
-<!-- =============================
-FILE: templates/home.html
-SQN Copilot Companion – streamlined home:
-- Strong "How it works" overview (covers all features)
-- No "What you can do here" section
-- Main form posts to /home (matches app.py)
-- Follow-up answers named answer_0, answer_1, ...
-- Auto-scroll & auto-focus to follow-ups (or results if none)
-============================= -->
-{% extends 'layout.html' %}
-{% block title %}SQN Copilot Companion — Home{% endblock %}
-{% block page_title %}Home{% endblock %}
-{% block page_meta %}Beginner-friendly guidance • Manual steps + Copilot prompts{% endblock %}
-
-{% block extra_styles %}
-<style>
-  html { scroll-behavior: smooth; }
-  section { scroll-margin-top: 80px; }
-
-  .hero{display:grid;gap:12px;margin-bottom:var(--gap)}
-  .hero h1{font-size:28px;margin:0}
-  .hero p{margin:0;color:var(--tva-slate);font-size:15px}
-
-  /* Overview / How it works */
-  .overview.card{background:#f7fbff;border:1px solid #d6e8ff}
-  .overview h2{margin:0 0 8px 0}
-  .overview .intro{margin:0 0 12px 0;color:#214}
-  .overview .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
-  .ov-item{background:#fff;border:1px solid #e6edf7;border-radius:12px;padding:14px}
-  .ov-item h4{margin:0 0 6px 0;color:#0b3a75;font-size:16px}
-  .ov-item p{margin:0 0 6px 0;color:#223}
-  .ov-item ul{margin:0;padding-left:18px;color:#445}
-  .ov-item ul li{margin:2px 0}
-
-  /* Follow-up highlight */
-  .followup-card{
-    background:#f7fbff;
-    border:1px solid #d6e8ff;
-    border-left:5px solid #0b5fd7;
-    box-shadow: 0 4px 18px rgba(11,95,215,0.08);
-    animation: followup-pop 700ms ease-out;
-  }
-  .followup-card .result-title h2{color:#0b3a75}
-  .followup-card .badge{
-    background:#e6f0ff;
-    color:#0b3a75;
-    border:1px solid #cfe0ff;
-  }
-  @keyframes followup-pop{
-    0%{transform: translateY(6px); opacity:0}
-    100%{transform: translateY(0); opacity:1}
-  }
-  .followup-card .field input[type="text"]{
-    padding:10px 12px;border:1px solid #cfe0ff;border-radius:8px
-  }
-  .followup-card .field input[type="text"]:focus{
-    outline:none;border-color:#0b5fd7;box-shadow:0 0 0 3px rgba(11,95,215,0.15)
-  }
-</style>
-{% endblock %}
-
-{% block content %}
-
-<!-- Hero -->
-<section class="hero card" id="top">
-  <h1>Welcome to SQN Copilot Companion</h1>
-  <p>
-    A Microsoft 365 assistant for TVA employees. Describe the goal or problem, and AI gathers missing details,
-    then provides a ready‑to‑use Copilot prompt and clear manual steps. Designed for Word, Excel, Outlook, Teams, and PowerPoint.
-  </p>
-</section>
-
-<!-- How it works (single, comprehensive overview) -->
-<section class="overview card" id="how">
-  <h2>How it works</h2>
-  <p class="intro">
-    This tool uses AI to turn plain‑English requests into accurate Copilot prompts and beginner‑friendly instructions.
-    It’s built for everyday TVA work—simple, safe, and fast.
-  </p>
-
-  <div class="grid">
-    <article class="ov-item">
-      <h4>1) Pick the app</h4>
-      <p>Choose Word, Excel, Outlook, Teams, or PowerPoint.</p>
-      <ul>
-        <li>Unsure which app fits? Just describe the goal.</li>
-        <li>New to an app? The instructions are beginner‑friendly.</li>
-      </ul>
-    </article>
-
-    <article class="ov-item">
-      <h4>2) Describe the goal</h4>
-      <p>Type what needs to happen in plain English.</p>
-      <ul>
-        <li>AI asks targeted follow‑up questions if more detail is needed.</li>
-        <li>Examples: “Clean this table and chart the top five costs” or “Draft a short update from these notes.”</li>
-      </ul>
-    </article>
-
-    <article class="ov-item">
-      <h4>3) Get results fast</h4>
-      <p>See two outputs side by side:</p>
-      <ul>
-        <li><strong>Copilot prompt</strong> — tailored to your app and task.</li>
-        <li><strong>Manual steps</strong> — short, numbered steps you can do now.</li>
-      </ul>
-    </article>
-
-    <article class="ov-item">
-      <h4>Help when things break</h4>
-      <p>Describe an error or problem to get a simple diagnosis and fix steps.</p>
-      <ul>
-        <li>For network or account issues, contact TVA IT.</li>
-      </ul>
-    </article>
-
-    <article class="ov-item">
-      <h4>Safety</h4>
-      <p>Use sample or generic data. Do not include sensitive or confidential TVA information.</p>
-      <ul>
-        <li>Prompts are work‑appropriate and privacy‑conscious.</li>
-      </ul>
-    </article>
-  </div>
-</section>
-
-<!-- Task form -->
-<section class="card" id="task-form">
-  <h2>What do you want to do?</h2>
-  <p class="sub">Select your app and describe the task. Follow‑up questions appear if needed, then the Copilot prompt and manual steps are shown.</p>
-
-  <form action="{{ url_for('home') }}" method="post">
-    <div class="field">
-      <label for="app">Microsoft 365 app</label>
-      {% set selected_app = (app_selected if app_selected is defined else request.form.get('app','')) %}
-      <select id="app" name="app" required>
-        <option value="Word" {% if selected_app=='Word' %}selected{% endif %}>Word</option>
-        <option value="Excel" {% if selected_app=='Excel' %}selected{% endif %}>Excel</option>
-        <option value="Outlook" {% if selected_app=='Outlook' %}selected{% endif %}>Outlook</option>
-        <option value="Teams" {% if selected_app=='Teams' %}selected{% endif %}>Teams</option>
-        <option value="PowerPoint" {% if selected_app=='PowerPoint' %}selected{% endif %}>PowerPoint</option>
-      </select>
-    </div>
-
-    <div class="field">
-      <label for="task">Describe your task or problem</label>
-      <textarea id="task" name="task" required placeholder="Example: Clean this table and create a chart that highlights the five biggest cost drivers.">{{ task if task is defined else request.form.get('task','') }}</textarea>
-    </div>
-
-    <div class="row">
-      <button class="btn" type="submit" name="mode" value="generate">Generate Copilot prompt</button>
-      <button class="btn secondary" type="submit" name="mode" value="manual">Show manual steps</button>
-      <button class="btn ghost" type="reset">Clear</button>
-    </div>
-  </form>
-</section>
-
-{# Pull values from app.py #}
-{% set _prompt = final_prompt if final_prompt is defined else None %}
-{% set _manual_text = manual_instructions if manual_instructions is defined else None %}
-{% set _manual_html = manual_instructions_html if manual_instructions_html is defined else None %}
-{% set _questions = questions if questions is defined else None %}
-
-{% if _questions or _prompt or _manual_text or _manual_html %}
-  <div class="grid" style="margin-top:var(--gap)" id="results-section">
-    {% if _questions %}
-    <section class="card followup-card" id="follow-up">
-      <div class="result-title">
-        <h2>Follow‑up questions</h2>
-        <span class="badge">Help refine the task</span>
-      </div>
-      <form action="{{ url_for('home') }}" method="post">
-        <input type="hidden" name="original_task" value="{{ original_task or task or '' }}" />
-        <div class="field">
-          {% for q in _questions %}
-            <div class="field">
-              <label>{{ q }}</label>
-              <input type="text" name="answer_{{ loop.index0 }}" placeholder="Your answer" {% if loop.first %}id="first-question"{% endif %}/>
-            </div>
-          {% endfor %}
-        </div>
-        <div class="row">
-          <button class="btn" type="submit">Update prompt</button>
-        </div>
-      </form>
-    </section>
-    {% endif %}
-
-    {% if _prompt or _manual_text or _manual_html %}
-    <section class="card" id="results" style="grid-column:1 / -1">
-      <div class="result-wrap">
-        <div>
-          <div class="result-title">
-            <h2>Copilot prompt</h2>
-            <span class="badge">Ready to copy</span>
-          </div>
-          {% if _prompt %}
-            <pre>{{ _prompt }}</pre>
-          {% else %}
-            <pre>Click "Generate Copilot prompt" to see the prompt here.</pre>
-          {% endif %}
-        </div>
-        <div>
-          <div class="result-title">
-            <h2>Manual steps</h2>
-            <span class="badge">Do it now</span>
-          </div>
-          {% if _manual_html %}
-            {{ _manual_html | safe }}
-          {% elif _manual_text %}
-            <pre>{{ _manual_text }}</pre>
-          {% else %}
-            <pre>Click "Show manual steps" to get a step‑by‑step guide here.</pre>
-          {% endif %}
-        </div>
-      </div>
-    </section>
-    {% endif %}
-  </div>
-{% endif %}
-
-<!-- Safety -->
-<section class="card" id="safety" style="margin-top:var(--gap)">
-  <h2>Safety and privacy</h2>
-  <p class="sub">Do not enter sensitive or confidential TVA information. Use sample or generic data. This tool is for learning and productivity.</p>
-</section>
-
-{# Auto-scroll and auto-focus:
-   - If follow-ups exist: scroll to them and focus the first input
-   - Else if only results exist: scroll to the results #}
-{% if _questions or _prompt or _manual_text or _manual_html %}
-<script>
-  document.addEventListener('DOMContentLoaded', function() {
-    var follow = document.getElementById('follow-up');
-    var firstQ = document.getElementById('first-question');
-    var results = document.getElementById('results');
-
-    if (follow) {
-      follow.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      if (firstQ) { firstQ.focus(); }
-    } else if (results) {
-      results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TVA SQN Copilot Companion</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, sans-serif;
+      background-color: #f4f7fb;
+      color: #003366;
     }
-  });
-</script>
-{% endif %}
+    .container {
+      display: flex;
+      min-height: 100vh;
+    }
+    /* Sidebar */
+    .sidebar {
+      width: 230px;
+      background: linear-gradient(180deg, #002b5c, #004080);
+      color: white;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+    .sidebar h2 {
+      font-size: 20px;
+      margin-bottom: 30px;
+      text-align: center;
+      border-bottom: 1px solid rgba(255,255,255,0.2);
+      padding-bottom: 10px;
+    }
+    .nav-item {
+      padding: 12px 15px;
+      margin-bottom: 8px;
+      cursor: pointer;
+      border-radius: 6px;
+      display: block;
+      color: white;
+      text-decoration: none;
+      font-weight: 500;
+      transition: background 0.3s;
+    }
+    .nav-item:hover {
+      background: rgba(255,255,255,0.15);
+    }
+    .active {
+      background: rgba(255,255,255,0.25);
+    }
+    /* Main content */
+    .main {
+      flex: 1;
+      padding: 30px;
+      box-sizing: border-box;
+    }
+    /* Banner */
+    .banner {
+      background: url("/static/images/sqn2.jpg") center/cover no-repeat;
+      height: 150px;
+      border-radius: 8px;
+      position: relative;
+      margin-bottom: 20px;
+    }
+    .banner::after {
+      content: "";
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 43, 92, 0.5);
+      border-radius: 8px;
+    }
+    /* Disclaimer */
+    .disclaimer {
+      background: #fff8e1;
+      border-left: 6px solid #ff9800;
+      padding: 15px 20px;
+      border-radius: 6px;
+      font-size: 14px;
+      margin-bottom: 20px;
+    }
+    /* About Section */
+    .about {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      margin-bottom: 25px;
+    }
+    .about h2 {
+      margin-top: 0;
+      color: #002b5c;
+    }
+    /* Form */
+    .form-section {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      margin-bottom: 25px;
+    }
+    label {
+      font-weight: 500;
+      display: block;
+      margin-bottom: 5px;
+    }
+    select, textarea, input[type="text"], button {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 15px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 14px;
+    }
+    button {
+      background: #004080;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      border: none;
+    }
+    button:hover {
+      background: #002b5c;
+    }
+    /* Follow-up Questions */
+    .followup-section {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      margin-top: 25px;
+      display: none;
+    }
+    .followup-section h3 {
+      margin-top: 0;
+      color: #004080;
+    }
+  </style>
+  <script>
+    function scrollToFollowUp() {
+      document.getElementById("followup").style.display = "block";
+      document.getElementById("followup").scrollIntoView({ behavior: "smooth" });
+      let firstInput = document.querySelector("#followup input, #followup textarea");
+      if (firstInput) firstInput.focus();
+    }
+  </script>
+</head>
+<body>
+  <div class="container">
+    <div class="sidebar">
+      <h2>📘 SQN Copilot</h2>
+      <a href="/" class="nav-item active">🏠 Home</a>
+      <a href="/teach_me" class="nav-item">📚 Teach Me</a>
+      <a href="/troubleshooter" class="nav-item">🛠 Troubleshooter</a>
+      <a href="/logout" class="nav-item">🚪 Logout</a>
+    </div>
+    <div class="main">
+      <div class="banner"></div>
 
-{% endblock %}
+      <div class="disclaimer">
+        <strong>⚠️ TVA Use & Safety Notice:</strong> Do not enter or upload TVA-sensitive, personal, or confidential information. This tool uses AI to provide guidance, step-by-step instructions, and troubleshooting for Microsoft 365. It is intended for learning, productivity, and general workplace support in compliance with TVA security policies.
+      </div>
+
+      <div class="about">
+        <h2>About This Tool</h2>
+        <p>The SQN Copilot Companion is designed to help TVA employees get the most out of Microsoft 365. It uses AI to give clear, step-by-step instructions and create high-quality Copilot prompts that save time and reduce frustration. Whether you need to create a polished document in Word, organize data in Excel, manage email in Outlook, collaborate in Teams, or design a presentation in PowerPoint — this tool is here to assist you every step of the way.</p>
+        <p>Simply choose your Microsoft 365 app, describe your task or issue, and let the AI guide you with tailored prompts or manual instructions. This ensures you can complete tasks quickly, accurately, and with confidence.</p>
+      </div>
+
+      <div class="form-section">
+        <form onsubmit="scrollToFollowUp(); return false;">
+          <label for="app">Choose your Microsoft 365 app:</label>
+          <select id="app" name="app" required>
+            <option value="">Select an app</option>
+            <option>Word</option>
+            <option>Excel</option>
+            <option>Outlook</option>
+            <option>Teams</option>
+            <option>PowerPoint</option>
+          </select>
+
+          <label for="goal">Describe your goal or issue:</label>
+          <textarea id="goal" name="goal" rows="3" placeholder="Describe what you want to do or the problem you're facing..."></textarea>
+
+          <button type="submit">Generate Copilot Prompt</button>
+        </form>
+      </div>
+
+      <div id="followup" class="followup-section">
+        <h3>Follow-up Questions</h3>
+        <p>To assist you better, please answer the following:</p>
+        <!-- Example follow-up -->
+        <label for="details1">Please provide more details:</label>
+        <input type="text" id="details1" name="details1" />
+      </div>
+    </div>
+  </div>
+</body>
+</html>
