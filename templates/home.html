@@ -1,17 +1,11 @@
 <!-- =============================
 FILE: templates/home.html
-Home page wired to app.py routes:
-- Main form POSTs to /home
-- Uses app_selected and original_task
-- Follow-up answers named answer_0, answer_1, ...
-- Teach Me → /learn/word
-- Troubleshooter → /troubleshooter
-- Prompt Builder → /prompt_builder
+Updated home page with highlighted follow-up section, auto-scroll, and auto-focus
 ============================= -->
 {% extends 'layout.html' %}
 {% block title %}SQN Copilot Companion — Home{% endblock %}
 {% block page_title %}Home{% endblock %}
-{% block page_meta %}Beginner friendly guidance • Manual steps + Copilot prompts{% endblock %}
+{% block page_meta %}Beginner-friendly guidance • Manual steps + Copilot prompts{% endblock %}
 
 {% block extra_styles %}
 <style>
@@ -21,41 +15,51 @@ Home page wired to app.py routes:
   .hero{display:grid;gap:12px;margin-bottom:var(--gap)}
   .hero h1{font-size:28px;margin:0}
   .hero p{margin:0;color:var(--tva-slate);font-size:15px}
-  .cta-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
-  .pill{display:inline-block;border:1px solid #d9e8fa;background:#f7fbff;border-radius:999px;padding:6px 10px;font-size:12px;color:#0a2b4f;text-decoration:none}
-  .pill:hover{background:#eef6ff}
 
-  /* How it works */
-  .how h2{margin:0 0 6px 0}
-  .section-intro{margin:4px 0 14px 0;color:var(--tva-slate);font-size:14.5px}
-  .steps-list{margin:0;padding:0;list-style:none;display:grid;gap:12px}
-  .steps-list > li{background:#ffffff;border:1px solid #e6edf7;border-radius:12px;padding:14px}
-  .steps-list h4{margin:0 0 6px 0;font-size:16px;color:#0b3a75}
-  .steps-list p{margin:0 0 6px 0;color:#234}
-  .steps-list ul{margin:0;padding-left:18px;color:#445}
-  .steps-list ul li{margin:2px 0}
-
-  /* Features */
-  .feature-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--gap)}
-  .feature{background:#ffffff;border:1px solid #e6edf7;border-radius:12px;padding:16px;display:grid;gap:10px}
-  .feature-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-  .feature-head .tag{font-size:12px;color:#336;background:#eef3fb;border:1px solid #d9e8fa;border-radius:999px;padding:2px 8px}
-  .feature p{margin:0;color:#223}
-  .btn{display:inline-block;margin-top:6px;padding:8px 12px;border-radius:8px;background:#0b5fd7;color:#fff;text-decoration:none}
-  .btn:hover{background:#094fb3}
-
-  @media (max-width:1024px){
-    .feature-grid{grid-template-columns:1fr}
-  }
-
-  /* Keep your existing minis for the small cards if needed elsewhere */
   .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--gap)}
   .mini{display:flex;gap:10px;align-items:flex-start;background:#ffffff;border-radius:var(--radius);box-shadow:var(--shadow);padding:16px}
   .mini .ic{width:28px;height:28px;border-radius:9px;background:#e9f0fb;display:inline-flex;align-items:center;justify-content:center;font-weight:700}
 
-  /* Links inside features if used */
+  .feature-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--gap)}
+  .feature{background:#ffffff;border-radius:var(--radius);box-shadow:var(--shadow);padding:18px;display:grid;gap:8px}
   .feature a{font-weight:600;text-decoration:none;color:#0b5fd7}
   .feature a:hover{text-decoration:underline}
+
+  @media (max-width:1024px){
+    .grid-3,.feature-grid{grid-template-columns:1fr}
+  }
+
+  /* Follow-up highlight */
+  .followup-card{
+    position: relative;
+    background:#f7fbff;
+    border:1px solid #d6e8ff;
+    border-left:5px solid #0b5fd7;
+    box-shadow: 0 4px 18px rgba(11,95,215,0.08);
+    animation: followup-pop 700ms ease-out;
+  }
+  .followup-card .result-title h2{color:#0b3a75}
+  .followup-card .badge{
+    background:#e6f0ff;
+    color:#0b3a75;
+    border:1px solid #cfe0ff;
+  }
+  @keyframes followup-pop{
+    0%{transform: translateY(6px); opacity:0}
+    100%{transform: translateY(0); opacity:1}
+  }
+
+  /* Make inputs comfy */
+  .followup-card .field input[type="text"]{
+    padding:10px 12px;
+    border:1px solid #cfe0ff;
+    border-radius:8px;
+  }
+  .followup-card .field input[type="text"]:focus{
+    outline:none;
+    border-color:#0b5fd7;
+    box-shadow:0 0 0 3px rgba(11,95,215,0.15);
+  }
 </style>
 {% endblock %}
 
@@ -65,59 +69,38 @@ Home page wired to app.py routes:
 <section class="hero card" id="top">
   <h1>Welcome to SQN Copilot Companion</h1>
   <p>
-    An assistant for Microsoft 365. Describe the goal, get missing details collected automatically,
-    then receive a clean Copilot prompt and simple manual steps.
+    Your guide for Microsoft 365. Describe the goal or problem, missing details are collected automatically,
+    then a tailored Copilot prompt and simple manual steps appear.
   </p>
-  <div class="cta-row">
-    <a class="pill" href="#task-form">Start a task</a>
-    <a class="pill" href="#how">How it works</a>
-    <a class="pill" href="#features">What you can do</a>
-    <a class="pill" href="#safety">Safety and privacy</a>
+</section>
+
+<!-- How it works -->
+<section id="how" style="margin-bottom:var(--gap)">
+  <h2 style="margin:0 0 8px 0;">How it works</h2>
+  <p class="sub" style="margin:0 0 12px 0;">In three simple steps:</p>
+
+  <div class="grid-3">
+    <div class="mini">
+      <div class="ic">1</div>
+      <div><strong>Choose your Microsoft 365 app</strong><br><span class="sub">Covers Word, Excel, Outlook, Teams, and PowerPoint.</span></div>
+    </div>
+    <div class="mini">
+      <div class="ic">2</div>
+      <div><strong>Describe your goal or issue</strong><br><span class="sub">Use plain English. Follow-up questions appear if more detail is needed.</span></div>
+    </div>
+    <div class="mini">
+      <div class="ic">3</div>
+      <div><strong>Get results</strong><br><span class="sub">Copy the Copilot prompt or follow the step-by-step manual guide.</span></div>
+    </div>
   </div>
 </section>
 
-<!-- How it works (rewritten and expanded) -->
-<section id="how" class="how card">
-  <h2>How it works</h2>
-  <p class="section-intro">
-    Start with a task in any Microsoft 365 app. The assistant asks for missing details, then shows a polished Copilot prompt and plain‑language manual steps.
-  </p>
-
-  <ol class="steps-list">
-    <li>
-      <h4>Pick an app</h4>
-      <p>Select Word, Excel, Outlook, Teams, or PowerPoint.</p>
-      <ul>
-        <li>New to an app? Open Teach Me for short lessons.</li>
-        <li>Not sure which app fits? Describe the goal in plain English.</li>
-      </ul>
-    </li>
-    <li>
-      <h4>Describe the goal</h4>
-      <p>Type the outcome that is needed in simple terms.</p>
-      <ul>
-        <li>Examples: “Clean this table and chart the top five costs” or “Draft a two‑paragraph update from these notes.”</li>
-        <li>Targeted follow‑up questions appear if more detail is needed.</li>
-      </ul>
-    </li>
-    <li>
-      <h4>Choose how to proceed</h4>
-      <p>Copy the ready‑to‑use Copilot prompt or follow the manual steps.</p>
-      <ul>
-        <li>Prompts are tailored to the selected app and task.</li>
-        <li>Manual steps are beginner friendly and easy to follow.</li>
-      </ul>
-    </li>
-  </ol>
-</section>
-
 <div class="grid">
-  <!-- Task card -->
+  <!-- Task form -->
   <section class="card" id="task-form">
     <h2>What do you want to do?</h2>
-    <p class="sub">Pick an app and describe the task. Follow‑up questions help fill in the gaps, then the Copilot prompt and manual steps are shown side by side.</p>
+    <p class="sub">Select your app and describe the task. The tool produces a Copilot prompt and a simple manual guide.</p>
 
-    <!-- IMPORTANT: Posts to /home, matching app.py -->
     <form action="{{ url_for('home') }}" method="post">
       <div class="field">
         <label for="app">Microsoft 365 app</label>
@@ -144,40 +127,25 @@ Home page wired to app.py routes:
     </form>
   </section>
 
-  <!-- Feature spotlight (rewritten with all apps and richer details) -->
+  <!-- Feature spotlight -->
   <section class="card" id="features">
     <h2>What you can do here</h2>
-    <p class="section-intro">
-      Learn quickly, fix issues, or generate precise Copilot prompts across Microsoft 365.
-    </p>
-
     <div class="feature-grid">
-      <article class="feature">
-        <div class="feature-head">
-          <strong>Teach Me Microsoft 365</strong>
-          <span class="tag">Word • Excel • Outlook • Teams • PowerPoint</span>
-        </div>
-        <p>Short, beginner lessons with plain steps. Useful for learning the basics or refreshing a skill before starting a task.</p>
-        <a class="btn" href="{{ url_for('learn_app', app_name='word') }}">Open Teach Me</a>
-      </article>
-
-      <article class="feature">
-        <div class="feature-head">
-          <strong>Troubleshooter</strong>
-          <span class="tag">Error codes • Crashes • “Not working”</span>
-        </div>
-        <p>Paste an error or describe the issue. Receive a simple diagnosis and clear, numbered steps to resolve it. For network issues, contact TVA IT.</p>
-        <a class="btn" href="{{ url_for('troubleshooter') }}">Open Troubleshooter</a>
-      </article>
-
-      <article class="feature">
-        <div class="feature-head">
-          <strong>Prompt Builder</strong>
-          <span class="tag">Word • Excel • Outlook • Teams • PowerPoint</span>
-        </div>
-        <p>Describe the goal, audience, and format. Get a clean, ready‑to‑paste Copilot prompt tailored to the app and outcome.</p>
-        <a class="btn" href="{{ url_for('prompt_builder') }}">Open Prompt Builder</a>
-      </article>
+      <div class="feature">
+        <strong>Teach Me</strong>
+        <div class="sub">Beginner-friendly lessons for Word, Excel, Outlook, Teams, and PowerPoint.</div>
+        <a href="{{ url_for('learn_app', app_name='word') }}">Open Teach Me</a>
+      </div>
+      <div class="feature">
+        <strong>Troubleshooter</strong>
+        <div class="sub">Paste an error or describe the issue to get a simple diagnosis and a fix. For network problems, contact TVA IT.</div>
+        <a href="{{ url_for('troubleshooter') }}">Open Troubleshooter</a>
+      </div>
+      <div class="feature">
+        <strong>Prompt Builder</strong>
+        <div class="sub">Describe the goal, audience, and format to receive a ready-to-paste Copilot prompt.</div>
+        <a href="{{ url_for('prompt_builder') }}">Open Prompt Builder</a>
+      </div>
     </div>
   </section>
 </div>
@@ -189,22 +157,20 @@ Home page wired to app.py routes:
 {% set _questions = questions if questions is defined else None %}
 
 {% if _questions or _prompt or _manual_text or _manual_html %}
-  <div class="grid" style="margin-top:var(--gap)">
+  <div class="grid" style="margin-top:var(--gap)" id="results-section">
     {% if _questions %}
-    <!-- Follow up questions form. Names must be answer_0, answer_1, ... -->
-    <section class="card">
+    <section class="card followup-card" id="follow-up">
       <div class="result-title">
-        <h2>Follow up questions</h2>
+        <h2>Follow-up questions</h2>
         <span class="badge">Help refine the task</span>
       </div>
       <form action="{{ url_for('home') }}" method="post">
         <input type="hidden" name="original_task" value="{{ original_task or task or '' }}" />
         <div class="field">
-          <label>Answer any that apply.</label>
           {% for q in _questions %}
             <div class="field">
               <label>{{ q }}</label>
-              <input type="text" name="answer_{{ loop.index0 }}" placeholder="Your answer" />
+              <input type="text" name="answer_{{ loop.index0 }}" placeholder="Your answer" {% if loop.first %}id="first-question"{% endif %}/>
             </div>
           {% endfor %}
         </div>
@@ -216,7 +182,7 @@ Home page wired to app.py routes:
     {% endif %}
 
     {% if _prompt or _manual_text or _manual_html %}
-    <section class="card" style="grid-column:1 / -1">
+    <section class="card" id="results" style="grid-column:1 / -1">
       <div class="result-wrap">
         <div>
           <div class="result-title">
@@ -226,7 +192,7 @@ Home page wired to app.py routes:
           {% if _prompt %}
             <pre>{{ _prompt }}</pre>
           {% else %}
-            <pre>Run "Generate Copilot prompt" to see your prompt here.</pre>
+            <pre>Click "Generate Copilot prompt" to see the prompt here.</pre>
           {% endif %}
         </div>
         <div>
@@ -239,7 +205,7 @@ Home page wired to app.py routes:
           {% elif _manual_text %}
             <pre>{{ _manual_text }}</pre>
           {% else %}
-            <pre>Run "Show manual steps" to get a simple, step by step guide here.</pre>
+            <pre>Click "Show manual steps" to get a step-by-step guide here.</pre>
           {% endif %}
         </div>
       </div>
@@ -253,5 +219,25 @@ Home page wired to app.py routes:
   <h2>Safety and privacy</h2>
   <p class="sub">Do not enter sensitive or confidential TVA information. Use sample or generic data. This tool is for learning and productivity.</p>
 </section>
+
+{# Auto-scroll and auto-focus:
+   - If follow-ups exist: scroll to them and focus the first input
+   - Else if only results exist: scroll to the results #}
+{% if _questions or _prompt or _manual_text or _manual_html %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    var follow = document.getElementById('follow-up');
+    var firstQ = document.getElementById('first-question');
+    var results = document.getElementById('results');
+
+    if (follow) {
+      follow.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      if (firstQ) { firstQ.focus(); }
+    } else if (results) {
+      results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  });
+</script>
+{% endif %}
 
 {% endblock %}
