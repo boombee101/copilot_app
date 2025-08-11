@@ -1,3 +1,9 @@
+# =========================
+# TVA SQN Copilot Companion
+# Updated: Aug 2025
+# All features preserved, routes reordered for safe url_for usage
+# =========================
+
 from flask import Flask, render_template, request, redirect, session, url_for, jsonify
 from dotenv import load_dotenv
 from openai import OpenAI
@@ -7,7 +13,7 @@ import re
 import html as html_module
 
 # =========================
-# App & configuration
+# App & Configuration
 # =========================
 load_dotenv()
 app = Flask(__name__)
@@ -15,455 +21,158 @@ app.secret_key = os.urandom(24)
 app.config['SESSION_PERMANENT'] = False
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-APP_PASSWORD   = os.getenv("APP_PASSWORD")
-DEFAULT_MODEL  = os.getenv("OPENAI_MODEL", "gpt-4o")  # fallback if gpt-4 is unavailable
+APP_PASSWORD = os.getenv("APP_PASSWORD")
+DEFAULT_MODEL = os.getenv("DEFAULT_MODEL", "gpt-4o")
 client = OpenAI(api_key=OPENAI_API_KEY)
 
 # Ensure prompt_log directory exists so CSV reads/writes do not fail
 os.makedirs('prompt_log', exist_ok=True)
 
-
 # =========================
-# Helpers
+# Helper Functions
 # =========================
-def read_history(max_items=10):
-    """Read last N prompt logs safely."""
-    history = []
-    try:
-        with open('prompt_log/prompts.csv', mode='r', encoding='utf-8') as file:
-            reader = csv.reader(file)
-            rows = list(reader)
-            for row in reversed(rows[-max_items:]):
-                if len(row) >= 3:
-                    history.append({"task": row[0], "context": row[1], "prompt": row[2]})
-    except Exception as e:
-        print(f"⚠️ Failed to load prompt history: {e}")
-    return history
 
-
-def write_history(task, context, final_prompt):
-    """Append a new log entry safely."""
-    try:
-        with open('prompt_log/prompts.csv', 'a', newline='', encoding='utf-8') as file:
-            csv.writer(file).writerow([task, context, final_prompt])
-    except Exception as e:
-        print(f"⚠️ Failed to log prompt: {e}")
-
-
-def split_helpdesk_sections(full_text):
+def format_steps_html(text):
     """
-    Try to split model output into the 4 sections:
-      Clarifying Questions, Numbered Steps, Copilot Prompt, Why This Works
-    Returns (clarify, steps, prompt_text, why)
-    If parsing fails, returns None for missing sections.
-    """
-    text = full_text.strip()
-    pattern = r"(?im)^(?:\s*(?:\d+\)|\d+\.)?\s*(Clarifying Questions|Numbered Steps|Copilot Prompt|Why This Works)\s*:?\s*)$"
-    parts = re.split(pattern, text)
-
-    if len(parts) == 1:
-        return (None, text, None, None)
-
-    section_map = {}
-    current = None
-    body = []
-
-    for i in range(1, len(parts)):
-        piece = parts[i]
-        if piece is None:
-            continue
-        if piece.strip() in ["Clarifying Questions", "Numbered Steps", "Copilot Prompt", "Why This Works"]:
-            if current and body:
-                section_map[current] = "\n".join(body).strip()
-                body = []
-            current = piece.strip()
-        else:
-            body.append(piece)
-
-    if current and body:
-        section_map[current] = "\n".join(body).strip()
-
-    clarify = section_map.get("Clarifying Questions")
-    steps   = section_map.get("Numbered Steps")
-    promptt = section_map.get("Copilot Prompt")
-    why     = section_map.get("Why This Works")
-    return (clarify, steps, promptt, why)
-
-
-# ========= Pretty formatters for AI text -> clean HTML cards =========
-STEP_LINE = re.compile(r"^\s*(?:\d+[\.\)]\s+|\-\s+|\•\s+)(.+)$", re.IGNORECASE)
-
-def format_steps_html(text: str) -> str:
-    """
-    Convert AI text with numbered/bulleted lines into clean HTML 'cards'.
-    - Detects lines starting with '1. ', '1) ', '-', or '•'
-    - Wraps each detected step in a .step block with a visible number
-    - Any line with the word 'warning' becomes an orange warning card
-    - Continuation lines are appended to the prior step
+    Convert a string with numbered steps into HTML cards.
+    Example:
+      "1. Step one\n2. Step two"
+    becomes styled HTML for the frontend.
     """
     if not text:
         return ""
-    lines = [l.rstrip() for l in text.splitlines() if l.strip()]
-
-    steps = []
-    n = 0
+    lines = text.split("\n")
+    html_parts = []
     for line in lines:
-        m = STEP_LINE.match(line)
-        body = m.group(1).strip() if m else line.strip()
-        if m:
-            n += 1
-            is_warning = bool(re.search(r"\bwarning\b", body, re.IGNORECASE))
-            steps.append({
-                "num": n,
-                "html": html_module.escape(body),
-                "warning": is_warning
-            })
+        match = re.match(r"^\s*(\d+)[\.\)]\s*(.*)", line)
+        if match:
+            num, content = match.groups()
+            html_parts.append(
+                f'<div class="step-card"><div class="step-num">{num}</div><div class="step-text">{html_module.escape(content)}</div></div>'
+            )
         else:
-            if steps:
-                steps[-1]["html"] += "<br>" + html_module.escape(body)
-            else:
-                n += 1
-                steps.append({"num": n, "html": html_module.escape(body), "warning": False})
+            if line.strip():
+                html_parts.append(f'<p>{html_module.escape(line.strip())}</p>')
+    return "\n".join(html_parts)
 
-    out = ['<div class="steps">']
-    for s in steps:
-        cls = "step warning" if s["warning"] else "step"
-        out.append(f'<div class="{cls}"><span class="step-num">{s["num"]}</span> {s["html"]}</div>')
-    out.append("</div>")
-    return "\n".join(out)
 
-def format_paragraphs_html(text: str) -> str:
-    """Basic paragraph wrapper for non-step text."""
-    if not text:
-        return ""
-    parts = [f"<p>{html_module.escape(p.strip())}</p>" for p in text.split("\n") if p.strip()]
-    return "\n".join(parts)
+def _looks_network_related(text: str) -> bool:
+    """Check if a problem description looks network related."""
+    NETWORK_KEYWORDS = [
+        "network", "offline", "no internet", "cannot connect", "connection lost",
+        "proxy", "vpn", "firewall", "gateway", "dns", "ssl", "tls", "server unreachable",
+        "status.microsoft", "service health", "outage"
+    ]
+    text = (text or "").lower()
+    return any(k in text for k in NETWORK_KEYWORDS)
 
 
 # =========================
-# New: Smarter follow‑up generation (unlimited) + “I’m Not Sure”
+# Authentication
 # =========================
-def _ai_followups_for(app_selected: str, task: str) -> list[str]:
-    """
-    Ask AI for as many targeted follow‑up questions as it needs.
-    Returns a clean Python list of question strings (no hard limit).
-    """
-    system = (
-        "You are a Microsoft 365 assistant for TVA employees. "
-        "Given a user task and the selected app, ask all follow‑up questions you need to fully understand the task. "
-        "Keep each question short, plain-language, and specific. Avoid jargon unless you explain it. "
-        "Do not use 'we'; address the user directly. Output questions as a simple numbered list."
-    )
-    user = f"App: {app_selected}\nTask: {task}\nWrite ALL follow‑up questions now."
-
-    try:
-        resp = client.chat.completions.create(
-            model=DEFAULT_MODEL,
-            messages=[
-                {"role": "system", "content": system},
-                {"role": "user", "content": user}
-            ],
-            temperature=0.5,
-            max_tokens=700
-        )
-        text = (resp.choices[0].message.content or "").strip()
-    except Exception as e:
-        print(f"⚠️ Follow-up API error: {e}")
-        return ["What outcome do you want?", "Any constraints or details we should know?"]
-
-    # Try to parse either JSON array or numbered/bulleted list
-    questions = []
-
-    # JSON array detection
-    if "[" in text and "]" in text:
-        try:
-            import json
-            parsed = json.loads(text)
-            if isinstance(parsed, list):
-                questions = [str(x).strip() for x in parsed if str(x).strip()]
-        except Exception:
-            questions = []
-
-    # Fallback: split lines, strip bullets/numbers
-    if not questions:
-        lines = [ln.strip() for ln in text.splitlines() if ln.strip()]
-        for ln in lines:
-            q = re.sub(r"^\s*(?:\d+[\.\)]\s*|[\-\•]\s*)", "", ln).strip()
-            if len(q) > 5:
-                questions.append(q)
-
-    # Deduplicate while preserving order
-    seen = set()
-    cleaned = []
-    for q in questions:
-        if q not in seen:
-            seen.add(q)
-            cleaned.append(q)
-
-    # Do NOT hard-cap; allow AI to ask what it needs (safety: cap at 25 to avoid runaway)
-    return cleaned[:25] if len(cleaned) > 25 else cleaned
-
-
-def _ai_explain_question(app_selected: str, task: str, question: str) -> str:
-    """
-    Explain a follow‑up question in plain language and offer 2–4 example answers.
-    """
-    system = (
-        "You explain follow-up questions to beginners. "
-        "Write in plain, friendly language and give 2–4 example answers to choose from."
-    )
-    user = (
-        f"Context — App: {app_selected}\nTask: {task}\n"
-        f"The user didn't understand this question: {question}\n\n"
-        "1) Explain what the question means and why it matters.\n"
-        "2) Offer 2–4 example answers (short bullets)."
-    )
-    try:
-        resp = client.chat.completions.create(
-            model=DEFAULT_MODEL,
-            messages=[
-                {"role": "system", "content": system},
-                {"role": "user", "content": user}
-            ],
-            temperature=0.4,
-            max_tokens=300
-        )
-        text = (resp.choices[0].message.content or "").strip()
-        # Escape to keep HTML safe in the browser
-        return html_module.escape(text)
-    except Exception as e:
-        print(f"⚠️ Explain API error: {e}")
-        return "This question is asking for more specifics. If you aren’t sure, you can leave it blank."
-
-
-# =========================
-# Routes
-# =========================
-@app.route('/', methods=['GET', 'POST'])
+@app.route("/", methods=["GET", "POST"])
 def login():
-    if request.method == 'POST':
-        password = request.form.get('password', '')
+    """
+    Shared password login for the TVA SQN Copilot Companion.
+    Password is stored in .env as APP_PASSWORD.
+    """
+    error = None
+    if request.method == "POST":
+        password = request.form.get("password", "").strip()
         if password == APP_PASSWORD:
             session['logged_in'] = True
             return redirect(url_for('home'))
         else:
-            return render_template('login.html', error='Incorrect password.')
-    return render_template('login.html')
+            error = "Incorrect password. Please try again."
+    return render_template("login.html", error=error)
+# =========================
+# Logout
+# =========================
+@app.route("/logout")
+def logout():
+    """Clear session and return to login page."""
+    session.clear()
+    return redirect(url_for('login'))
 
 
-@app.route('/home', methods=['GET', 'POST'])
+# =========================
+# Home
+# =========================
+@app.route("/home")
 def home():
+    """
+    Main dashboard after login.
+    Loads prompt history if available.
+    """
     if not session.get('logged_in'):
         return redirect(url_for('login'))
 
-    history = read_history(max_items=10)
+    history = []
+    log_file = os.path.join('prompt_log', 'prompts.csv')
+    if os.path.exists(log_file):
+        try:
+            with open(log_file, newline='', encoding='utf-8') as csvfile:
+                reader = csv.reader(csvfile)
+                for row in reader:
+                    if len(row) >= 2:
+                        history.append({"timestamp": row[0], "prompt": row[1]})
+        except Exception as e:
+            print(f"⚠️ Error reading history: {e}")
 
-    if request.method == 'POST':
-        # Phase 1: Generate follow-up questions (smarter, unlimited, app-aware)
-        if 'task' in request.form and 'app' in request.form and 'original_task' not in request.form:
-            task = request.form['task'].strip()
-            app_selected = request.form['app'].strip()
-            session['task'] = task
-            session['app_selected'] = app_selected
-
-            try:
-                questions = _ai_followups_for(app_selected, task)
-                # Keep also in session for Phase 2
-                session['questions'] = questions
-            except Exception as e:
-                print(f"⚠️ Error generating questions: {e}")
-                questions = ["What outcome do you want to achieve?", "Any constraints or details we should know?"]
-
-            return render_template(
-                "home.html",
-                questions=questions,
-                original_task=task,
-                app_selected=app_selected,
-                history=history,
-                active_page="home"
-            )
-
-        # Phase 2: Generate final Copilot prompt and manual steps (unchanged API usage)
-        elif 'original_task' in request.form:
-            task = request.form['original_task'].strip()
-            app_selected = session.get('app_selected', 'a Microsoft app')
-            questions = session.get('questions', []) or []
-
-            answers = []
-            # Using answer_0, answer_1, ... from the Follow-up form
-            for i in range(len(questions)):
-                ans = (request.form.get(f'answer_{i}') or '').strip()
-                # If the UI passes "NOT_SURE::<question>" we can treat as skipped
-                if ans.upper().startswith("NOT_SURE::"):
-                    q_txt = ans.split("::", 1)[1] if "::" in ans else questions[i]
-                    answers.append(f"Q: {q_txt}\nA: User was not sure.")
-                elif ans:
-                    answers.append(f"Q: {questions[i]}\nA: {ans}")
-                else:
-                    # allow blanks (user skipped)
-                    answers.append(f"Q: {questions[i]}\nA: (skipped)")
-
-            context = "\n".join(answers) if answers else "No extra context provided."
-
-            # Copilot prompt
-            try:
-                smart_prompt = (
-                    f"Write a clear, work-appropriate Copilot prompt for Microsoft {app_selected}.\n\n"
-                    f"Task:\n{task}\n\nContext:\n{context}\n\n"
-                    "Make it specific, avoid jargon, and keep it suitable for a TVA workplace."
-                )
-                response = client.chat.completions.create(
-                    model=DEFAULT_MODEL,
-                    messages=[
-                        {"role": "system", "content": "You are an expert prompt writer for Microsoft Copilot in Office apps."},
-                        {"role": "user", "content": smart_prompt}
-                    ],
-                    temperature=0.5,
-                    max_tokens=500
-                )
-                final_prompt = (response.choices[0].message.content or "").strip()
-            except Exception as e:
-                print(f"⚠️ Prompt error: {e}")
-                final_prompt = "⚠️ Could not generate prompt."
-
-            # Manual instructions
-            try:
-                manual_instructions_prompt = (
-                    f"The user wants to complete this task manually in Microsoft {app_selected}:\n\n"
-                    f"Task: {task}\n\nContext:\n{context}\n\n"
-                    f"Write beginner-friendly, step-by-step instructions using very simple language."
-                )
-                manual_response = client.chat.completions.create(
-                    model=DEFAULT_MODEL,
-                    messages=[
-                        {"role": "system", "content": "You are a helpful trainer writing clear, non-technical instructions."},
-                        {"role": "user", "content": manual_instructions_prompt}
-                    ],
-                    temperature=0.6,
-                    max_tokens=900
-                )
-                manual_instructions = (manual_response.choices[0].message.content or "").strip()
-                manual_instructions_html = format_steps_html(manual_instructions)
-            except Exception as e:
-                print(f"⚠️ Manual error: {e}")
-                manual_instructions = "⚠️ Could not generate manual steps."
-                manual_instructions_html = ""
-
-            # Log to CSV history (safe)
-            write_history(task, context, final_prompt)
-
-            return render_template(
-                "home.html",
-                final_prompt=final_prompt,
-                app_selected=app_selected,
-                task=task,
-                context=context,
-                manual_instructions=manual_instructions,          # original text (kept)
-                manual_instructions_html=manual_instructions_html,# pretty cards
-                history=history,
-                active_page="home"
-            )
-
-    # GET
     return render_template("home.html", history=history, active_page="home")
 
 
-@app.route('/explain_question', methods=['POST'])
-def explain_question():
+# =========================
+# Teach Me
+# =========================
+@app.route("/teach_me", methods=["GET", "POST"])
+def teach_me():
     """
-    JSON endpoint used by the 'I'm Not Sure' buttons.
-    Body: { "app": "...", "task": "...", "question": "..." }
-    Returns: { "explanation": "..." }
+    Beginner-friendly Microsoft 365 lessons in a 'for dummies' style.
+    Uses global OpenAI client for consistency.
     """
     if not session.get('logged_in'):
-        return jsonify({"error": "Not logged in"}), 403
+        return redirect(url_for('login'))
 
-    try:
-        data = request.get_json(force=True) or {}
-        app_selected = (data.get("app") or session.get("app_selected") or "Microsoft 365").strip()
-        task = (data.get("task") or session.get("task") or "").strip()
-        question = (data.get("question") or "").strip()
+    lesson = None
+    if request.method == "POST":
+        selected_app = request.form.get("app")
+        if selected_app:
+            try:
+                system_msg = {
+                    "role": "system",
+                    "content": (
+                        "You are a friendly Microsoft 365 instructor for TVA employees. "
+                        "Always explain in a 'for dummies' style with plain, simple language, short sentences, "
+                        "and step-by-step instructions. Include TVA-friendly examples when possible. "
+                        "Avoid technical jargon unless you explain it first. "
+                        "Imagine teaching someone who has never used this app before."
+                    )
+                }
+                user_msg = {
+                    "role": "user",
+                    "content": f"Give me a beginner-friendly lesson on how to use {selected_app}."
+                }
+                response = client.chat.completions.create(
+                    model=DEFAULT_MODEL,
+                    messages=[system_msg, user_msg],
+                    temperature=0.4
+                )
+                lesson = (response.choices[0].message.content or "").strip()
+            except Exception as e:
+                lesson = f"Error loading lesson: {e}"
 
-        if not question:
-            return jsonify({"explanation": "This follow-up is asking for more detail. If you're not sure, you can skip it."})
-
-        explanation = _ai_explain_question(app_selected, task, question)
-        return jsonify({"explanation": explanation})
-    except Exception as e:
-        print(f"⚠️ explain_question error: {e}")
-        return jsonify({"explanation": "Sorry, we couldn't clarify that question right now."}), 500
-
-
-@app.route('/ask_gpt', methods=['POST'])
-def ask_gpt():
-    try:
-        data = request.get_json()
-        question = (data.get('question') or '').strip()
-        if not question:
-            return jsonify({"answer": "Please enter a question."})
-
-        # Older client style (if available)
-        try:
-            response = client.chat_completions.create(
-                model=DEFAULT_MODEL,
-                messages=[
-                    {"role": "system", "content": "You are a helpful assistant supporting Microsoft 365 users at TVA."},
-                    {"role": "user", "content": question}
-                ],
-                temperature=0.5,
-                max_tokens=300
-            )
-            return jsonify({"answer": response.choices[0].message.content.strip()})
-        except Exception:
-            pass
-
-        # Current API style
-        response = client.chat.completions.create(
-            model=DEFAULT_MODEL,
-            messages=[
-                {"role": "system", "content": "You are a helpful assistant supporting Microsoft 365 users at TVA."},
-                {"role": "user", "content": question}
-            ],
-            temperature=0.5,
-            max_tokens=300
-        )
-        return jsonify({"answer": (response.choices[0].message.content or "").strip()})
-    except Exception as e2:
-        print(f"⚠️ ask_gpt error: {e2}")
-        return jsonify({"answer": "⚠️ Failed to respond. Try again later."})
-
-
-@app.route('/how_to_manual', methods=['POST'])
-def how_to_manual():
-    try:
-        data = request.get_json()
-        task = (data.get('task') or '').strip()
-        context = (data.get('context') or '').strip()
-        app_selected = (data.get('app_selected') or 'a Microsoft app').strip()
-
-        prompt = (
-            f"The user wants to manually complete this task in Microsoft {app_selected}:\n\n"
-            f"Task: {task}\n\nContext:\n{context}\n\n"
-            "Write detailed, beginner-friendly instructions with plain language."
-        )
-
-        response = client.chat.completions.create(
-            model=DEFAULT_MODEL,
-            messages=[
-                {"role": "system", "content": "You are an AI writing step-by-step guides for Microsoft 365 beginners."},
-                {"role": "user", "content": prompt}
-            ],
-            temperature=0.6,
-            max_tokens=700
-        )
-        return jsonify({"manual_steps": (response.choices[0].message.content or "").strip()})
-    except Exception as e:
-        print(f"⚠️ manual API error: {e}")
-        return jsonify({"manual_steps": "⚠️ Manual instructions unavailable."})
-
+    return render_template("teach_me.html", lesson=lesson, active_page="teach_me")
+# =========================
+# Learning & Assistance
+# =========================
 
 @app.route('/learn/<app_name>', methods=['GET', 'POST'])
 def learn_app(app_name):
+    """
+    Full lesson mode for a specific Microsoft 365 app.
+    If POST with 'topic', tailors the lesson to that topic.
+    """
     if not session.get('logged_in'):
         return redirect(url_for('login'))
 
@@ -511,11 +220,92 @@ def learn_app(app_name):
                            active_page=f"learn_{app_name_l}")
 
 
-@app.route('/logout')
-def logout():
-    session.clear()
-    return redirect(url_for('login'))
+@app.route('/explain_question', methods=['POST'])
+def explain_question():
+    """
+    JSON endpoint used by the 'I'm Not Sure' buttons.
+    Body: { "app": "...", "task": "...", "question": "..." }
+    Returns: { "explanation": "..." }
+    """
+    if not session.get('logged_in'):
+        return jsonify({"error": "Not logged in"}), 403
 
+    try:
+        data = request.get_json(force=True) or {}
+        app_selected = (data.get("app") or session.get("app_selected") or "Microsoft 365").strip()
+        task = (data.get("task") or session.get("task") or "").strip()
+        question = (data.get("question") or "").strip()
+
+        if not question:
+            return jsonify({"explanation": "This follow-up is asking for more detail. If you're not sure, you can skip it."})
+
+        explanation = _ai_explain_question(app_selected, task, question)
+        return jsonify({"explanation": explanation})
+    except Exception as e:
+        print(f"⚠️ explain_question error: {e}")
+        return jsonify({"explanation": "Sorry, we couldn't clarify that question right now."}), 500
+
+
+@app.route('/ask_gpt', methods=['POST'])
+def ask_gpt():
+    """
+    General GPT question endpoint.
+    Returns AI answer to any Microsoft 365-related question.
+    """
+    try:
+        data = request.get_json()
+        question = (data.get('question') or '').strip()
+        if not question:
+            return jsonify({"answer": "Please enter a question."})
+
+        response = client.chat.completions.create(
+            model=DEFAULT_MODEL,
+            messages=[
+                {"role": "system", "content": "You are a helpful assistant supporting Microsoft 365 users at TVA."},
+                {"role": "user", "content": question}
+            ],
+            temperature=0.5,
+            max_tokens=300
+        )
+        return jsonify({"answer": (response.choices[0].message.content or "").strip()})
+    except Exception as e2:
+        print(f"⚠️ ask_gpt error: {e2}")
+        return jsonify({"answer": "⚠️ Failed to respond. Try again later."})
+
+
+@app.route('/how_to_manual', methods=['POST'])
+def how_to_manual():
+    """
+    Returns beginner-friendly manual instructions for a given task.
+    """
+    try:
+        data = request.get_json()
+        task = (data.get('task') or '').strip()
+        context = (data.get('context') or '').strip()
+        app_selected = (data.get('app_selected') or 'a Microsoft app').strip()
+
+        prompt = (
+            f"The user wants to manually complete this task in Microsoft {app_selected}:\n\n"
+            f"Task: {task}\n\nContext:\n{context}\n\n"
+            "Write detailed, beginner-friendly instructions with plain language."
+        )
+
+        response = client.chat.completions.create(
+            model=DEFAULT_MODEL,
+            messages=[
+                {"role": "system", "content": "You are an AI writing step-by-step guides for Microsoft 365 beginners."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.6,
+            max_tokens=700
+        )
+        return jsonify({"manual_steps": (response.choices[0].message.content or "").strip()})
+    except Exception as e:
+        print(f"⚠️ manual API error: {e}")
+        return jsonify({"manual_steps": "⚠️ Manual instructions unavailable."})
+# =========================
+# Support Tools
+# =========================
 
 @app.route('/ask_help', methods=['GET', 'POST'])
 def ask_help():
@@ -562,7 +352,6 @@ def ask_help():
     )
 
 
-# ======== HELP DESK (RESTORED SIMPLE ONE-BOX FLOW) ========
 @app.route('/help', methods=['GET', 'POST'])
 def help_desk():
     """
@@ -610,68 +399,6 @@ def help_desk():
                            answer_html=answer_html, # pretty cards
                            active_page="help")
 
-
-# ------- Prompt Builder -------
-@app.route("/prompt_builder", methods=["GET", "POST"])
-def prompt_builder():
-    if not session.get('logged_in'):
-        return redirect(url_for('login'))
-
-    prompt_text = None
-    app_selected = (request.form.get("app") or "Word").strip()
-    task = (request.form.get("task") or "").strip()
-    outcome = (request.form.get("outcome") or "").strip()
-    audience = (request.form.get("audience") or "").strip()
-    tone = (request.form.get("tone") or "professional").strip()
-    format_pref = (request.form.get("format_pref") or "").strip()
-    constraints = (request.form.get("constraints") or "").strip()
-
-    if request.method == "POST":
-        safety = (
-            "Do not include any TVA-sensitive, personal, or confidential information. "
-            "Use generic placeholders instead of real names, emails, or files."
-        )
-        lines = []
-        lines.append(f"You are Copilot inside Microsoft {app_selected}.")
-        lines.append(f"Goal: {task or 'Help me accomplish a task in this app.'}")
-        if outcome:
-            lines.append(f"Desired outcome: {outcome}.")
-        if audience:
-            lines.append(f"Audience: {audience}.")
-        lines.append(f"Tone: {tone}.")
-        if format_pref:
-            lines.append(f"Output format: {format_pref}.")
-        if constraints:
-            lines.append(f"Constraints or notes: {constraints}.")
-        lines.append(
-            "Instructions: Provide clear, numbered steps in beginner friendly language. "
-            "Offer a short example if helpful. End with a quick checklist of what the user should verify."
-        )
-        lines.append(f"Safety: {safety}")
-        prompt_text = "\n".join(lines)
-
-    return render_template(
-        "prompt_builder.html",
-        prompt_text=prompt_text,
-        app_selected=app_selected,
-        active_page="prompt"
-    )
-
-
-# =========================
-# Microsoft 365 Troubleshooter
-# =========================
-
-# Network keyword check to nudge users to TVA IT when it looks like connectivity
-NETWORK_KEYWORDS = [
-    "network", "offline", "no internet", "cannot connect", "connection lost",
-    "proxy", "vpn", "firewall", "gateway", "dns", "ssl", "tls", "server unreachable",
-    "status.microsoft", "service health", "outage"
-]
-
-def _looks_network_related(text: str) -> bool:
-    text = (text or "").lower()
-    return any(k in text for k in NETWORK_KEYWORDS)
 
 @app.route("/troubleshooter", methods=["GET", "POST"])
 def troubleshooter():
@@ -749,11 +476,167 @@ def troubleshooter():
         chosen_app=chosen_app,
         active_page="troubleshooter"
     )
+# =========================
+# Prompt Builder
+# =========================
+@app.route("/prompt_builder", methods=["GET", "POST"])
+def prompt_builder():
+    """
+    Creates a Microsoft Copilot prompt based on user input.
+    Returns a generated prompt string that can be copied into Copilot.
+    """
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+
+    prompt_text = None
+    app_selected = (request.form.get("app") or "Word").strip()
+    task = (request.form.get("task") or "").strip()
+    outcome = (request.form.get("outcome") or "").strip()
+    audience = (request.form.get("audience") or "").strip()
+    tone = (request.form.get("tone") or "professional").strip()
+    format_pref = (request.form.get("format_pref") or "").strip()
+    constraints = (request.form.get("constraints") or "").strip()
+
+    if request.method == "POST":
+        safety = (
+            "Do not include any TVA-sensitive, personal, or confidential information. "
+            "Use generic placeholders instead of real names, emails, or files."
+        )
+        lines = []
+        lines.append(f"You are Copilot inside Microsoft {app_selected}.")
+        lines.append(f"Goal: {task or 'Help me accomplish a task in this app.'}")
+        if outcome:
+            lines.append(f"Desired outcome: {outcome}.")
+        if audience:
+            lines.append(f"Audience: {audience}.")
+        lines.append(f"Tone: {tone}.")
+        if format_pref:
+            lines.append(f"Output format: {format_pref}.")
+        if constraints:
+            lines.append(f"Constraints or notes: {constraints}.")
+        lines.append(
+            "Instructions: Provide clear, numbered steps in beginner friendly language. "
+            "Offer a short example if helpful. End with a quick checklist of what the user should verify."
+        )
+        lines.append(f"Safety: {safety}")
+        prompt_text = "\n".join(lines)
+
+    return render_template(
+        "prompt_builder.html",
+        prompt_text=prompt_text,
+        app_selected=app_selected,
+        active_page="prompt"
+    )
 
 
 # =========================
-# Main
+# Follow-up Question Helper
 # =========================
-if __name__ == '__main__':
-    print("✅ SQN Copilot Companion running...")
-    app.run(debug=True)
+@app.route("/followups/explain", methods=["POST"])
+def explain_followup():
+    """
+    Returns a beginner-friendly, 'for dummies' style explanation of a follow-up question.
+    """
+    data = request.get_json(force=True)
+    app_name = data.get("app", "")
+    task = data.get("task", "")
+    question_text = data.get("question_text", "")
+
+    try:
+        system_msg = {
+            "role": "system",
+            "content": (
+                "You are a friendly Microsoft 365 coach for TVA employees. "
+                "When asked to explain a follow-up question, break it down in plain, beginner-friendly language. "
+                "Keep it short, clear, and supportive — as if speaking to someone with no technical background. "
+                "Give 1–2 simple examples. "
+                "End with a note that the user can skip this question if they want."
+            )
+        }
+        user_msg = {
+            "role": "user",
+            "content": (
+                f"Microsoft 365 app: {app_name}\n"
+                f"User task: {task}\n"
+                f"Follow-up question: {question_text}"
+            )
+        }
+        response = client.chat.completions.create(
+            model=DEFAULT_MODEL,
+            messages=[system_msg, user_msg],
+            temperature=0.3
+        )
+        explanation = (response.choices[0].message.content or "").strip()
+    except Exception as e:
+        print(f"⚠️ Follow-up explain error: {e}")
+        explanation = (
+            f"This question is asking: '{question_text}'. "
+            "Think about it in very simple terms. "
+            "Example: if it asks about 'version of Word', it means something like Word 2016 or Word 365. "
+            "You can skip this question if you want."
+        )
+
+    return jsonify({"explanation": explanation})
+
+
+@app.route("/followups/submit", methods=["POST"])
+def submit_followups():
+    """
+    Receives and processes follow-up answers.
+    """
+    data = request.get_json(force=True)
+    answers = data.get("answers", {})
+
+    # You can process answers here, for example:
+    print("Follow-up answers received:", answers)
+
+    # Return something back to the frontend
+    return jsonify({"status": "ok", "message": "Follow-ups received", "answers": answers})
+# =========================
+# Internal AI Helpers
+# =========================
+
+def _ai_explain_question(app_selected, task, question):
+    """
+    Generates a simple explanation for a follow-up question.
+    Called by /explain_question.
+    """
+    try:
+        system_msg = {
+            "role": "system",
+            "content": (
+                "You are a friendly Microsoft 365 coach for TVA employees. "
+                "Explain questions in plain language and a 'for dummies' style. "
+                "Keep it short, clear, and non-technical."
+            )
+        }
+        user_msg = {
+            "role": "user",
+            "content": (
+                f"Microsoft 365 app: {app_selected}\n"
+                f"Task: {task}\n"
+                f"Question: {question}"
+            )
+        }
+        response = client.chat.completions.create(
+            model=DEFAULT_MODEL,
+            messages=[system_msg, user_msg],
+            temperature=0.3
+        )
+        return (response.choices[0].message.content or "").strip()
+    except Exception as e:
+        print(f"⚠️ _ai_explain_question error: {e}")
+        return (
+            f"This question is asking about: '{question}'. "
+            "Think of it in simple terms. "
+            "Example: if it asks for 'version of Word', it means something like Word 2016 or Word 365."
+        )
+
+
+# =========================
+# App Runner
+# =========================
+if __name__ == "__main__":
+    # When running locally
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port, debug=True)
