@@ -46,12 +46,13 @@
         .main {
             margin-left: 240px;
             padding: 20px;
+            max-width: 800px;
         }
         h1 {
             font-size: 26px;
-            margin-bottom: 15px;
+            margin-bottom: 10px;
         }
-        select, textarea {
+        select, textarea, input[type="text"] {
             width: 100%;
             padding: 10px;
             margin-bottom: 10px;
@@ -60,7 +61,7 @@
             font-family: inherit;
         }
         textarea {
-            height: 100px;
+            min-height: 100px;
         }
         button {
             background-color: #0055a5;
@@ -74,7 +75,20 @@
         button:hover {
             background-color: #003f7d;
         }
-        /* Footer */
+        .question-box {
+            background-color: #e6f0ff;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+        }
+        .prompt-output {
+            background-color: #ffffff;
+            padding: 15px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            white-space: pre-wrap;
+            margin-top: 10px;
+        }
         footer {
             text-align: center;
             margin-top: 30px;
@@ -82,41 +96,27 @@
             color: #666;
         }
     </style>
-    <script>
-        function scrollToResults() {
-            document.getElementById("results").scrollIntoView({ behavior: "smooth" });
-        }
-    </script>
 </head>
 <body>
 
     <!-- Sidebar -->
     <div class="sidebar">
-        <a href="{{ url_for('home') }}">
-            🏠 Home
-        </a>
-        <a href="{{ url_for('teach_me') }}">
-            📘 Teach Me
-        </a>
-        <a href="{{ url_for('troubleshooter') }}">
-            🛠️ Troubleshooter
-        </a>
-        <a href="{{ url_for('prompt_builder') }}" class="active">
-            ✏️ Prompt Builder
-        </a>
-        <a href="{{ url_for('logout') }}">
-            🚪 Logout
-        </a>
+        <a href="{{ url_for('home') }}">🏠 Home</a>
+        <a href="{{ url_for('teach_me') }}">📘 Teach Me</a>
+        <a href="{{ url_for('troubleshooter') }}">🛠️ Troubleshooter</a>
+        <a href="{{ url_for('prompt_builder') }}" class="active">✏️ Prompt Builder</a>
+        <a href="{{ url_for('logout') }}">🚪 Logout</a>
     </div>
 
     <!-- Main Content -->
-    <div class="main" id="main-content">
+    <div class="main">
         <h1>Prompt Builder</h1>
-        <p>Pick your Microsoft 365 app and describe your goal. The AI will build a clear, effective Copilot prompt for you.</p>
+        <p>Pick your Microsoft 365 app and describe your goal. The AI will ask follow-up questions until it has everything needed to create the perfect Copilot prompt.</p>
         
-        <form method="POST" action="{{ url_for('prompt_builder') }}" onsubmit="scrollToResults()">
+        <!-- Step 1: Start form -->
+        <div id="start-section">
             <label for="app">Choose your app:</label>
-            <select name="app" id="app" required>
+            <select id="app" required>
                 <option value="">-- Select an app --</option>
                 <option>Word</option>
                 <option>Excel</option>
@@ -127,23 +127,93 @@
             </select>
 
             <label for="goal">Describe your goal:</label>
-            <textarea name="goal" placeholder="Example: Create a summary of my meeting notes with key action items" required></textarea>
+            <textarea id="goal" placeholder="Example: Create a summary of my meeting notes with key action items" required></textarea>
 
-            <button type="submit">Generate Copilot Prompt</button>
-        </form>
-
-        {% if prompt %}
-        <div id="results" style="margin-top:20px;">
-            <h2>Generated Copilot Prompt:</h2>
-            <textarea readonly>{{ prompt }}</textarea>
+            <button onclick="startPromptBuilder()">Start</button>
         </div>
-        {% endif %}
+
+        <!-- Step 2: Follow-up Q&A -->
+        <div id="question-section" style="display:none;">
+            <div class="question-box" id="current-question"></div>
+            <input type="text" id="answer" placeholder="Type your answer here..." />
+            <button onclick="sendAnswer()">Next</button>
+        </div>
+
+        <!-- Step 3: Final prompt -->
+        <div id="final-section" style="display:none;">
+            <h2>Your Copilot Prompt:</h2>
+            <div class="prompt-output" id="final-prompt"></div>
+            <button onclick="copyPrompt()">Copy Prompt</button>
+            <button onclick="resetBuilder()">Start Over</button>
+        </div>
     </div>
 
-    <!-- Footer -->
     <footer>
         TVA Copilot Companion — Powered by AI for Microsoft 365
     </footer>
+
+    <script>
+        let sessionId = null;
+
+        async function startPromptBuilder() {
+            const app = document.getElementById("app").value;
+            const goal = document.getElementById("goal").value;
+            if (!app || !goal) {
+                alert("Please select an app and enter your goal.");
+                return;
+            }
+
+            const res = await fetch("/prompt_builder/start", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({ app, goal })
+            });
+            const data = await res.json();
+            sessionId = data.session_id;
+
+            document.getElementById("start-section").style.display = "none";
+            document.getElementById("question-section").style.display = "block";
+            document.getElementById("current-question").innerText = data.question;
+        }
+
+        async function sendAnswer() {
+            const answer = document.getElementById("answer").value;
+            if (!answer.trim()) {
+                alert("Please enter an answer.");
+                return;
+            }
+
+            const res = await fetch("/prompt_builder/answer", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({ session_id: sessionId, answer })
+            });
+            const data = await res.json();
+
+            if (data.done) {
+                document.getElementById("question-section").style.display = "none";
+                document.getElementById("final-section").style.display = "block";
+                document.getElementById("final-prompt").innerText = data.prompt;
+            } else {
+                document.getElementById("current-question").innerText = data.question;
+                document.getElementById("answer").value = "";
+            }
+        }
+
+        function copyPrompt() {
+            navigator.clipboard.writeText(document.getElementById("final-prompt").innerText);
+            alert("Prompt copied to clipboard!");
+        }
+
+        function resetBuilder() {
+            sessionId = null;
+            document.getElementById("start-section").style.display = "block";
+            document.getElementById("question-section").style.display = "none";
+            document.getElementById("final-section").style.display = "none";
+            document.getElementById("app").value = "";
+            document.getElementById("goal").value = "";
+        }
+    </script>
 
 </body>
 </html>
