@@ -33,40 +33,31 @@ def log_prompt_to_csv(task, copilot_prompt, manual_steps):
         writer = csv.writer(csvfile)
         writer.writerow([task, copilot_prompt, manual_steps])
 
-# ---- NEW HELPER for Smart Prompt Builder ----
 def generate_followup_question(conversation_history):
-    """
-    Uses GPT to generate the next follow-up question based on conversation history.
-    Returns None if enough info has been collected.
-    """
+    """Ask the next follow-up question or stop if enough info is collected."""
     messages = [{"role": "system", "content": (
         "You are a Microsoft 365 Copilot Prompt Expert for TVA employees. "
-        "You are helping to create the best possible Copilot prompt for the user. "
-        "You may ask as many follow-up questions as needed (not limited to 3). "
-        "Stop asking questions only when you are confident you have enough detail."
+        "Ask as many follow-up questions as needed (no 3-question limit). "
+        "Stop asking only when you have enough detail."
     )}]
     messages.extend(conversation_history)
     messages.append({
         "role": "user",
-        "content": "Do I need to ask another question? If yes, ask it. If no, reply with EXACTLY 'ENOUGH_INFO'."
+        "content": "Do I need to ask another question? If yes, ask it. If no, reply EXACTLY 'ENOUGH_INFO'."
     })
 
     response = client.chat.completions.create(
         model=DEFAULT_MODEL,
         messages=messages
     )
-
     question = response.choices[0].message.content.strip()
     return None if question == "ENOUGH_INFO" else question
 
 def build_final_prompt(conversation_history):
-    """
-    Uses GPT to take all gathered answers and build the final Copilot prompt.
-    """
+    """Create the final Copilot prompt from collected answers."""
     messages = [{"role": "system", "content": (
         "You are a Microsoft 365 Copilot Prompt Expert for TVA employees. "
-        "You have been asking follow-up questions to gather all relevant details. "
-        "Now build a perfect Copilot prompt for the user."
+        "Build the perfect Copilot prompt based on all gathered answers."
     )}]
     messages.extend(conversation_history)
     messages.append({"role": "user", "content": "Now create the final Copilot prompt."})
@@ -84,6 +75,9 @@ def build_final_prompt(conversation_history):
 @app.route('/', methods=['GET', 'POST'])
 def login():
     """Login page using shared password from .env"""
+    if session.get('logged_in'):
+        return redirect(url_for('home'))  # Already logged in → skip login page
+
     error = None
     if request.method == 'POST':
         password = request.form.get('password', '').strip()
@@ -100,7 +94,7 @@ def logout():
     session.clear()
     return redirect(url_for('login'))
 
-@app.route('/home', methods=['GET', 'POST'])
+@app.route('/home')
 def home():
     """Home page after login."""
     if not session.get('logged_in'):
@@ -113,63 +107,44 @@ def home():
 
 @app.route('/prompt_builder')
 def prompt_builder():
-    """Render the main prompt builder interface."""
     if not session.get('logged_in'):
         return redirect(url_for('login'))
-    # Reset conversation history when opening the page
     session['conversation_history'] = []
     return render_template('prompt_builder.html')
 
 @app.route('/prompt_builder/start', methods=['POST'])
 def prompt_builder_start():
-    """Start the smart follow-up question process."""
     if not session.get('logged_in'):
         return jsonify({"error": "Not logged in"}), 403
-
     data = request.get_json(force=True) or {}
     initial_task = (data.get("task") or "").strip()
-
     if not initial_task:
         return jsonify({"error": "Please enter a task."}), 400
-
-    # Save initial task in conversation history
     session['conversation_history'] = [
         {"role": "user", "content": f"My task is: {initial_task}"}
     ]
-
-    # Ask first follow-up question
     first_question = generate_followup_question(session['conversation_history'])
     if first_question:
         return jsonify({"question": first_question})
-    else:
-        # Skip straight to final prompt if no questions needed
-        final_prompt = build_final_prompt(session['conversation_history'])
-        return jsonify({"final_prompt": final_prompt})
+    final_prompt = build_final_prompt(session['conversation_history'])
+    return jsonify({"final_prompt": final_prompt})
 
 @app.route('/prompt_builder/answer', methods=['POST'])
 def prompt_builder_answer():
-    """Receive an answer, decide next step, or generate final prompt."""
     if not session.get('logged_in'):
         return jsonify({"error": "Not logged in"}), 403
-
     data = request.get_json(force=True) or {}
     answer = (data.get("answer") or "").strip()
-
     if not answer:
         return jsonify({"error": "Please enter an answer."}), 400
-
-    # Append user answer to conversation history
     conversation = session.get('conversation_history', [])
     conversation.append({"role": "user", "content": answer})
     session['conversation_history'] = conversation
-
-    # Ask next question or finish
     next_question = generate_followup_question(conversation)
     if next_question:
         return jsonify({"question": next_question})
-    else:
-        final_prompt = build_final_prompt(conversation)
-        return jsonify({"final_prompt": final_prompt})
+    final_prompt = build_final_prompt(conversation)
+    return jsonify({"final_prompt": final_prompt})
 
 # =========================
 # Troubleshooter
@@ -178,14 +153,10 @@ def prompt_builder_answer():
 def troubleshooter():
     if not session.get('logged_in'):
         return jsonify({"error": "Not logged in"}), 403
-
     data = request.get_json(force=True) or {}
     problem = (data.get("problem") or "").strip()
-
     if not problem:
         return jsonify({"error": "Please describe your problem."}), 400
-
-    # Call GPT for troubleshooting advice
     response = client.chat.completions.create(
         model=DEFAULT_MODEL,
         messages=[
@@ -202,15 +173,11 @@ def troubleshooter():
 def teach_me():
     if not session.get('logged_in'):
         return jsonify({"error": "Not logged in"}), 403
-
     data = request.get_json(force=True) or {}
     app_name = (data.get("app") or "").strip()
     topic = (data.get("topic") or "").strip()
-
     if not app_name or not topic:
         return jsonify({"error": "Please select an app and topic."}), 400
-
-    # AI generates a learning module
     response = client.chat.completions.create(
         model=DEFAULT_MODEL,
         messages=[
@@ -227,7 +194,6 @@ def teach_me():
 def prompt_history():
     if not session.get('logged_in'):
         return redirect(url_for('login'))
-
     csv_path = os.path.join('prompt_log', 'prompts.csv')
     history = []
     if os.path.exists(csv_path):
@@ -243,15 +209,11 @@ def prompt_history():
 def how_to_manual():
     if not session.get('logged_in'):
         return jsonify({"error": "Not logged in"}), 403
-
     data = request.get_json(force=True) or {}
     app_name = (data.get("app") or "").strip()
     task = (data.get("task") or "").strip()
-
     if not app_name or not task:
         return jsonify({"error": "Please select an app and describe the task."}), 400
-
-    # AI generates manual steps
     response = client.chat.completions.create(
         model=DEFAULT_MODEL,
         messages=[
@@ -268,13 +230,10 @@ def how_to_manual():
 def ask_gpt():
     if not session.get('logged_in'):
         return jsonify({"error": "Not logged in"}), 403
-
     data = request.get_json(force=True) or {}
     question = (data.get("question") or "").strip()
-
     if not question:
         return jsonify({"error": "Please enter a question."}), 400
-
     response = client.chat.completions.create(
         model=DEFAULT_MODEL,
         messages=[
