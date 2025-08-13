@@ -100,12 +100,13 @@ def logout():
     session.clear()
     return redirect(url_for('login'))
 
-@app.route('/home')
+@app.route('/home', methods=['GET', 'POST'])
 def home():
     """Home page after login."""
     if not session.get('logged_in'):
         return redirect(url_for('login'))
     return render_template('home.html')
+
 # =========================
 # Smart Copilot Prompt Builder
 # =========================
@@ -169,6 +170,7 @@ def prompt_builder_answer():
     else:
         final_prompt = build_final_prompt(conversation)
         return jsonify({"final_prompt": final_prompt})
+
 # =========================
 # Troubleshooter
 # =========================
