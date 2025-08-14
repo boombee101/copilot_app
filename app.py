@@ -25,7 +25,6 @@ os.makedirs('prompt_log', exist_ok=True)
 # =========================
 # Helper Functions
 # =========================
-
 def log_prompt_to_csv(task, copilot_prompt, manual_steps):
     """Log generated prompts to a CSV file."""
     csv_path = os.path.join('prompt_log', 'prompts.csv')
@@ -71,12 +70,11 @@ def build_final_prompt(conversation_history):
 # =========================
 # Routes
 # =========================
-
 @app.route('/', methods=['GET', 'POST'])
 def login():
     """Login page using shared password from .env"""
     if session.get('logged_in'):
-        return redirect(url_for('home'))  # Already logged in → skip login page
+        return redirect(url_for('home'))
 
     error = None
     if request.method == 'POST':
@@ -104,8 +102,7 @@ def home():
 # =========================
 # Smart Copilot Prompt Builder
 # =========================
-
-@app.route('/prompt_builder')
+@app.route('/prompt_builder', methods=['GET'])
 def prompt_builder():
     if not session.get('logged_in'):
         return redirect(url_for('login'))
@@ -149,10 +146,16 @@ def prompt_builder_answer():
 # =========================
 # Troubleshooter
 # =========================
-@app.route('/troubleshooter', methods=['POST'])
+@app.route('/troubleshooter', methods=['GET', 'POST'])
 def troubleshooter():
     if not session.get('logged_in'):
+        if request.method == 'GET':
+            return redirect(url_for('login'))
         return jsonify({"error": "Not logged in"}), 403
+
+    if request.method == 'GET':
+        return render_template('troubleshooter.html')
+
     data = request.get_json(force=True) or {}
     problem = (data.get("problem") or "").strip()
     if not problem:
@@ -169,10 +172,16 @@ def troubleshooter():
 # =========================
 # Teach Me
 # =========================
-@app.route('/teach_me', methods=['POST'])
+@app.route('/teach_me', methods=['GET', 'POST'])
 def teach_me():
     if not session.get('logged_in'):
+        if request.method == 'GET':
+            return redirect(url_for('login'))
         return jsonify({"error": "Not logged in"}), 403
+
+    if request.method == 'GET':
+        return render_template('teach_me.html')
+
     data = request.get_json(force=True) or {}
     app_name = (data.get("app") or "").strip()
     topic = (data.get("topic") or "").strip()
@@ -205,10 +214,16 @@ def prompt_history():
 # =========================
 # Manual Instructions Generator
 # =========================
-@app.route('/how_to_manual', methods=['POST'])
+@app.route('/how_to_manual', methods=['GET', 'POST'])
 def how_to_manual():
     if not session.get('logged_in'):
+        if request.method == 'GET':
+            return redirect(url_for('login'))
         return jsonify({"error": "Not logged in"}), 403
+
+    if request.method == 'GET':
+        return render_template('how_to_manual.html')
+
     data = request.get_json(force=True) or {}
     app_name = (data.get("app") or "").strip()
     task = (data.get("task") or "").strip()
@@ -226,10 +241,16 @@ def how_to_manual():
 # =========================
 # Help Desk
 # =========================
-@app.route('/ask_gpt', methods=['POST'])
+@app.route('/ask_gpt', methods=['GET', 'POST'])
 def ask_gpt():
     if not session.get('logged_in'):
+        if request.method == 'GET':
+            return redirect(url_for('login'))
         return jsonify({"error": "Not logged in"}), 403
+
+    if request.method == 'GET':
+        return render_template('ask_gpt.html')
+
     data = request.get_json(force=True) or {}
     question = (data.get("question") or "").strip()
     if not question:
