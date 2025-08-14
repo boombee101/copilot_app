@@ -250,7 +250,7 @@
     <div class="nav-links">
       <a href="{{ url_for('home') }}" class="active"><i class="fas fa-home"></i> Home</a>
       <a href="{{ url_for('prompt_builder') }}"><i class="fas fa-pencil-alt"></i> Prompt Builder</a>
-      <a href="{{ url_for('ask_gpt') }}"><i class="fas fa-comments"></i> AI Help for 365 Apps</a>
+      <a href="{{ url_for('ask_help') }}"><i class="fas fa-comments"></i> AI Help for 365 Apps</a>
       <a href="{{ url_for('troubleshooter') }}"><i class="fas fa-tools"></i> Troubleshooter</a>
       <a href="{{ url_for('teach_me') }}"><i class="fas fa-book-open"></i> Teach Me</a>
       <a href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a>
@@ -274,32 +274,32 @@
     </div>
 
     <!-- Feature Cards -->
-<div class="feature-grid">
-  <a class="feature-card" href="{{ url_for('prompt_builder') }}">
-    <i class="fas fa-magic"></i>
-    <h3>Copilot Prompt Generator</h3>
-    <p>Create perfect, context-aware Microsoft Copilot prompts for any app or task, tailored to your role at TVA.</p>
-  </a>
+    <div class="feature-grid">
+      <a class="feature-card" href="{{ url_for('prompt_builder') }}">
+        <i class="fas fa-magic"></i>
+        <h3>Copilot Prompt Generator</h3>
+        <p>Create perfect, context-aware Microsoft Copilot prompts for any app or task, tailored to your role at TVA.</p>
+      </a>
 
-  <a class="feature-card" href="{{ url_for('ask_gpt') }}">
-    <i class="fas fa-comments"></i>
-    <h3>AI Help for Microsoft 365 Apps</h3>
-    <p>Ask questions about Word, Excel, Outlook, or Teams and get clear, beginner-friendly explanations instantly.</p>
-  </a>
+      <!-- Link fixed to ask_help -->
+      <a class="feature-card" href="{{ url_for('ask_help') }}">
+        <i class="fas fa-comments"></i>
+        <h3>AI Help for Microsoft 365 Apps</h3>
+        <p>Ask questions about Word, Excel, Outlook, or Teams and get clear, beginner-friendly explanations instantly.</p>
+      </a>
 
-  <a class="feature-card" href="{{ url_for('troubleshooter') }}">
-    <i class="fas fa-tools"></i>
-    <h3>Microsoft 365 Troubleshooter</h3>
-    <p>Enter error codes or describe your issue to get step-by-step “for dummies” style fixes and a ready-to-use Copilot prompt.</p>
-  </a>
+      <a class="feature-card" href="{{ url_for('troubleshooter') }}">
+        <i class="fas fa-tools"></i>
+        <h3>Microsoft 365 Troubleshooter</h3>
+        <p>Enter error codes or describe your issue to get step-by-step “for dummies” style fixes and a ready-to-use Copilot prompt.</p>
+      </a>
 
-  <a class="feature-card" href="{{ url_for('teach_me') }}">
-    <i class="fas fa-book-open"></i>
-    <h3>Teach Me (Learning Modules)</h3>
-    <p>Learn how to use Microsoft 365 apps with role-relevant examples and guided lessons designed for TVA staff.</p>
-  </a>
-</div>
-
+      <a class="feature-card" href="{{ url_for('teach_me') }}">
+        <i class="fas fa-book-open"></i>
+        <h3>Teach Me (Learning Modules)</h3>
+        <p>Learn how to use Microsoft 365 apps with role-relevant examples and guided lessons designed for TVA staff.</p>
+      </a>
+    </div>
 
     <!-- Disclaimer -->
     <div class="disclaimer">
