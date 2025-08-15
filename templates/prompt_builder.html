@@ -166,14 +166,24 @@
             const res = await fetch("/prompt_builder/start", {
                 method: "POST",
                 headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({ app, goal })
+                body: JSON.stringify({ task: `${app}: ${goal}` }) // combined for AI context
             });
             const data = await res.json();
-            sessionId = data.session_id;
 
             document.getElementById("start-section").style.display = "none";
-            document.getElementById("question-section").style.display = "block";
-            document.getElementById("current-question").innerText = data.question;
+
+            // If backend sends final prompt immediately
+            if (data.final_prompt) {
+                showFinalPrompt(data.final_prompt);
+                return;
+            }
+
+            if (data.question) {
+                document.getElementById("question-section").style.display = "block";
+                document.getElementById("current-question").innerText = data.question;
+            } else {
+                showFinalPrompt("No question provided. Please try again.");
+            }
         }
 
         async function sendAnswer() {
@@ -186,18 +196,28 @@
             const res = await fetch("/prompt_builder/answer", {
                 method: "POST",
                 headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({ session_id: sessionId, answer })
+                body: JSON.stringify({ answer })
             });
             const data = await res.json();
 
-            if (data.done) {
-                document.getElementById("question-section").style.display = "none";
-                document.getElementById("final-section").style.display = "block";
-                document.getElementById("final-prompt").innerText = data.prompt;
-            } else {
+            // If backend sends final prompt
+            if (data.final_prompt) {
+                showFinalPrompt(data.final_prompt);
+                return;
+            }
+
+            if (data.question) {
                 document.getElementById("current-question").innerText = data.question;
                 document.getElementById("answer").value = "";
+            } else {
+                showFinalPrompt("No further questions, but no final prompt received.");
             }
+        }
+
+        function showFinalPrompt(prompt) {
+            document.getElementById("question-section").style.display = "none";
+            document.getElementById("final-section").style.display = "block";
+            document.getElementById("final-prompt").innerText = prompt;
         }
 
         function copyPrompt() {
