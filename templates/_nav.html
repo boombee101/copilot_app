@@ -3,18 +3,20 @@
     <a href="{{ url_for('home') }}"
        class="sqn-nav-link {% if active_page == 'home' %}active{% endif %}">Home</a>
 
-    <a href="{{ url_for('help_desk') }}"
+    <!-- Fixed: Now points to help_page route -->
+    <a href="{{ url_for('help_page') }}"
        class="sqn-nav-link {% if active_page == 'help' %}active{% endif %}">Help Desk</a>
 
-    <!-- FIXED: Now points to ask_help -->
-    <a href="{{ url_for('ask_gpt') }}"
+    <!-- Ask for Help -->
+    <a href="{{ url_for('ask_help') }}"
        class="sqn-nav-link {% if active_page == 'ask_help' %}active{% endif %}">Ask for Help</a>
 
     <a href="{{ url_for('prompt_builder') }}"
-       class="sqn-nav-link {% if active_page == 'prompt' %}active{% endif %}">Prompt Builder</a>
+       class="sqn-nav-link {% if active_page == 'prompt_builder' %}active{% endif %}">Prompt Builder</a>
 
-    <a href="{{ url_for('learn_app', app_name='word') }}"
-       class="sqn-nav-link {% if active_page and active_page.startswith('learn_') %}active{% endif %}">Learn</a>
+    <!-- Learn page -->
+    <a href="{{ url_for('teach_me') }}"
+       class="sqn-nav-link {% if active_page == 'teach_me' %}active{% endif %}">Learn</a>
 
     <span class="sqn-nav-spacer"></span>
 
