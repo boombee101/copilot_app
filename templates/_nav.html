@@ -7,7 +7,7 @@
        class="sqn-nav-link {% if active_page == 'help' %}active{% endif %}">Help Desk</a>
 
     <!-- FIXED: Now points to ask_help -->
-    <a href="{{ url_for('ask_help') }}"
+    <a href="{{ url_for('ask_gpt') }}"
        class="sqn-nav-link {% if active_page == 'ask_help' %}active{% endif %}">Ask for Help</a>
 
     <a href="{{ url_for('prompt_builder') }}"

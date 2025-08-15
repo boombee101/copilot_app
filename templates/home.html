@@ -250,7 +250,7 @@
     <div class="nav-links">
       <a href="{{ url_for('home') }}" class="active"><i class="fas fa-home"></i> Home</a>
       <a href="{{ url_for('prompt_builder') }}"><i class="fas fa-pencil-alt"></i> Prompt Builder</a>
-      <a href="{{ url_for('ask_help') }}"><i class="fas fa-comments"></i> AI Help for 365 Apps</a>
+      <a href="{{ url_for('ask_gpt') }}"><i class="fas fa-comments"></i> AI Help for 365 Apps</a>
       <a href="{{ url_for('troubleshooter') }}"><i class="fas fa-tools"></i> Troubleshooter</a>
       <a href="{{ url_for('teach_me') }}"><i class="fas fa-book-open"></i> Teach Me</a>
       <a href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a>
@@ -282,7 +282,7 @@
       </a>
 
       <!-- Link fixed to ask_help -->
-      <a class="feature-card" href="{{ url_for('ask_help') }}">
+      <a class="feature-card" href="{{ url_for('ask_gpt') }}">
         <i class="fas fa-comments"></i>
         <h3>AI Help for Microsoft 365 Apps</h3>
         <p>Ask questions about Word, Excel, Outlook, or Teams and get clear, beginner-friendly explanations instantly.</p>
