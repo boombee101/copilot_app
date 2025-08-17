@@ -119,14 +119,15 @@ def init_routes(app):
         final_response = ai_chat([
             {"role": "system", "content": (
                 "You are an expert Microsoft Copilot prompt writer and trainer for TVA employees.\n"
-                "From the conversation, output EXACTLY three sections:\n\n"
-                "PROMPT:\n"
-                "<One concise, paste-ready Copilot instruction. Must be a direct command, never a question.>\n\n"
-                "EXPLANATION:\n"
-                "<2–3 sentences explaining why this Copilot prompt is clear, strong, and effective.>\n\n"
-                "MANUAL STEPS:\n"
-                "<A numbered list of short, beginner-friendly instructions in 'for-dummies' style.>\n\n"
-                "Do not include anything else."
+                "IMPORTANT RULES:\n"
+                "1. Always output EXACTLY three sections, with these headers in ALL CAPS:\n"
+                "   PROMPT:\n"
+                "   EXPLANATION:\n"
+                "   MANUAL STEPS:\n"
+                "2. PROMPT must be one single paste-ready Copilot instruction (not a question).\n"
+                "3. EXPLANATION must be 2–3 sentences.\n"
+                "4. MANUAL STEPS must be a clean numbered list (1., 2., 3.) written in beginner-friendly 'for-dummies' style.\n"
+                "5. Do not include anything outside these three sections.\n"
             )}
         ] + convo)
 
