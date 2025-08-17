@@ -17,7 +17,6 @@ def init_routes(app):
         if request.method == 'POST':
             if (request.form.get('password') or '').strip() == (APP_PASSWORD or ''):
                 session['logged_in'] = True
-                # Reset builder session
                 session['pb_convo'] = []
                 return redirect(url_for('home'))
             error = "Invalid password"
@@ -41,7 +40,6 @@ def init_routes(app):
     def prompt_builder():
         if not session.get('logged_in'):
             return redirect(url_for('login'))
-        # Reset conversation when loading fresh page
         session['pb_convo'] = []
         return render_template('prompt_builder.html')
 
@@ -57,14 +55,15 @@ def init_routes(app):
         if not app_name or not goal:
             return jsonify({"error": "Missing app or goal"}), 400
 
-        # Build initial conversation
         convo = [
-            {"role": "system", "content": "You are a helpful Copilot prompt engineer for TVA employees."},
+            {"role": "system", "content": (
+                "You are a helpful Copilot prompt engineer for TVA employees. "
+                "Ask clear follow-up questions until enough detail is gathered, then stop and create the final prompt. "
+                "The final prompt should NEVER end with a question, only a clean Copilot instruction.")},
             {"role": "user", "content": f"App: {app_name}\nGoal: {goal}"}
         ]
         session['pb_convo'] = convo
 
-        # Check if enough info already
         enough = ai_chat([
             {"role": "system", "content": "Do we now have enough detail to create a strong Copilot prompt? Answer EXACTLY 'YES' or 'NO'."}
         ] + convo)
@@ -74,7 +73,8 @@ def init_routes(app):
                 {"role": "system", "content": (
                     "You are an expert Copilot Prompt writer. "
                     "Generate the final Microsoft Copilot prompt from the conversation. "
-                    "Then explain in 2-3 sentences WHY this is a great prompt. "
+                    "Then explain in 2–3 sentences WHY this is a great prompt. "
+                    "Do not end with a question. "
                     "Format as:\nPROMPT: ...\nEXPLANATION: ...")}
             ] + convo)
 
@@ -92,15 +92,18 @@ def init_routes(app):
 
             return jsonify({
                 "final_prompt": prompt_text,
-                "explanation": explanation
+                "explanation": explanation,
+                "history": convo
             })
 
-        # Otherwise return first follow-up
         next_q = ai_chat([
             {"role": "system", "content": "Ask one simple, clear follow-up question to clarify the user's goal."}
         ] + convo)
 
-        return jsonify({"question": next_q})
+        convo.append({"role": "assistant", "content": next_q})
+        session['pb_convo'] = convo
+
+        return jsonify({"question": next_q, "history": convo})
 
     @app.route('/prompt_builder/answer', methods=['POST'])
     def pb_answer():
@@ -111,15 +114,9 @@ def init_routes(app):
         answer = (data.get("answer") or "").strip()
         convo = session.get('pb_convo', [])
 
-        # Append last Q + user answer into convo
-        if convo and convo[-1]['role'] == 'assistant':
-            convo.append({"role": "user", "content": answer})
-        else:
-            # Fallback: just append as user answer
-            convo.append({"role": "user", "content": answer})
+        convo.append({"role": "user", "content": answer})
         session['pb_convo'] = convo
 
-        # Check if enough info now
         enough = ai_chat([
             {"role": "system", "content": "Do we now have enough detail to create a strong Copilot prompt? Answer EXACTLY 'YES' or 'NO'."}
         ] + convo)
@@ -129,7 +126,8 @@ def init_routes(app):
                 {"role": "system", "content": (
                     "You are an expert Copilot Prompt writer. "
                     "Generate the final Microsoft Copilot prompt from the conversation. "
-                    "Then explain in 2-3 sentences WHY this is a great prompt. "
+                    "Then explain in 2–3 sentences WHY this is a great prompt. "
+                    "Do not end with a question. "
                     "Format as:\nPROMPT: ...\nEXPLANATION: ...")}
             ] + convo)
 
@@ -147,10 +145,10 @@ def init_routes(app):
 
             return jsonify({
                 "final_prompt": prompt_text,
-                "explanation": explanation
+                "explanation": explanation,
+                "history": convo
             })
 
-        # Otherwise return next follow-up
         next_q = ai_chat([
             {"role": "system", "content": "Ask one simple, clear follow-up question to clarify the user's goal."}
         ] + convo)
@@ -158,7 +156,7 @@ def init_routes(app):
         convo.append({"role": "assistant", "content": next_q})
         session['pb_convo'] = convo
 
-        return jsonify({"question": next_q})
+        return jsonify({"question": next_q, "history": convo})
 
     # =========================
     # Troubleshooter
