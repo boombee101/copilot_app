@@ -111,11 +111,15 @@ def init_routes(app):
     def generate_final(convo, goal):
         final_response = ai_chat([
             {"role": "system", "content": (
-                "You are an expert Copilot Prompt writer. "
-                "Generate the final Microsoft Copilot prompt from the conversation. "
-                "Then explain in 2–3 sentences WHY this is a great prompt. "
-                "Do not end with a question. "
-                "Format as:\nPROMPT: ...\nEXPLANATION: ...")}
+                "You are an expert Microsoft Copilot prompt writer. "
+                "From the conversation, generate ONE final Copilot prompt in natural language. "
+                "It must be short, actionable, and ready to paste directly into Microsoft Copilot. "
+                "Do NOT give instructions or steps. Only write the Copilot prompt. "
+                "Also include a short explanation (2–3 sentences max) of why this is a strong prompt. "
+                "Format STRICTLY as:\n"
+                "PROMPT: <the Copilot-ready prompt>\n"
+                "EXPLANATION: <your explanation>"
+            )}
         ] + convo)
 
         if "EXPLANATION:" in final_response:
