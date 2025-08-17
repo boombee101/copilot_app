@@ -79,7 +79,6 @@
       margin-top: 0; font-size: 22px; color: #0055a5;
       display: flex; align-items: center; gap: 8px;
     }
-    .final-card h2::before { content: "✅"; font-size: 22px; }
     .prompt-output {
       margin-top: 12px; padding: 14px; border-radius: 8px;
       background:#eef6ff; border:1px solid #cbd5e1; font-size: 16px; font-weight: 600; color: #002855;
@@ -90,28 +89,6 @@
       margin-top:14px; background:#f9fafb; border-left:4px solid #0055a5;
       padding:12px; border-radius:8px; color:#334155; font-size:14px;
     }
-
-    /* Modal (popup) */
-    .modal {
-      display:none;
-      position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%;
-      background: rgba(0,0,0,0.6); 
-      align-items:center; justify-content:center;
-    }
-    .modal-content {
-      background:#fff; padding: 28px; border-radius: 14px; max-width: 720px; width: 92%;
-      box-shadow:0 6px 20px rgba(0,0,0,0.25); animation: slideDown 0.3s ease;
-    }
-    .modal h3 { margin-top:0; color:#0055a5; font-size:22px; border-bottom: 2px solid #e5e7eb; padding-bottom: 10px; }
-    .modal ol { margin:20px 0; padding-left:24px; }
-    .modal li { margin-bottom:14px; font-size:16px; line-height:1.6; color:#002855;
-      background: #f8fbff; padding: 10px 14px; border-radius: 8px; border-left: 4px solid #0055a5;
-    }
-    .close-btn {
-      background:#cc0000; color:#fff; border:none; padding:10px 16px; border-radius:6px; cursor:pointer;
-      float:right; margin-top:10px; font-size:15px;
-    }
-    @keyframes slideDown { from {transform: translateY(-30px); opacity:0;} to {transform: translateY(0); opacity:1;} }
 
     footer { text-align:center; color:#667; font-size: 13px; margin-top: 18px; }
   </style>
@@ -136,7 +113,7 @@
   <main class="main">
     <div class="card">
       <h1>Prompt Builder</h1>
-      <div class="sub">Describe your task. I’ll ask clarifying questions only if needed, then deliver a ready-to-use Copilot prompt.</div>
+      <div class="sub">Describe your task. I’ll ask clarifying questions only if needed, then deliver a ready-to-use Copilot prompt and manual steps.</div>
 
       <!-- Step 1 -->
       <section id="start-section">
@@ -174,29 +151,25 @@
       <!-- Step 3 -->
       <section id="final-section" style="display:none;">
         <div class="final-card">
-          <h2>✅ Your Final Copilot Prompt</h2>
+          <h2>💬 Copilot Prompt</h2>
           <div class="prompt-output" id="final-prompt"></div>
-          <p class="instructions">Copy this prompt and paste it into Microsoft Copilot to run your task.</p>
+          <p class="instructions">Copy this prompt and paste it into Microsoft Copilot.</p>
           <div class="explanation" id="prompt-explanation"></div>
-          <div class="btn-row" style="margin-top:12px;">
-            <button class="btn" onclick="copyPrompt()">📋 Copy Prompt</button>
-            <button class="btn ghost" onclick="openManualSteps()">📖 Show Manual Steps</button>
-            <button class="btn secondary" onclick="resetBuilder()">Start Over</button>
-          </div>
+        </div>
+
+        <div class="final-card">
+          <h2>✅ Manual Steps</h2>
+          <ol id="manual-steps-inline"></ol>
+        </div>
+
+        <div class="btn-row" style="margin-top:12px;">
+          <button class="btn" onclick="copyPrompt()">📋 Copy Prompt</button>
+          <button class="btn secondary" onclick="resetBuilder()">Start Over</button>
         </div>
       </section>
     </div>
     <footer>TVA Copilot Companion — Powered by AI for Microsoft 365</footer>
   </main>
-
-  <!-- Modal -->
-  <div class="modal" id="manualModal">
-    <div class="modal-content">
-      <h3>📖 Manual Step-by-Step Instructions</h3>
-      <ol id="manual-steps"></ol>
-      <button class="close-btn" onclick="closeManualSteps()">Close</button>
-    </div>
-  </div>
 
   <script>
     function showThinking(show){ document.getElementById("thinking").style.display = show ? "block" : "none"; }
@@ -259,7 +232,13 @@
       document.getElementById("final-section").style.display = "block";
       document.getElementById("final-prompt").textContent = prompt;
       document.getElementById("prompt-explanation").textContent = explanation || "";
-      window.manualSteps = manualSteps || [];
+
+      const stepsList = manualSteps || [];
+      const stepsHtml = stepsList.length
+        ? stepsList.map(s => `<li>${s}</li>`).join("")
+        : "<li>No manual steps available.</li>";
+      document.getElementById("manual-steps-inline").innerHTML = stepsHtml;
+
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
@@ -278,17 +257,6 @@
       document.getElementById("goal").value = "";
       showThinking(false); window.scrollTo({ top: 0, behavior: "smooth" });
     }
-
-    function openManualSteps(){
-      const modal = document.getElementById("manualModal");
-      const stepsList = document.getElementById("manual-steps");
-      stepsList.innerHTML = "";
-      (window.manualSteps || ["No manual steps available."]).forEach(step=>{
-        const li = document.createElement("li"); li.textContent = step; stepsList.appendChild(li);
-      });
-      modal.style.display = "flex";
-    }
-    function closeManualSteps(){ document.getElementById("manualModal").style.display = "none"; }
   </script>
 </body>
 </html>

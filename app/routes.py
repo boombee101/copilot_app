@@ -140,7 +140,14 @@ def init_routes(app):
                 prompt_text, explanation = before_steps, ""
             prompt_text = prompt_text.replace("PROMPT:", "").strip()
             explanation = explanation.strip()
-            manual_steps = [s.strip(" .") for s in steps_text.split("\n") if s.strip()]
+
+            # ✅ Normalize manual steps
+            raw_steps = [s.strip() for s in steps_text.split("\n") if s.strip()]
+            manual_steps = []
+            for s in raw_steps:
+                s = s.lstrip("1234567890).•- ").strip()  # remove numbering/bullets
+                if s:
+                    manual_steps.append(s)
         else:
             prompt_text = final_response.strip()
 
