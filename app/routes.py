@@ -69,32 +69,7 @@ def init_routes(app):
         ] + convo)
 
         if enough.strip().upper() == "YES":
-            final_response = ai_chat([
-                {"role": "system", "content": (
-                    "You are an expert Copilot Prompt writer. "
-                    "Generate the final Microsoft Copilot prompt from the conversation. "
-                    "Then explain in 2–3 sentences WHY this is a great prompt. "
-                    "Do not end with a question. "
-                    "Format as:\nPROMPT: ...\nEXPLANATION: ...")}
-            ] + convo)
-
-            if "EXPLANATION:" in final_response:
-                prompt_text, explanation = final_response.split("EXPLANATION:", 1)
-                prompt_text = prompt_text.replace("PROMPT:", "").strip()
-                explanation = explanation.strip()
-            else:
-                prompt_text, explanation = final_response.strip(), ""
-
-            try:
-                log_prompt_to_csv(goal, prompt_text, explanation)
-            except Exception:
-                pass
-
-            return jsonify({
-                "final_prompt": prompt_text,
-                "explanation": explanation,
-                "history": convo
-            })
+            return generate_final(convo, goal)
 
         next_q = ai_chat([
             {"role": "system", "content": "Ask one simple, clear follow-up question to clarify the user's goal."}
@@ -122,32 +97,7 @@ def init_routes(app):
         ] + convo)
 
         if enough.strip().upper() == "YES":
-            final_response = ai_chat([
-                {"role": "system", "content": (
-                    "You are an expert Copilot Prompt writer. "
-                    "Generate the final Microsoft Copilot prompt from the conversation. "
-                    "Then explain in 2–3 sentences WHY this is a great prompt. "
-                    "Do not end with a question. "
-                    "Format as:\nPROMPT: ...\nEXPLANATION: ...")}
-            ] + convo)
-
-            if "EXPLANATION:" in final_response:
-                prompt_text, explanation = final_response.split("EXPLANATION:", 1)
-                prompt_text = prompt_text.replace("PROMPT:", "").strip()
-                explanation = explanation.strip()
-            else:
-                prompt_text, explanation = final_response.strip(), ""
-
-            try:
-                log_prompt_to_csv("Prompt Builder", prompt_text, explanation)
-            except Exception:
-                pass
-
-            return jsonify({
-                "final_prompt": prompt_text,
-                "explanation": explanation,
-                "history": convo
-            })
+            return generate_final(convo, "Prompt Builder")
 
         next_q = ai_chat([
             {"role": "system", "content": "Ask one simple, clear follow-up question to clarify the user's goal."}
@@ -157,6 +107,34 @@ def init_routes(app):
         session['pb_convo'] = convo
 
         return jsonify({"question": next_q, "history": convo})
+
+    def generate_final(convo, goal):
+        final_response = ai_chat([
+            {"role": "system", "content": (
+                "You are an expert Copilot Prompt writer. "
+                "Generate the final Microsoft Copilot prompt from the conversation. "
+                "Then explain in 2–3 sentences WHY this is a great prompt. "
+                "Do not end with a question. "
+                "Format as:\nPROMPT: ...\nEXPLANATION: ...")}
+        ] + convo)
+
+        if "EXPLANATION:" in final_response:
+            prompt_text, explanation = final_response.split("EXPLANATION:", 1)
+            prompt_text = prompt_text.replace("PROMPT:", "").strip()
+            explanation = explanation.strip()
+        else:
+            prompt_text, explanation = final_response.strip(), ""
+
+        try:
+            log_prompt_to_csv(goal, prompt_text, explanation)
+        except Exception:
+            pass
+
+        return jsonify({
+            "final_prompt": prompt_text,
+            "explanation": explanation,
+            "history": convo
+        })
 
     # =========================
     # Troubleshooter
@@ -215,7 +193,7 @@ def init_routes(app):
                       "Explain what it’s used for at work, then give 5–8 numbered steps for a basic, useful task.")
         else:
             prompt = (f"Teach this topic in Microsoft {app_name} with clear numbered steps, "
-                      "beginner-friendly language, and short explanations: {topic}")
+                      f"beginner-friendly language, and short explanations: {topic}")
 
         lesson = ai_chat([
             {"role": "system", "content":

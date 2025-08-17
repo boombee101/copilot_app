@@ -8,7 +8,7 @@
   <style>
     body { font-family: "Segoe UI", Tahoma, sans-serif; margin: 0; background-color: #f0f4f9; color: #003366; }
 
-    /* ===== Sidebar (matches app look) ===== */
+    /* ===== Sidebar ===== */
     .sidebar {
       position: fixed; left: 0; top: 0; width: 220px; height: 100%;
       background-color: #002855; padding: 20px 0; display: flex; flex-direction: column;
@@ -51,7 +51,7 @@
     .btn:disabled { opacity:.6; cursor:not-allowed; }
     .btn:hover { filter: brightness(0.95); }
 
-    /* Q&A */
+    /* ===== Q&A Section ===== */
     .qa-wrap { display:grid; grid-template-columns: 1fr; gap:12px; }
     .qa-history {
       max-height: 320px; overflow: auto; padding: 12px; border:1px solid #d9e2ec; border-radius:10px; background:#f7fbff;
@@ -64,6 +64,7 @@
     .dots::after { content: ''; animation: dots 1.3s steps(3,end) infinite; }
     @keyframes dots { 0%{content:''} 33%{content:'.'} 66%{content:'..'} 100%{content:'...'} }
 
+    /* ===== Final Output ===== */
     .prompt-output {
       background:#fff; border:1px solid #cbd5e1; border-radius:10px; padding:14px; white-space:pre-wrap;
     }
@@ -201,7 +202,6 @@
 
       if (!skip && !answer){ alert("Please enter an answer or click Skip."); return; }
 
-      // Log to history
       appendQA("q", currentQ);
       appendQA("a", answer || "(skipped)");
       answerInput.value = "";
