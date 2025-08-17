@@ -65,12 +65,45 @@
     @keyframes dots { 0%{content:''} 33%{content:'.'} 66%{content:'..'} 100%{content:'...'} }
 
     /* ===== Final Output ===== */
+    .final-card {
+      margin-top: 20px;
+      padding: 20px;
+      border-radius: 12px;
+      background: #fdfdfd;
+      border: 2px solid #0055a5;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.1);
+    }
+    .final-card h2 {
+      margin-top: 0;
+      font-size: 22px;
+      color: #0055a5;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .final-card h2::before {
+      content: "✨";
+      font-size: 22px;
+    }
     .prompt-output {
-      background:#fff; border:1px solid #cbd5e1; border-radius:10px; padding:14px; white-space:pre-wrap;
+      margin-top: 12px;
+      padding: 14px;
+      border-radius: 8px;
+      background:#eef6ff;
+      border:1px solid #cbd5e1;
+      font-size: 16px;
+      font-weight: 500;
+      white-space: pre-wrap;
+      color: #002855;
     }
     .explanation {
-      margin-top:12px; background:#f9fafb; border-left:4px solid #0055a5; padding:12px; border-radius:8px;
-      color:#334155; font-size:14px;
+      margin-top:14px;
+      background:#f9fafb;
+      border-left:4px solid #0055a5;
+      padding:12px;
+      border-radius:8px;
+      color:#334155;
+      font-size:14px;
     }
 
     footer { text-align:center; color:#667; font-size: 13px; margin-top: 18px; }
@@ -140,12 +173,14 @@
 
       <!-- Step 3 -->
       <section id="final-section" style="display:none;">
-        <h2>Your Copilot Prompt</h2>
-        <div class="prompt-output" id="final-prompt"></div>
-        <div class="explanation" id="prompt-explanation"></div>
-        <div class="btn-row" style="margin-top:10px;">
-          <button class="btn" onclick="copyPrompt()" title="Copy to clipboard">Copy Prompt</button>
-          <button class="btn secondary" onclick="resetBuilder()">Start Over</button>
+        <div class="final-card">
+          <h2>Your Copilot Prompt</h2>
+          <div class="prompt-output" id="final-prompt"></div>
+          <div class="explanation" id="prompt-explanation"></div>
+          <div class="btn-row" style="margin-top:12px;">
+            <button class="btn" onclick="copyPrompt()" title="Copy to clipboard">📋 Copy Prompt</button>
+            <button class="btn secondary" onclick="resetBuilder()">Start Over</button>
+          </div>
         </div>
       </section>
     </div>
