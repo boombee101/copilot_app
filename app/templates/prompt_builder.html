@@ -85,9 +85,7 @@
       background:#eef6ff; border:1px solid #cbd5e1; font-size: 16px; font-weight: 600; color: #002855;
       white-space: pre-wrap;
     }
-    .instructions {
-      margin-top:10px; font-size: 14px; color: #334155;
-    }
+    .instructions { margin-top:10px; font-size: 14px; color: #334155; }
     .explanation {
       margin-top:14px; background:#f9fafb; border-left:4px solid #0055a5;
       padding:12px; border-radius:8px; color:#334155; font-size:14px;
@@ -95,48 +93,30 @@
 
     /* Modal (popup) */
     .modal {
-      display:none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%;
-      background: rgba(0,0,0,0.6); display:flex; align-items:center; justify-content:center;
+      display:none; /* ✅ hidden by default */
+      position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.6); 
+      align-items:center; justify-content:center;
     }
     .modal-content {
       background:#fff; padding: 28px; border-radius: 14px; max-width: 720px; width: 92%;
       box-shadow:0 6px 20px rgba(0,0,0,0.25); animation: slideDown 0.3s ease;
     }
-    .modal h3 { 
-      margin-top:0; 
-      color:#0055a5; 
-      font-size:22px; 
-      border-bottom: 2px solid #e5e7eb;
-      padding-bottom: 10px;
-    }
-    .modal ol { 
-      margin:20px 0; 
-      padding-left:24px; 
-    }
-    .modal li { 
-      margin-bottom:14px; 
-      font-size:16px; 
-      line-height:1.6; 
-      color:#002855;
-      background: #f8fbff;
-      padding: 10px 14px;
-      border-radius: 8px;
-      border-left: 4px solid #0055a5;
+    .modal h3 { margin-top:0; color:#0055a5; font-size:22px; border-bottom: 2px solid #e5e7eb; padding-bottom: 10px; }
+    .modal ol { margin:20px 0; padding-left:24px; }
+    .modal li { margin-bottom:14px; font-size:16px; line-height:1.6; color:#002855;
+      background: #f8fbff; padding: 10px 14px; border-radius: 8px; border-left: 4px solid #0055a5;
     }
     .close-btn {
       background:#cc0000; color:#fff; border:none; padding:10px 16px; border-radius:6px; cursor:pointer;
       float:right; margin-top:10px; font-size:15px;
     }
-    @keyframes slideDown {
-      from {transform: translateY(-30px); opacity:0;}
-      to {transform: translateY(0); opacity:1;}
-    }
+    @keyframes slideDown { from {transform: translateY(-30px); opacity:0;} to {transform: translateY(0); opacity:1;} }
 
     footer { text-align:center; color:#667; font-size: 13px; margin-top: 18px; }
   </style>
 </head>
 <body>
-
   <!-- Sidebar -->
   <aside class="sidebar">
     <div class="brand">
@@ -206,7 +186,6 @@
         </div>
       </section>
     </div>
-
     <footer>TVA Copilot Companion — Powered by AI for Microsoft 365</footer>
   </main>
 
@@ -214,25 +193,20 @@
   <div class="modal" id="manualModal">
     <div class="modal-content">
       <h3>📖 Manual Step-by-Step Instructions</h3>
-      <ol id="manual-steps">
-        <!-- Steps will be inserted here dynamically -->
-      </ol>
+      <ol id="manual-steps"></ol>
       <button class="close-btn" onclick="closeManualSteps()">Close</button>
     </div>
   </div>
 
   <script>
     function showThinking(show){ document.getElementById("thinking").style.display = show ? "block" : "none"; }
-
     function appendMsg(role, text){
       const chat = document.getElementById("chat-box");
       const msg = document.createElement("div");
       msg.className = "msg " + role;
       const bubble = document.createElement("div");
-      bubble.className = "bubble";
-      bubble.textContent = text;
-      msg.appendChild(bubble);
-      chat.appendChild(msg);
+      bubble.className = "bubble"; bubble.textContent = text;
+      msg.appendChild(bubble); chat.appendChild(msg);
       chat.scrollTop = chat.scrollHeight;
     }
 
@@ -243,23 +217,18 @@
 
       showThinking(true);
       const res = await fetch("/prompt_builder/start", {
-        method: "POST",
-        headers: {"Content-Type":"application/json"},
+        method: "POST", headers: {"Content-Type":"application/json"},
         body: JSON.stringify({ app, goal })
       });
-      const data = await res.json();
-      showThinking(false);
-
+      const data = await res.json(); showThinking(false);
       document.getElementById("start-section").style.display = "none";
 
       if (data.final_prompt){
         showFinalPrompt(data.final_prompt, data.explanation, data.manual_steps);
       } else if (data.question){
-        document.getElementById("question-section").style.display = "block";
-        appendMsg("assistant", data.question);
+        document.getElementById("question-section").style.display = "block"; appendMsg("assistant", data.question);
       } else {
-        document.getElementById("question-section").style.display = "block";
-        appendMsg("assistant", "Sorry — please try again.");
+        document.getElementById("question-section").style.display = "block"; appendMsg("assistant", "Sorry — please try again.");
       }
     }
 
@@ -267,18 +236,14 @@
       const answerInput = document.getElementById("answer");
       const answer = skip ? "" : (answerInput.value || "").trim();
       if (!skip && !answer){ alert("Please enter an answer or click Skip."); return; }
-
-      if (!skip) appendMsg("user", answer);
-      answerInput.value = "";
+      if (!skip) appendMsg("user", answer); answerInput.value = "";
 
       showThinking(true);
       const res = await fetch("/prompt_builder/answer", {
-        method: "POST",
-        headers: {"Content-Type":"application/json"},
+        method: "POST", headers: {"Content-Type":"application/json"},
         body: JSON.stringify({ answer })
       });
-      const data = await res.json();
-      showThinking(false);
+      const data = await res.json(); showThinking(false);
 
       if (data.final_prompt){
         showFinalPrompt(data.final_prompt, data.explanation, data.manual_steps);
@@ -294,8 +259,7 @@
       document.getElementById("final-section").style.display = "block";
       document.getElementById("final-prompt").textContent = prompt;
       document.getElementById("prompt-explanation").textContent = explanation || "";
-      // ✅ Store manual steps but DO NOT auto-open modal
-      window.manualSteps = manualSteps || [];
+      window.manualSteps = manualSteps || []; // ✅ only store steps, no auto-open
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
@@ -312,25 +276,19 @@
       document.getElementById("chat-box").innerHTML = "";
       document.getElementById("app").value = "";
       document.getElementById("goal").value = "";
-      showThinking(false);
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      showThinking(false); window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
-    // Modal logic
     function openManualSteps(){
       const modal = document.getElementById("manualModal");
       const stepsList = document.getElementById("manual-steps");
       stepsList.innerHTML = "";
       (window.manualSteps || ["No manual steps available."]).forEach(step=>{
-        const li = document.createElement("li");
-        li.textContent = step;
-        stepsList.appendChild(li);
+        const li = document.createElement("li"); li.textContent = step; stepsList.appendChild(li);
       });
-      modal.style.display = "flex";
+      modal.style.display = "flex"; // ✅ show modal only when button clicked
     }
-    function closeManualSteps(){
-      document.getElementById("manualModal").style.display = "none";
-    }
+    function closeManualSteps(){ document.getElementById("manualModal").style.display = "none"; }
   </script>
 </body>
 </html>
