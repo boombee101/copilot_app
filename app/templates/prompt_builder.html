@@ -294,7 +294,7 @@
       document.getElementById("final-section").style.display = "block";
       document.getElementById("final-prompt").textContent = prompt;
       document.getElementById("prompt-explanation").textContent = explanation || "";
-      // Store manual steps
+      // ✅ Store manual steps but DO NOT auto-open modal
       window.manualSteps = manualSteps || [];
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
