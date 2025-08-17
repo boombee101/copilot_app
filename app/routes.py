@@ -94,7 +94,8 @@ def init_routes(app):
             )}
         ] + convo)
 
-        if enough.strip().upper() == "YES":
+        # ✅ Loosened check: catch YES even with punctuation or extra words
+        if "YES" in enough.upper():
             return generate_final(convo, goal_label)
 
         # Otherwise, generate the next clarifying instruction
@@ -141,11 +142,11 @@ def init_routes(app):
             prompt_text = prompt_text.replace("PROMPT:", "").strip()
             explanation = explanation.strip()
 
-            # ✅ Normalize manual steps
+            # ✅ Normalize manual steps into a clean list
             raw_steps = [s.strip() for s in steps_text.split("\n") if s.strip()]
             manual_steps = []
             for s in raw_steps:
-                s = s.lstrip("1234567890).•- ").strip()  # remove numbering/bullets
+                s = s.lstrip("1234567890).•- ").strip()
                 if s:
                     manual_steps.append(s)
         else:
