@@ -93,7 +93,7 @@
 
     /* Modal (popup) */
     .modal {
-      display:none; /* ✅ hidden by default */
+      display:none; /* ✅ stays hidden until openManualSteps() */
       position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%;
       background: rgba(0,0,0,0.6); 
       align-items:center; justify-content:center;
@@ -259,7 +259,7 @@
       document.getElementById("final-section").style.display = "block";
       document.getElementById("final-prompt").textContent = prompt;
       document.getElementById("prompt-explanation").textContent = explanation || "";
-      window.manualSteps = manualSteps || []; // ✅ only store steps, no auto-open
+      window.manualSteps = manualSteps || []; // ✅ stored until user clicks button
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
@@ -286,7 +286,7 @@
       (window.manualSteps || ["No manual steps available."]).forEach(step=>{
         const li = document.createElement("li"); li.textContent = step; stepsList.appendChild(li);
       });
-      modal.style.display = "flex"; // ✅ show modal only when button clicked
+      modal.style.display = "flex"; // ✅ opens only on button click
     }
     function closeManualSteps(){ document.getElementById("manualModal").style.display = "none"; }
   </script>
