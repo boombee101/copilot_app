@@ -93,7 +93,7 @@
 
     /* Modal (popup) */
     .modal {
-      display:none; /* ✅ stays hidden until openManualSteps() */
+      display:none;
       position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%;
       background: rgba(0,0,0,0.6); 
       align-items:center; justify-content:center;
@@ -136,7 +136,7 @@
   <main class="main">
     <div class="card">
       <h1>Prompt Builder</h1>
-      <div class="sub">Describe your task. I’ll collect the right details, then deliver a paste-ready Copilot prompt.</div>
+      <div class="sub">Describe your task. I’ll ask clarifying questions only if needed, then deliver a ready-to-use Copilot prompt.</div>
 
       <!-- Step 1 -->
       <section id="start-section">
@@ -259,7 +259,7 @@
       document.getElementById("final-section").style.display = "block";
       document.getElementById("final-prompt").textContent = prompt;
       document.getElementById("prompt-explanation").textContent = explanation || "";
-      window.manualSteps = manualSteps || []; // ✅ stored until user clicks button
+      window.manualSteps = manualSteps || [];
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
@@ -286,7 +286,7 @@
       (window.manualSteps || ["No manual steps available."]).forEach(step=>{
         const li = document.createElement("li"); li.textContent = step; stepsList.appendChild(li);
       });
-      modal.style.display = "flex"; // ✅ opens only on button click
+      modal.style.display = "flex";
     }
     function closeManualSteps(){ document.getElementById("manualModal").style.display = "none"; }
   </script>

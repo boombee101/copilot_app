@@ -58,37 +58,16 @@ def init_routes(app):
         convo = [
             {"role": "system", "content": (
                 "You are a Copilot prompt engineer for TVA employees.\n"
-                "• Ask short clarifications ONLY if needed to complete the task.\n"
+                "• Ask clarifications ONLY if essential.\n"
                 "• Clarifications must be imperative/neutral (no '?' characters).\n"
-                "• When enough detail is present, STOP asking and produce the final Copilot prompt.\n"
+                "• When you have enough detail, STOP asking and generate the final Copilot prompt.\n"
                 "• The final Copilot prompt must be an instruction (never a question), concise, and paste-ready."
             )},
             {"role": "user", "content": f"App: {app_name}\nGoal: {goal}"}
         ]
         session['pb_convo'] = convo
 
-        enough = ai_chat([
-            {"role": "system", "content": "Do we have enough detail to create a strong Copilot prompt? Answer EXACTLY 'YES' or 'NO'."}
-        ] + convo)
-
-        if enough.strip().upper() == "YES":
-            return generate_final(convo, goal)
-
-        next_msg = ai_chat([
-            {"role": "system", "content": (
-                "Give ONE short clarifying instruction (not a question) to gather missing detail. "
-                "Do not include anything except that one sentence.")
-            }
-        ] + convo)
-
-        next_msg = next_msg.strip()
-        if next_msg.endswith("?"):
-            next_msg = next_msg.rstrip("?").strip()
-
-        convo.append({"role": "assistant", "content": next_msg})
-        session['pb_convo'] = convo
-
-        return jsonify({"question": next_msg, "history": convo})
+        return continue_prompt_builder(convo, goal)
 
     @app.route('/prompt_builder/answer', methods=['POST'])
     def pb_answer():
@@ -102,18 +81,28 @@ def init_routes(app):
         convo.append({"role": "user", "content": answer})
         session['pb_convo'] = convo
 
+        return continue_prompt_builder(convo, "Prompt Builder")
+
+    def continue_prompt_builder(convo, goal_label):
+        """
+        Helper to decide: do we need another clarification, or is it time to finalize?
+        """
         enough = ai_chat([
-            {"role": "system", "content": "Do we have enough detail to create a strong Copilot prompt? Answer EXACTLY 'YES' or 'NO'."}
+            {"role": "system", "content": (
+                "Based on the conversation, decide if enough detail exists to create a strong Copilot prompt. "
+                "Answer EXACTLY 'YES' or 'NO'. Nothing else."
+            )}
         ] + convo)
 
         if enough.strip().upper() == "YES":
-            return generate_final(convo, "Prompt Builder")
+            return generate_final(convo, goal_label)
 
+        # Otherwise, generate the next clarifying instruction
         next_msg = ai_chat([
             {"role": "system", "content": (
                 "Give ONE short clarifying instruction (not a question) to gather missing detail. "
-                "Do not include anything except that one sentence.")
-            }
+                "No extra text, no questions, only that one instruction."
+            )}
         ] + convo)
 
         next_msg = next_msg.strip()
@@ -135,15 +124,13 @@ def init_routes(app):
                 "EXPLANATION:\n"
                 "<2–3 sentences explaining why this Copilot prompt is clear, strong, and effective.>\n\n"
                 "MANUAL STEPS:\n"
-                "<A numbered list of short, beginner-friendly instructions in 'for-dummies' style. "
-                "Each step should be one simple action. Use numbers 1., 2., 3. Always keep it practical.>\n\n"
+                "<A numbered list of short, beginner-friendly instructions in 'for-dummies' style.>\n\n"
                 "Do not include anything else."
             )}
         ] + convo)
 
         prompt_text, explanation, manual_steps = "", "", []
 
-        # Parse
         if "MANUAL STEPS:" in final_response:
             parts = final_response.split("MANUAL STEPS:")
             before_steps, steps_text = parts[0], parts[1]
