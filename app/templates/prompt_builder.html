@@ -2,238 +2,152 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Prompt Builder - TVA Copilot Companion</title>
-    <style>
-        body {
-            font-family: "Segoe UI", Tahoma, sans-serif;
-            margin: 0;
-            background-color: #f0f4f9;
-            color: #003366;
-        }
-        /* Sidebar */
-        .sidebar {
-            position: fixed;
-            left: 0;
-            top: 0;
-            width: 220px;
-            height: 100%;
-            background-color: #002855;
-            padding-top: 30px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        .sidebar a {
-            color: white;
-            padding: 12px;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            width: 100%;
-            justify-content: flex-start;
-            gap: 10px;
-            transition: background 0.3s;
-        }
-        .sidebar a:hover {
-            background-color: #004080;
-        }
-        .sidebar a.active {
-            background-color: #0055a5;
-        }
-        /* Main Content */
-        .main {
-            margin-left: 240px;
-            padding: 20px;
-            max-width: 800px;
-        }
-        h1 {
-            font-size: 26px;
-            margin-bottom: 10px;
-        }
-        select, textarea, input[type="text"] {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 10px;
-            border-radius: 6px;
-            border: 1px solid #ccc;
-            font-family: inherit;
-        }
-        textarea {
-            min-height: 100px;
-        }
-        button {
-            background-color: #0055a5;
-            color: white;
-            padding: 10px 18px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 15px;
-        }
-        button:hover {
-            background-color: #003f7d;
-        }
-        .question-box {
-            background-color: #e6f0ff;
-            padding: 15px;
-            border-radius: 6px;
-            margin-bottom: 10px;
-        }
-        .prompt-output {
-            background-color: #ffffff;
-            padding: 15px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            white-space: pre-wrap;
-            margin-top: 10px;
-        }
-        footer {
-            text-align: center;
-            margin-top: 30px;
-            font-size: 13px;
-            color: #666;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Prompt Builder - TVA Copilot Companion</title>
+  <style>
+    body { font-family: "Segoe UI", Tahoma, sans-serif; margin: 0; background-color: #f0f4f9; color: #003366; }
+    /* Sidebar */
+    .sidebar { position: fixed; left: 0; top: 0; width: 220px; height: 100%; background-color: #002855; padding-top: 30px; display: flex; flex-direction: column; align-items: center; }
+    .sidebar a { color: white; padding: 12px; text-decoration: none; display: flex; align-items: center; width: 100%; justify-content: flex-start; gap: 10px; transition: background 0.3s; }
+    .sidebar a:hover { background-color: #004080; }
+    .sidebar a.active { background-color: #0055a5; }
+    /* Main Content */
+    .main { margin-left: 240px; padding: 20px; max-width: 800px; }
+    h1 { font-size: 26px; margin-bottom: 10px; }
+    select, textarea, input[type="text"] { width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 6px; border: 1px solid #ccc; font-family: inherit; }
+    textarea { min-height: 100px; }
+    button { background-color: #0055a5; color: white; padding: 10px 18px; border: none; border-radius: 6px; cursor: pointer; font-size: 15px; }
+    button:hover { background-color: #003f7d; }
+    .question-box { background-color: #e6f0ff; padding: 15px; border-radius: 6px; margin-bottom: 10px; }
+    .prompt-output { background-color: #ffffff; padding: 15px; border: 1px solid #ccc; border-radius: 6px; white-space: pre-wrap; margin-top: 10px; }
+    .explanation { margin-top: 15px; padding: 12px; background: #f9f9f9; border-left: 4px solid #0055a5; border-radius: 6px; font-size: 14px; color: #333; }
+    footer { text-align: center; margin-top: 30px; font-size: 13px; color: #666; }
+  </style>
 </head>
 <body>
 
-    <!-- Sidebar -->
-    <div class="sidebar">
-        <a href="{{ url_for('home') }}">🏠 Home</a>
-        <a href="{{ url_for('teach_me') }}">📘 Teach Me</a>
-        <a href="{{ url_for('troubleshooter') }}">🛠️ Troubleshooter</a>
-        <a href="{{ url_for('prompt_builder') }}" class="active">✏️ Prompt Builder</a>
-        <a href="{{ url_for('logout') }}">🚪 Logout</a>
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <a href="{{ url_for('home') }}">🏠 Home</a>
+    <a href="{{ url_for('teach_me') }}">📘 Teach Me</a>
+    <a href="{{ url_for('troubleshooter') }}">🛠️ Troubleshooter</a>
+    <a href="{{ url_for('prompt_builder') }}" class="active">✏️ Prompt Builder</a>
+    <a href="{{ url_for('logout') }}">🚪 Logout</a>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main">
+    <h1>Prompt Builder</h1>
+    <p>Pick your Microsoft 365 app and describe your goal. The AI will ask follow-up questions if needed. If enough detail is already provided, it will generate the perfect Copilot prompt immediately.</p>
+    
+    <!-- Step 1: Start form -->
+    <div id="start-section">
+      <label for="app">Choose your app:</label>
+      <select id="app" required>
+        <option value="">-- Select an app --</option>
+        <option>Word</option>
+        <option>Excel</option>
+        <option>Outlook</option>
+        <option>Teams</option>
+        <option>PowerPoint</option>
+        <option>OneNote</option>
+      </select>
+
+      <label for="goal">Describe your goal:</label>
+      <textarea id="goal" placeholder="Example: Create a summary of my meeting notes with key action items" required></textarea>
+
+      <button onclick="startPromptBuilder()">Start</button>
     </div>
 
-    <!-- Main Content -->
-    <div class="main">
-        <h1>Prompt Builder</h1>
-        <p>Pick your Microsoft 365 app and describe your goal. The AI will ask follow-up questions until it has everything needed to create the perfect Copilot prompt.</p>
-        
-        <!-- Step 1: Start form -->
-        <div id="start-section">
-            <label for="app">Choose your app:</label>
-            <select id="app" required>
-                <option value="">-- Select an app --</option>
-                <option>Word</option>
-                <option>Excel</option>
-                <option>Outlook</option>
-                <option>Teams</option>
-                <option>PowerPoint</option>
-                <option>OneNote</option>
-            </select>
-
-            <label for="goal">Describe your goal:</label>
-            <textarea id="goal" placeholder="Example: Create a summary of my meeting notes with key action items" required></textarea>
-
-            <button onclick="startPromptBuilder()">Start</button>
-        </div>
-
-        <!-- Step 2: Follow-up Q&A -->
-        <div id="question-section" style="display:none;">
-            <div class="question-box" id="current-question"></div>
-            <input type="text" id="answer" placeholder="Type your answer here..." />
-            <button onclick="sendAnswer()">Next</button>
-        </div>
-
-        <!-- Step 3: Final prompt -->
-        <div id="final-section" style="display:none;">
-            <h2>Your Copilot Prompt:</h2>
-            <div class="prompt-output" id="final-prompt"></div>
-            <button onclick="copyPrompt()">Copy Prompt</button>
-            <button onclick="resetBuilder()">Start Over</button>
-        </div>
+    <!-- Step 2: Follow-up Q&A -->
+    <div id="question-section" style="display:none;">
+      <div class="question-box" id="current-question"></div>
+      <input type="text" id="answer" placeholder="Type your answer here..." />
+      <button onclick="sendAnswer()">Next</button>
     </div>
 
-    <footer>
-        TVA Copilot Companion — Powered by AI for Microsoft 365
-    </footer>
+    <!-- Step 3: Final prompt -->
+    <div id="final-section" style="display:none;">
+      <h2>Your Copilot Prompt:</h2>
+      <div class="prompt-output" id="final-prompt"></div>
+      <div class="explanation" id="prompt-explanation"></div>
+      <button onclick="copyPrompt()">Copy Prompt</button>
+      <button onclick="resetBuilder()">Start Over</button>
+    </div>
+  </div>
 
-    <script>
-        let sessionId = null;
+  <footer>
+    TVA Copilot Companion — Powered by AI for Microsoft 365
+  </footer>
 
-        async function startPromptBuilder() {
-            const app = document.getElementById("app").value;
-            const goal = document.getElementById("goal").value;
-            if (!app || !goal) {
-                alert("Please select an app and enter your goal.");
-                return;
-            }
+  <script>
+    async function startPromptBuilder() {
+      const app = document.getElementById("app").value;
+      const goal = document.getElementById("goal").value;
+      if (!app || !goal) {
+        alert("Please select an app and enter your goal.");
+        return;
+      }
 
-            const res = await fetch("/prompt_builder/start", {
-                method: "POST",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({ task: `${app}: ${goal}` }) // combined for AI context
-            });
-            const data = await res.json();
+      const res = await fetch("/prompt_builder/start", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({ app, goal })
+      });
+      const data = await res.json();
 
-            document.getElementById("start-section").style.display = "none";
+      document.getElementById("start-section").style.display = "none";
 
-            // If backend sends final prompt immediately
-            if (data.final_prompt) {
-                showFinalPrompt(data.final_prompt);
-                return;
-            }
+      if (data.final_prompt) {
+        showFinalPrompt(data.final_prompt, data.explanation);
+      } else if (data.question) {
+        document.getElementById("question-section").style.display = "block";
+        document.getElementById("current-question").innerText = data.question;
+      }
+    }
 
-            if (data.question) {
-                document.getElementById("question-section").style.display = "block";
-                document.getElementById("current-question").innerText = data.question;
-            } else {
-                showFinalPrompt("No question provided. Please try again.");
-            }
-        }
+    async function sendAnswer() {
+      const answer = document.getElementById("answer").value;
+      if (!answer.trim()) {
+        alert("Please enter an answer.");
+        return;
+      }
 
-        async function sendAnswer() {
-            const answer = document.getElementById("answer").value;
-            if (!answer.trim()) {
-                alert("Please enter an answer.");
-                return;
-            }
+      const res = await fetch("/prompt_builder/answer", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({ answer })
+      });
+      const data = await res.json();
 
-            const res = await fetch("/prompt_builder/answer", {
-                method: "POST",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({ answer })
-            });
-            const data = await res.json();
+      if (data.final_prompt) {
+        showFinalPrompt(data.final_prompt, data.explanation);
+      } else if (data.question) {
+        document.getElementById("current-question").innerText = data.question;
+        document.getElementById("answer").value = "";
+      }
+    }
 
-            // If backend sends final prompt
-            if (data.final_prompt) {
-                showFinalPrompt(data.final_prompt);
-                return;
-            }
+    function showFinalPrompt(prompt, explanation) {
+      document.getElementById("question-section").style.display = "none";
+      document.getElementById("final-section").style.display = "block";
+      document.getElementById("final-prompt").innerText = prompt;
+      document.getElementById("prompt-explanation").innerText = explanation || "";
+    }
 
-            if (data.question) {
-                document.getElementById("current-question").innerText = data.question;
-                document.getElementById("answer").value = "";
-            } else {
-                showFinalPrompt("No further questions, but no final prompt received.");
-            }
-        }
+    function copyPrompt() {
+      navigator.clipboard.writeText(document.getElementById("final-prompt").innerText);
+      alert("Prompt copied to clipboard!");
+    }
 
-        function showFinalPrompt(prompt) {
-            document.getElementById("question-section").style.display = "none";
-            document.getElementById("final-section").style.display = "block";
-            document.getElementById("final-prompt").innerText = prompt;
-        }
-
-        function copyPrompt() {
-            navigator.clipboard.writeText(document.getElementById("final-prompt").innerText);
-            alert("Prompt copied to clipboard!");
-        }
-
-        function resetBuilder() {
-            sessionId = null;
-            document.getElementById("start-section").style.display = "block";
-            document.getElementById("question-section").style.display = "none";
-            document.getElementById("final-section").style.display = "none";
-            document.getElementById("app").value = "";
-            document.getElementById("goal").value = "";
-        }
-    </script>
-
+    function resetBuilder() {
+      document.getElementById("start-section").style.display = "block";
+      document.getElementById("question-section").style.display = "none";
+      document.getElementById("final-section").style.display = "none";
+      document.getElementById("app").value = "";
+      document.getElementById("goal").value = "";
+    }
+  </script>
 </body>
 </html>
