@@ -8,7 +8,7 @@
   <style>
     body { font-family: "Segoe UI", Tahoma, sans-serif; margin: 0; background-color: #f0f4f9; color: #003366; }
 
-    /* ===== Sidebar ===== */
+    /* Sidebar */
     .sidebar {
       position: fixed; left: 0; top: 0; width: 220px; height: 100%;
       background-color: #002855; padding: 20px 0; display: flex; flex-direction: column;
@@ -25,11 +25,11 @@
     .spacer { flex: 1 1 auto; }
     .logout { margin-top: auto; }
 
-    /* ===== Main area ===== */
+    /* Main */
     .main { margin-left: 220px; padding: 22px; }
     .card {
-      background:#fff; border-radius:10px; box-shadow:0 4px 12px rgba(0,0,0,.08);
-      padding: 20px; max-width: 980px;
+      background:#fff; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,.08);
+      padding: 22px; max-width: 980px;
     }
     h1 { margin: 0 0 6px; font-size: 26px; }
     .sub { color:#335; margin-bottom: 16px; }
@@ -41,7 +41,7 @@
     }
     textarea { min-height: 100px; resize: vertical; }
 
-    .btn-row { display:flex; gap:10px; flex-wrap:wrap; }
+    .btn-row { display:flex; gap:10px; flex-wrap:wrap; margin-top:10px; }
     .btn {
       background: #0055a5; color:#fff; border:none; border-radius:8px; padding:10px 16px;
       cursor:pointer; font-size:15px;
@@ -51,59 +51,42 @@
     .btn:disabled { opacity:.6; cursor:not-allowed; }
     .btn:hover { filter: brightness(0.95); }
 
-    /* ===== Q&A Section ===== */
-    .qa-wrap { display:grid; grid-template-columns: 1fr; gap:12px; }
-    .qa-history {
-      max-height: 320px; overflow: auto; padding: 12px; border:1px solid #d9e2ec; border-radius:10px; background:#f7fbff;
+    /* Conversation */
+    .chat-box {
+      max-height: 360px; overflow-y: auto; padding: 16px;
+      background: #f8fbff; border-radius:12px; border:1px solid #d9e2ec;
     }
-    .qa-item { margin-bottom: 12px; }
-    .qa-q { background:#e6f0ff; padding:10px; border-radius:8px; font-weight:600; }
-    .qa-a { background:#ffffff; padding:10px; border:1px solid #e5e7eb; border-radius:8px; margin-top:6px; }
+    .msg { margin-bottom: 14px; display:flex; }
+    .msg.assistant { justify-content: flex-start; }
+    .msg.user { justify-content: flex-end; }
+    .bubble {
+      padding:10px 14px; border-radius:14px; max-width:75%;
+      white-space: pre-wrap; line-height:1.4;
+    }
+    .assistant .bubble { background:#e6f0ff; color:#002855; border:1px solid #cbd5e1; }
+    .user .bubble { background:#0055a5; color:#fff; }
 
     .thinking { display:none; color:#5b6470; font-style: italic; margin-top: 6px; }
     .dots::after { content: ''; animation: dots 1.3s steps(3,end) infinite; }
     @keyframes dots { 0%{content:''} 33%{content:'.'} 66%{content:'..'} 100%{content:'...'} }
 
-    /* ===== Final Output ===== */
+    /* Final Output */
     .final-card {
-      margin-top: 20px;
-      padding: 20px;
-      border-radius: 12px;
-      background: #fdfdfd;
-      border: 2px solid #0055a5;
-      box-shadow: 0 4px 14px rgba(0,0,0,0.1);
+      margin-top: 20px; padding: 20px; border-radius: 12px;
+      background: #fdfdfd; border: 2px solid #0055a5; box-shadow: 0 4px 14px rgba(0,0,0,0.1);
     }
     .final-card h2 {
-      margin-top: 0;
-      font-size: 22px;
-      color: #0055a5;
-      display: flex;
-      align-items: center;
-      gap: 8px;
+      margin-top: 0; font-size: 22px; color: #0055a5;
+      display: flex; align-items: center; gap: 8px;
     }
-    .final-card h2::before {
-      content: "✨";
-      font-size: 22px;
-    }
+    .final-card h2::before { content: "✨"; font-size: 22px; }
     .prompt-output {
-      margin-top: 12px;
-      padding: 14px;
-      border-radius: 8px;
-      background:#eef6ff;
-      border:1px solid #cbd5e1;
-      font-size: 16px;
-      font-weight: 500;
-      white-space: pre-wrap;
-      color: #002855;
+      margin-top: 12px; padding: 14px; border-radius: 8px;
+      background:#eef6ff; border:1px solid #cbd5e1; font-size: 16px; font-weight: 500; color: #002855;
     }
     .explanation {
-      margin-top:14px;
-      background:#f9fafb;
-      border-left:4px solid #0055a5;
-      padding:12px;
-      border-radius:8px;
-      color:#334155;
-      font-size:14px;
+      margin-top:14px; background:#f9fafb; border-left:4px solid #0055a5;
+      padding:12px; border-radius:8px; color:#334155; font-size:14px;
     }
 
     footer { text-align:center; color:#667; font-size: 13px; margin-top: 18px; }
@@ -130,7 +113,7 @@
   <main class="main">
     <div class="card">
       <h1>Prompt Builder</h1>
-      <div class="sub">Pick your Microsoft 365 app and describe your goal. The AI will ask follow-up questions if needed. If enough detail is already provided, it will generate the perfect Copilot prompt immediately.</div>
+      <div class="sub">Describe your task. I’ll collect the right details, then deliver a paste-ready Copilot prompt.</div>
 
       <!-- Step 1 -->
       <section id="start-section">
@@ -146,7 +129,7 @@
         </select>
 
         <label for="goal">Describe your goal</label>
-        <textarea id="goal" placeholder="Example: I need to change the text size"></textarea>
+        <textarea id="goal" placeholder="Example: Summarize all unread emails in my inbox"></textarea>
 
         <div class="btn-row">
           <button class="btn" onclick="startPromptBuilder()">Start</button>
@@ -155,20 +138,14 @@
 
       <!-- Step 2 -->
       <section id="question-section" style="display:none;">
-        <div class="qa-wrap">
-          <div class="qa-history" id="qa-history" aria-live="polite"></div>
-
-          <div class="qa-item">
-            <div class="qa-q" id="current-question"></div>
-            <input type="text" id="answer" placeholder="Type your answer here..." onkeydown="if(event.key==='Enter'){sendAnswer();}"/>
-            <div class="btn-row">
-              <button class="btn" onclick="sendAnswer()">Next</button>
-              <button class="btn ghost" onclick="sendAnswer(true)">Skip</button>
-              <button class="btn secondary" onclick="resetBuilder()">Start Over</button>
-            </div>
-            <div id="thinking" class="thinking">🤖 Thinking<span class="dots"></span></div>
-          </div>
+        <div class="chat-box" id="chat-box" aria-live="polite"></div>
+        <input type="text" id="answer" placeholder="Type your answer here..." onkeydown="if(event.key==='Enter'){sendAnswer();}"/>
+        <div class="btn-row">
+          <button class="btn" onclick="sendAnswer()">Next</button>
+          <button class="btn ghost" onclick="sendAnswer(true)">Skip</button>
+          <button class="btn secondary" onclick="resetBuilder()">Start Over</button>
         </div>
+        <div id="thinking" class="thinking">🤖 Thinking<span class="dots"></span></div>
       </section>
 
       <!-- Step 3 -->
@@ -178,7 +155,7 @@
           <div class="prompt-output" id="final-prompt"></div>
           <div class="explanation" id="prompt-explanation"></div>
           <div class="btn-row" style="margin-top:12px;">
-            <button class="btn" onclick="copyPrompt()" title="Copy to clipboard">📋 Copy Prompt</button>
+            <button class="btn" onclick="copyPrompt()">📋 Copy Prompt</button>
             <button class="btn secondary" onclick="resetBuilder()">Start Over</button>
           </div>
         </div>
@@ -191,16 +168,16 @@
   <script>
     function showThinking(show){ document.getElementById("thinking").style.display = show ? "block" : "none"; }
 
-    function appendQA(kind, text){
-      const wrap = document.getElementById("qa-history");
-      const container = document.createElement("div");
-      container.className = "qa-item";
-      const block = document.createElement("div");
-      block.className = (kind === "q") ? "qa-q" : "qa-a";
-      block.textContent = (kind === "q" ? "Q: " : "A: ") + text;
-      container.appendChild(block);
-      wrap.appendChild(container);
-      wrap.scrollTop = wrap.scrollHeight;
+    function appendMsg(role, text){
+      const chat = document.getElementById("chat-box");
+      const msg = document.createElement("div");
+      msg.className = "msg " + role;
+      const bubble = document.createElement("div");
+      bubble.className = "bubble";
+      bubble.textContent = text;
+      msg.appendChild(bubble);
+      chat.appendChild(msg);
+      chat.scrollTop = chat.scrollHeight;
     }
 
     async function startPromptBuilder(){
@@ -223,22 +200,19 @@
         showFinalPrompt(data.final_prompt, data.explanation);
       } else if (data.question){
         document.getElementById("question-section").style.display = "block";
-        document.getElementById("current-question").textContent = data.question;
+        appendMsg("assistant", data.question);
       } else {
         document.getElementById("question-section").style.display = "block";
-        document.getElementById("current-question").textContent = "Sorry — please try again.";
+        appendMsg("assistant", "Sorry — please try again.");
       }
     }
 
     async function sendAnswer(skip=false){
       const answerInput = document.getElementById("answer");
-      const currentQ = document.getElementById("current-question").textContent;
       const answer = skip ? "" : (answerInput.value || "").trim();
-
       if (!skip && !answer){ alert("Please enter an answer or click Skip."); return; }
 
-      appendQA("q", currentQ);
-      appendQA("a", answer || "(skipped)");
+      if (!skip) appendMsg("user", answer);
       answerInput.value = "";
 
       showThinking(true);
@@ -253,9 +227,9 @@
       if (data.final_prompt){
         showFinalPrompt(data.final_prompt, data.explanation);
       } else if (data.question){
-        document.getElementById("current-question").textContent = data.question;
+        appendMsg("assistant", data.question);
       } else {
-        document.getElementById("current-question").textContent = "Thanks — no further questions. Please try again.";
+        appendMsg("assistant", "Thanks — no further questions. Please try again.");
       }
     }
 
@@ -269,9 +243,7 @@
 
     function copyPrompt(){
       const text = document.getElementById("final-prompt").innerText;
-      navigator.clipboard.writeText(text).then(()=> {
-        alert("Prompt copied to clipboard!");
-      });
+      navigator.clipboard.writeText(text).then(()=> alert("Prompt copied to clipboard!"));
     }
 
     function resetBuilder(){
@@ -279,10 +251,9 @@
       document.getElementById("start-section").style.display = "block";
       document.getElementById("question-section").style.display = "none";
       document.getElementById("final-section").style.display = "none";
-      document.getElementById("qa-history").innerHTML = "";
+      document.getElementById("chat-box").innerHTML = "";
       document.getElementById("app").value = "";
       document.getElementById("goal").value = "";
-      document.getElementById("current-question").textContent = "";
       showThinking(false);
       window.scrollTo({ top: 0, behavior: "smooth" });
     }

@@ -57,28 +57,39 @@ def init_routes(app):
 
         convo = [
             {"role": "system", "content": (
-                "You are a helpful Copilot prompt engineer for TVA employees. "
-                "Ask clear follow-up questions until enough detail is gathered, then stop and create the final prompt. "
-                "The final prompt should NEVER end with a question, only a clean Copilot instruction.")},
+                "You are a Copilot prompt engineer for TVA employees.\n"
+                "• Ask short clarifications ONLY if needed to complete the task.\n"
+                "• Clarifications must be imperative/neutral (no '?' characters). Example: 'Specify the chart type you need'.\n"
+                "• When enough detail is present, STOP asking and produce the final Copilot prompt.\n"
+                "• The final Copilot prompt must be an instruction (never a question), concise, and paste-ready."
+            )},
             {"role": "user", "content": f"App: {app_name}\nGoal: {goal}"}
         ]
         session['pb_convo'] = convo
 
         enough = ai_chat([
-            {"role": "system", "content": "Do we now have enough detail to create a strong Copilot prompt? Answer EXACTLY 'YES' or 'NO'."}
+            {"role": "system", "content": "Do we have enough detail to create a strong Copilot prompt? Answer EXACTLY 'YES' or 'NO'."}
         ] + convo)
 
         if enough.strip().upper() == "YES":
             return generate_final(convo, goal)
 
-        next_q = ai_chat([
-            {"role": "system", "content": "Ask one simple, clear follow-up question to clarify the user's goal."}
+        next_msg = ai_chat([
+            {"role": "system", "content": (
+                "Give ONE short clarifying instruction (not a question) to gather missing detail. "
+                "Do not include anything except that one sentence.")
+            }
         ] + convo)
 
-        convo.append({"role": "assistant", "content": next_q})
+        # safety: strip any trailing question mark
+        next_msg = next_msg.strip()
+        if next_msg.endswith("?"):
+            next_msg = next_msg.rstrip("?").strip()
+
+        convo.append({"role": "assistant", "content": next_msg})
         session['pb_convo'] = convo
 
-        return jsonify({"question": next_q, "history": convo})
+        return jsonify({"question": next_msg, "history": convo})
 
     @app.route('/prompt_builder/answer', methods=['POST'])
     def pb_answer():
@@ -93,33 +104,37 @@ def init_routes(app):
         session['pb_convo'] = convo
 
         enough = ai_chat([
-            {"role": "system", "content": "Do we now have enough detail to create a strong Copilot prompt? Answer EXACTLY 'YES' or 'NO'."}
+            {"role": "system", "content": "Do we have enough detail to create a strong Copilot prompt? Answer EXACTLY 'YES' or 'NO'."}
         ] + convo)
 
         if enough.strip().upper() == "YES":
             return generate_final(convo, "Prompt Builder")
 
-        next_q = ai_chat([
-            {"role": "system", "content": "Ask one simple, clear follow-up question to clarify the user's goal."}
+        next_msg = ai_chat([
+            {"role": "system", "content": (
+                "Give ONE short clarifying instruction (not a question) to gather missing detail. "
+                "Do not include anything except that one sentence.")
+            }
         ] + convo)
 
-        convo.append({"role": "assistant", "content": next_q})
+        next_msg = next_msg.strip()
+        if next_msg.endswith("?"):
+            next_msg = next_msg.rstrip("?").strip()
+
+        convo.append({"role": "assistant", "content": next_msg})
         session['pb_convo'] = convo
 
-        return jsonify({"question": next_q, "history": convo})
+        return jsonify({"question": next_msg, "history": convo})
 
-    def generate_final(convo, goal):
+    def generate_final(convo, goal_label):
         final_response = ai_chat([
             {"role": "system", "content": (
-                "You are an expert Microsoft Copilot prompt writer. "
-                "From the conversation, generate ONE final Copilot prompt in natural language. "
-                "It must be short, actionable, and ready to paste directly into Microsoft Copilot. "
-                "Do NOT give instructions or steps. Only write the Copilot prompt. "
-                "Also include a short explanation (2–3 sentences max) of why this is a strong prompt. "
-                "Format STRICTLY as:\n"
-                "PROMPT: <the Copilot-ready prompt>\n"
-                "EXPLANATION: <your explanation>"
-            )}
+                "You are an expert Microsoft Copilot prompt writer.\n"
+                "From the conversation, output EXACTLY:\n"
+                "PROMPT: <one concise, paste-ready Copilot instruction; do not end with a question mark; no steps>\n"
+                "EXPLANATION: <2–3 sentences on why it’s strong>\n"
+                "Do not include anything else.")
+            }
         ] + convo)
 
         if "EXPLANATION:" in final_response:
@@ -129,8 +144,13 @@ def init_routes(app):
         else:
             prompt_text, explanation = final_response.strip(), ""
 
+        # extra guardrails
+        prompt_text = prompt_text.strip()
+        if prompt_text.endswith("?"):
+            prompt_text = prompt_text.rstrip("?").strip()
+
         try:
-            log_prompt_to_csv(goal, prompt_text, explanation)
+            log_prompt_to_csv(goal_label, prompt_text, explanation)
         except Exception:
             pass
 
@@ -154,8 +174,7 @@ def init_routes(app):
             return render_template('troubleshooter.html')
 
         data = get_data()
-        problem = data.get('issue') or data.get('problem') or ''
-        problem = problem.strip()
+        problem = (data.get('issue') or data.get('problem') or '').strip()
         if not problem:
             return render_template('troubleshooter.html', solution="<p style='color:red;'>Please describe the issue.</p>")
 
