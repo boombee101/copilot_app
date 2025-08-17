@@ -59,7 +59,7 @@ def init_routes(app):
             {"role": "system", "content": (
                 "You are a Copilot prompt engineer for TVA employees.\n"
                 "• Ask short clarifications ONLY if needed to complete the task.\n"
-                "• Clarifications must be imperative/neutral (no '?' characters). Example: 'Specify the chart type you need'.\n"
+                "• Clarifications must be imperative/neutral (no '?' characters).\n"
                 "• When enough detail is present, STOP asking and produce the final Copilot prompt.\n"
                 "• The final Copilot prompt must be an instruction (never a question), concise, and paste-ready."
             )},
@@ -81,7 +81,6 @@ def init_routes(app):
             }
         ] + convo)
 
-        # safety: strip any trailing question mark
         next_msg = next_msg.strip()
         if next_msg.endswith("?"):
             next_msg = next_msg.rstrip("?").strip()
@@ -129,23 +128,35 @@ def init_routes(app):
     def generate_final(convo, goal_label):
         final_response = ai_chat([
             {"role": "system", "content": (
-                "You are an expert Microsoft Copilot prompt writer.\n"
-                "From the conversation, output EXACTLY:\n"
-                "PROMPT: <one concise, paste-ready Copilot instruction; do not end with a question mark; no steps>\n"
-                "EXPLANATION: <2–3 sentences on why it’s strong>\n"
-                "Do not include anything else.")
-            }
+                "You are an expert Microsoft Copilot prompt writer and trainer for TVA employees.\n"
+                "From the conversation, output EXACTLY three sections:\n\n"
+                "PROMPT:\n"
+                "<One concise, paste-ready Copilot instruction. Must be a direct command, never a question.>\n\n"
+                "EXPLANATION:\n"
+                "<2–3 sentences explaining why this Copilot prompt is clear, strong, and effective.>\n\n"
+                "MANUAL STEPS:\n"
+                "<A numbered list of short, beginner-friendly instructions in 'for-dummies' style. "
+                "Each step should be one simple action. Use numbers 1., 2., 3. Always keep it practical.>\n\n"
+                "Do not include anything else."
+            )}
         ] + convo)
 
-        if "EXPLANATION:" in final_response:
-            prompt_text, explanation = final_response.split("EXPLANATION:", 1)
+        prompt_text, explanation, manual_steps = "", "", []
+
+        # Parse
+        if "MANUAL STEPS:" in final_response:
+            parts = final_response.split("MANUAL STEPS:")
+            before_steps, steps_text = parts[0], parts[1]
+            if "EXPLANATION:" in before_steps:
+                prompt_text, explanation = before_steps.split("EXPLANATION:", 1)
+            else:
+                prompt_text, explanation = before_steps, ""
             prompt_text = prompt_text.replace("PROMPT:", "").strip()
             explanation = explanation.strip()
+            manual_steps = [s.strip(" .") for s in steps_text.split("\n") if s.strip()]
         else:
-            prompt_text, explanation = final_response.strip(), ""
+            prompt_text = final_response.strip()
 
-        # extra guardrails
-        prompt_text = prompt_text.strip()
         if prompt_text.endswith("?"):
             prompt_text = prompt_text.rstrip("?").strip()
 
@@ -157,6 +168,7 @@ def init_routes(app):
         return jsonify({
             "final_prompt": prompt_text,
             "explanation": explanation,
+            "manual_steps": manual_steps,
             "history": convo
         })
 
