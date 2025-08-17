@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TVA SQN Copilot Companion</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+  <style>
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, sans-serif;
+      background-color: #f4f7fb;
+      color: #003366;
+      display: flex;
+      flex-direction: row;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 240px;
+      background: linear-gradient(180deg, #002b5c, #004080);
+      color: white;
+      padding: 20px;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .sidebar img {
+      width: 120px;
+      margin-bottom: 20px;
+    }
+    .sidebar h2 {
+      font-size: 20px;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .nav-links {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      width: 100%;
+    }
+    .nav-links a {
+      color: white;
+      text-decoration: none;
+      padding: 10px 14px;
+      border-radius: 50px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: background 0.3s, padding-left 0.2s;
+    }
+    .nav-links a:hover {
+      background: rgba(255,255,255,0.2);
+      padding-left: 18px;
+    }
+    .nav-links a.active {
+      background: rgba(255,255,255,0.25);
+      border-left: 4px solid #ffcc00;
+    }
+
+    /* Main Content */
+    .main {
+      flex: 1;
+      padding: 30px;
+    }
+    h1 {
+      font-size: clamp(24px, 2.2vw, 32px);
+      margin-bottom: 5px;
+    }
+    .subhead {
+      font-size: clamp(14px, 1.1vw, 16px);
+      color: #555;
+      margin-bottom: 20px;
+    }
+
+    /* About section */
+    .about {
+      background: #f8fbff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+      border-left: 6px solid #004080;
+      line-height: 1.5;
+      margin-bottom: 30px;
+    }
+    .about h2 {
+      font-size: 20px;
+      margin-top: 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #004080;
+    }
+    .about p {
+      margin: 0;
+      font-size: 15px;
+    }
+
+    /* Feature Cards */
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+    }
+    .feature-card {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 220px;
+      background: linear-gradient(135deg, #002b5c, #004080);
+      color: white;
+      padding: 25px 20px;
+      border-radius: 12px;
+      text-align: center;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .feature-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+    }
+    .feature-card:active {
+      transform: scale(0.98);
+    }
+    .feature-card i {
+      font-size: 42px;
+      margin-bottom: 12px;
+      color: #ffcc00;
+      box-shadow: inset 0 0 8px rgba(0,0,0,0.3);
+      padding: 10px;
+      border-radius: 50%;
+    }
+    .feature-card h3 {
+      margin: 10px 0;
+      font-size: 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.2);
+      padding-bottom: 8px;
+    }
+    .feature-card p {
+      font-size: 14px;
+      line-height: 1.4;
+      opacity: 0.9;
+    }
+
+    /* Disclaimer */
+    .disclaimer {
+      background: #fff7e6;
+      border-left: 6px solid #ffcc00;
+      padding: 15px;
+      font-size: 15px;
+      max-width: 900px;
+      margin: 30px auto 10px;
+      border-radius: 6px;
+    }
+    .disclaimer a {
+      color: #004080;
+      text-decoration: underline;
+      font-size: 14px;
+    }
+    .disclaimer a:hover {
+      text-decoration: none;
+    }
+
+    /* Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 999;
+      padding-top: 80px;
+      left: 0; top: 0;
+      width: 100%; height: 100%;
+      background-color: rgba(0,0,0,0.4);
+    }
+    .modal-content {
+      background: #fff;
+      margin: auto;
+      padding: 20px;
+      border-radius: 8px;
+      max-width: 500px;
+      color: #003366;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+    .modal-content h2 {
+      margin-top: 0;
+    }
+    .modal-content ul {
+      padding-left: 20px;
+    }
+    .close {
+      float: right;
+      font-size: 20px;
+      cursor: pointer;
+    }
+
+    /* Footer */
+    footer {
+      margin-top: 20px;
+      text-align: center;
+      font-size: 12px;
+      color: #666;
+    }
+
+    /* Responsive Adjustments */
+    @media (max-width: 768px) {
+      body {
+        flex-direction: column;
+      }
+      .sidebar {
+        flex-direction: row;
+        justify-content: space-around;
+        width: 100%;
+        padding: 10px;
+      }
+      .sidebar img {
+        display: none;
+      }
+      .sidebar h2 {
+        display: none;
+      }
+      .nav-links {
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 5px;
+      }
+      .nav-links a {
+        border-radius: 6px;
+        padding: 6px 10px;
+        font-size: 14px;
+      }
+      .main {
+        padding: 15px;
+      }
+      .feature-card {
+        min-height: auto;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <img src="{{ url_for('static', filename='images/tva_logo.png') }}" alt="TVA Logo">
+    <h2>SQN Copilot Companion</h2>
+    <div class="nav-links">
+      <a href="{{ url_for('home') }}" class="active"><i class="fas fa-home"></i> Home</a>
+      <a href="{{ url_for('prompt_builder') }}"><i class="fas fa-pencil-alt"></i> Prompt Builder</a>
+      <a href="{{ url_for('ask_help') }}"><i class="fas fa-comments"></i> AI Help for 365 Apps</a>
+      <a href="{{ url_for('troubleshooter') }}"><i class="fas fa-tools"></i> Troubleshooter</a>
+      <a href="{{ url_for('teach_me') }}"><i class="fas fa-book-open"></i> Teach Me</a>
+      <a href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main">
+    <h1>Welcome to the SQN Copilot Companion</h1>
+    <div class="subhead">Your AI-powered assistant for Microsoft 365 at TVA.</div>
+
+    <div class="about">
+      <h2><i class="fas fa-info-circle"></i> About This Tool</h2>
+      <p>
+        The SQN Copilot Companion is your all-in-one resource for working smarter with Microsoft 365 at TVA. 
+        It combines AI-powered assistance with clear, beginner-friendly guidance designed specifically for TVA employees. 
+        You can generate perfectly-crafted Copilot prompts for Word, Excel, Outlook, and Teams, get instant help with confusing features or error messages, 
+        and troubleshoot issues in plain, step-by-step language. The tool also includes learning modules with TVA-friendly examples, 
+        so you can build your skills while working on real-world tasks.
+      </p>
+    </div>
+
+    <!-- Feature Cards -->
+    <div class="feature-grid">
+      <a class="feature-card" href="{{ url_for('prompt_builder') }}">
+        <i class="fas fa-magic"></i>
+        <h3>Copilot Prompt Generator</h3>
+        <p>Create perfect, context-aware Microsoft Copilot prompts for any app or task, tailored to your role at TVA.</p>
+      </a>
+
+      <!-- Fixed to ask_help -->
+      <a class="feature-card" href="{{ url_for('ask_help') }}">
+        <i class="fas fa-comments"></i>
+        <h3>AI Help for Microsoft 365 Apps</h3>
+        <p>Ask questions about Word, Excel, Outlook, or Teams and get clear, beginner-friendly explanations instantly.</p>
+      </a>
+
+      <a class="feature-card" href="{{ url_for('troubleshooter') }}">
+        <i class="fas fa-tools"></i>
+        <h3>Microsoft 365 Troubleshooter</h3>
+        <p>Enter error codes or describe your issue to get step-by-step “for dummies” style fixes and a ready-to-use Copilot prompt.</p>
+      </a>
+
+      <a class="feature-card" href="{{ url_for('teach_me') }}">
+        <i class="fas fa-book-open"></i>
+        <h3>Teach Me (Learning Modules)</h3>
+        <p>Learn how to use Microsoft 365 apps with role-relevant examples and guided lessons designed for TVA staff.</p>
+      </a>
+    </div>
+
+    <!-- Disclaimer -->
+    <div class="disclaimer">
+      <strong>⚠ TVA Use & Safety Notice:</strong> Do not enter or upload TVA-sensitive, personal, or confidential information.
+      This tool uses AI to provide guidance, step-by-step instructions, and troubleshooting for Microsoft 365. 
+      <a href="#" id="disclaimer-info">ⓘ Learn why we ask this</a>
+    </div>
+
+    <!-- Disclaimer Modal -->
+    <div id="disclaimer-modal" class="modal">
+      <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2>Why This Disclaimer Matters</h2>
+        <ul>
+          <li><strong>Data Security:</strong> TVA follows strict rules to protect sensitive and personal information.</li>
+          <li><strong>AI Usage:</strong> This tool uses AI to give guidance. Anything you enter may be processed by AI services.</li>
+          <li><strong>Approved Use:</strong> The tool is for learning, productivity, and workplace support in compliance with TVA policies.</li>
+          <li><strong>Your Role:</strong> Avoid entering anything that would be restricted or confidential in TVA systems.</li>
+        </ul>
+      </div>
+    </div>
+
+    <footer>
+      © TVA SQN Copilot Companion
+    </footer>
+  </div>
+
+  <script>
+    const modal = document.getElementById("disclaimer-modal");
+    const link = document.getElementById("disclaimer-info");
+    const closeBtn = document.querySelector(".close");
+
+    link.addEventListener("click", function(e) {
+      e.preventDefault();
+      modal.style.display = "block";
+    });
+    closeBtn.addEventListener("click", function() {
+      modal.style.display = "none";
+    });
+    window.addEventListener("click", function(e) {
+      if (e.target === modal) {
+        modal.style.display = "none";
+      }
+    });
+  </script>
+</body>
+</html>

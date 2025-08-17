@@ -1,0 +1,70 @@
+<nav class="sqn-nav">
+  <div class="sqn-nav-inner">
+    <a href="{{ url_for('home') }}"
+       class="sqn-nav-link {% if active_page == 'home' %}active{% endif %}">Home</a>
+
+    <!-- Fixed: Now points to help_page route -->
+    <a href="{{ url_for('help_page') }}"
+       class="sqn-nav-link {% if active_page == 'help' %}active{% endif %}">Help Desk</a>
+
+    <!-- Ask for Help -->
+    <a href="{{ url_for('ask_help') }}"
+       class="sqn-nav-link {% if active_page == 'ask_help' %}active{% endif %}">Ask for Help</a>
+
+    <a href="{{ url_for('prompt_builder') }}"
+       class="sqn-nav-link {% if active_page == 'prompt_builder' %}active{% endif %}">Prompt Builder</a>
+
+    <!-- Learn page -->
+    <a href="{{ url_for('teach_me') }}"
+       class="sqn-nav-link {% if active_page == 'teach_me' %}active{% endif %}">Learn</a>
+
+    <span class="sqn-nav-spacer"></span>
+
+    <a href="{{ url_for('logout') }}" class="sqn-nav-link">Log out</a>
+  </div>
+</nav>
+
+<style>
+  .sqn-nav {
+    background: #002855;
+    border-bottom: 1px solid #001a3d;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  }
+  .sqn-nav-inner {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 10px 18px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  .sqn-nav-link {
+    color: #ffffff;
+    text-decoration: none;
+    font-weight: 600;
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    line-height: 1;
+    display: inline-block;
+  }
+  .sqn-nav-link:hover {
+    background: rgba(255,255,255,0.12);
+    border-color: rgba(255,255,255,0.25);
+  }
+  .sqn-nav-link.active {
+    background: #ffc72c;
+    color: #002855;
+    border-color: #e6b300;
+  }
+  .sqn-nav-spacer { flex: 1; }
+
+  @media (max-width: 700px) {
+    .sqn-nav-inner { padding: 8px 12px; gap: 8px; }
+    .sqn-nav-link { padding: 7px 10px; font-size: 15px; }
+  }
+</style>

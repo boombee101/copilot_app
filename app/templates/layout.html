@@ -1,0 +1,105 @@
+<!-- =============================
+FILE: templates/layout.html
+Base layout for all pages. Sidebar + header + content block.
+============================= -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{{ page_title or 'SQN Copilot Companion' }}</title>
+  <style>
+    :root{
+      --tva-navy:#002855; /* primary */
+      --tva-blue:#004e98; /* accents */
+      --tva-slate:#5b6b7a; /* secondary text */
+      --tva-bg:#f1f6fb; /* page background */
+      --card:#ffffff; /* cards */
+      --ok:#116149; /* success */
+      --warn:#8a3b12; /* warning */
+      --shadow:0 10px 30px rgba(0,0,0,.08);
+      --radius:16px;
+      --gap:18px;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:"Segoe UI",Tahoma,Arial,sans-serif;background:var(--tva-bg);color:var(--tva-navy)}
+    a{color:var(--tva-blue);text-decoration:none}
+    .app{display:grid;grid-template-columns:280px 1fr;min-height:100vh}
+    .sidebar{background:#0b2e59;color:#fff;position:sticky;top:0;height:100vh;padding:28px 20px}
+    .brand{display:flex;align-items:center;gap:12px;margin-bottom:28px}
+    .brand .logo{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#3170c7,#0b2e59)}
+    .brand h1{font-size:18px;line-height:1.2;margin:0}
+    .nav{display:flex;flex-direction:column;gap:6px}
+    .nav a{padding:10px 12px;border-radius:10px;color:#d7e7ff;display:flex;justify-content:space-between}
+    .nav a:hover,.nav a.active{background:rgba(255,255,255,.12);color:#fff}
+
+    header{background:#ffffff;box-shadow:var(--shadow);position:sticky;top:0;z-index:2}
+    .bar{display:flex;align-items:center;justify-content:space-between;padding:14px 22px}
+    .bar .title{font-size:18px;color:var(--tva-navy);font-weight:600}
+    .bar .meta{font-size:12px;color:var(--tva-slate)}
+
+    main{padding:28px}
+    .grid{display:grid;grid-template-columns:1.35fr .65fr;gap:var(--gap)}
+    .card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px}
+    .card h2{margin:0 0 8px 0;font-size:18px}
+    .sub{color:var(--tva-slate);font-size:13px;margin:0 0 14px}
+    .field{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
+    label{font-size:13px;color:var(--tva-slate)}
+    select,textarea,input[type=text]{width:100%;padding:12px 12px;border:1px solid #dbe6f3;border-radius:12px;background:#fbfdff;font-size:14px;color:#0a2b4f}
+    textarea{min-height:120px;resize:vertical}
+    .row{display:flex;gap:10px;flex-wrap:wrap}
+    .btn{appearance:none;border:0;border-radius:12px;padding:12px 16px;background:var(--tva-blue);color:#fff;font-weight:600;cursor:pointer}
+    .btn.secondary{background:#e9f0fb;color:#0a2b4f}
+    .btn.ghost{background:transparent;border:1px solid #cfe1fb;color:#0a2b4f}
+
+    .result-wrap{display:grid;grid-template-columns:1fr 1fr;gap:var(--gap)}
+    .result-title{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+    .badge{font-size:11px;border-radius:999px;padding:4px 8px;background:#ecf5ef;color:var(--ok);border:1px solid #cfe9da}
+    pre{white-space:pre-wrap;word-wrap:break-word;margin:0;background:#f8fbff;border:1px solid #e4eefb;border-radius:12px;padding:14px;font-size:13px;color:#0a2b4f}
+
+    .helper{display:grid;gap:var(--gap)}
+    .helper .quick{display:grid;gap:8px}
+    .disclosure{font-size:12px;color:#42586f;background:#f7fbff;border:1px solid #d9e8fa;border-radius:12px;padding:12px}
+
+    /* Mobile */
+    @media (max-width: 1024px){
+      .app{grid-template-columns:1fr}
+      .sidebar{height:auto;position:relative}
+      .grid{grid-template-columns:1fr}
+      .result-wrap{grid-template-columns:1fr}
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="logo" aria-hidden="true"></div>
+      <h1>SQN Copilot Companion<br><span style="font-weight:400;opacity:.8">for Microsoft 365</span></h1>
+    </div>
+    <nav class="nav">
+  <a class="{{ 'active' if (active_page=='home') else '' }}" href="{{ url_for('home') }}">Home<span>›</span></a>
+  <a class="{{ 'active' if (active_page=='teach') else '' }}" href="/help">Teach Me<span>›</span></a>
+  <a class="{{ 'active' if (active_page=='troubleshooter') else '' }}" href="{{ url_for('troubleshooter') }}">Troubleshooter<span>›</span></a>
+  <a href="{{ url_for('logout') }}">Logout<span>›</span></a>
+</nav>
+
+  </aside>
+
+  <!-- Content -->
+  <section>
+    <header>
+      <div class="bar">
+        <div class="title">{{ header_title or 'SQN Copilot Companion' }}</div>
+        <div class="meta">{{ page_meta or 'Beginner‑friendly guidance • Manual steps + Copilot prompts' }}</div>
+      </div>
+    </header>
+
+    <main>
+      {% block content %}{% endblock %}
+    </main>
+  </section>
+</div>
+</body>
+</html>

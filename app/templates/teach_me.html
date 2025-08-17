@@ -1,0 +1,128 @@
+<!-- teach_me.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teach Me - TVA Copilot Companion</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        body {
+            font-family: "Segoe UI", Tahoma, sans-serif;
+            margin: 0;
+            background-color: #f0f4f9;
+            color: #003366;
+        }
+        /* Sidebar */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 220px;
+            height: 100%;
+            background-color: #002855;
+            padding-top: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .sidebar a {
+            color: white;
+            padding: 12px;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            width: 100%;
+            justify-content: flex-start;
+            gap: 10px;
+            transition: background 0.3s;
+        }
+        .sidebar a:hover {
+            background-color: #004080;
+        }
+        .sidebar a.active {
+            background-color: #0055a5;
+        }
+        /* Main Content */
+        .main {
+            margin-left: 240px;
+            padding: 20px;
+        }
+        h1 {
+            font-size: 26px;
+            margin-bottom: 15px;
+        }
+        select, button {
+            font-size: 15px;
+            padding: 8px;
+        }
+        button {
+            background-color: #0055a5;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #003f7d;
+        }
+        .lesson-content {
+            background-color: #e6f0ff;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+            line-height: 1.5;
+        }
+        /* Footer */
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            font-size: 13px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <a href="{{ url_for('home') }}">🏠 Home</a>
+        <a href="{{ url_for('teach_me') }}" class="active">📘 Teach Me</a>
+        <a href="{{ url_for('troubleshooter') }}">🛠️ Troubleshooter</a>
+        <a href="{{ url_for('prompt_builder') }}">✏️ Prompt Builder</a>
+        <a href="{{ url_for('logout') }}">🚪 Logout</a>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main" id="main-content">
+        <h1>Teach Me</h1>
+        <p>Pick a Microsoft 365 app and get a super simple, beginner-friendly lesson that explains everything step-by-step, like a real “for dummies” guide.</p>
+        
+        <form method="POST" action="{{ url_for('teach_me') }}">
+            <label for="app_select">Choose your app:</label><br>
+            <select id="app_select" name="app" required>
+                <option value="">-- Select an app --</option>
+                <option value="Word">Word</option>
+                <option value="Excel">Excel</option>
+                <option value="Outlook">Outlook</option>
+                <option value="Teams">Teams</option>
+                <option value="PowerPoint">PowerPoint</option>
+            </select><br><br>
+            
+            <button type="submit">Get Lesson</button>
+        </form>
+
+        {% if lesson %}
+            <div class="lesson-content">
+                {{ lesson|safe }}
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        TVA Copilot Companion — Helping you master Microsoft 365
+    </footer>
+
+</body>
+</html>
