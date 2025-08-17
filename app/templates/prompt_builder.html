@@ -1,153 +1,233 @@
-<!-- prompt_builder.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Prompt Builder - TVA Copilot Companion</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Copilot Prompt Builder</title>
   <style>
-    body { font-family: "Segoe UI", Tahoma, sans-serif; margin: 0; background-color: #f0f4f9; color: #003366; }
-    /* Sidebar */
-    .sidebar { position: fixed; left: 0; top: 0; width: 220px; height: 100%; background-color: #002855; padding-top: 30px; display: flex; flex-direction: column; align-items: center; }
-    .sidebar a { color: white; padding: 12px; text-decoration: none; display: flex; align-items: center; width: 100%; justify-content: flex-start; gap: 10px; transition: background 0.3s; }
-    .sidebar a:hover { background-color: #004080; }
-    .sidebar a.active { background-color: #0055a5; }
-    /* Main Content */
-    .main { margin-left: 240px; padding: 20px; max-width: 800px; }
-    h1 { font-size: 26px; margin-bottom: 10px; }
-    select, textarea, input[type="text"] { width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 6px; border: 1px solid #ccc; font-family: inherit; }
-    textarea { min-height: 100px; }
-    button { background-color: #0055a5; color: white; padding: 10px 18px; border: none; border-radius: 6px; cursor: pointer; font-size: 15px; }
-    button:hover { background-color: #003f7d; }
-    .question-box { background-color: #e6f0ff; padding: 15px; border-radius: 6px; margin-bottom: 10px; }
-    .prompt-output { background-color: #ffffff; padding: 15px; border: 1px solid #ccc; border-radius: 6px; white-space: pre-wrap; margin-top: 10px; }
-    .explanation { margin-top: 15px; padding: 12px; background: #f9f9f9; border-left: 4px solid #0055a5; border-radius: 6px; font-size: 14px; color: #333; }
-    footer { text-align: center; margin-top: 30px; font-size: 13px; color: #666; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, sans-serif;
+      background-color: #f4f7fb;
+      color: #003366;
+      padding: 20px;
+    }
+    .container {
+      max-width: 800px;
+      margin: auto;
+      background: white;
+      padding: 25px;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      transition: opacity .3s ease;
+    }
+    h1 {
+      margin-top: 0;
+      font-size: 24px;
+      text-align: center;
+    }
+    .question-block {
+      margin-top: 20px;
+    }
+    .question-text {
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    textarea, input {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 15px;
+      resize: vertical;
+    }
+    button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      background: linear-gradient(90deg, #004080, #0055a5);
+      color: white;
+      cursor: pointer;
+      margin-right: 10px;
+      transition: background 0.2s;
+    }
+    button:hover {
+      background: linear-gradient(90deg, #003366, #004080);
+    }
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+    .loading {
+      font-style: italic;
+      color: #666;
+      margin-top: -10px;
+      margin-bottom: 15px;
+    }
+    .answers-log {
+      margin-top: 20px;
+      padding: 10px;
+      border-left: 3px solid #004080;
+      background: #f0f4fa;
+      font-size: 14px;
+    }
+    .prompt-output {
+      width: 100%;
+      height: 150px;
+      margin-top: 15px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      background: #fafafa;
+      font-family: monospace;
+      white-space: pre-wrap;
+    }
+    .explanation {
+      margin-top: 15px;
+      padding: 10px;
+      background: #f9f9f9;
+      border-left: 3px solid #004080;
+    }
   </style>
 </head>
 <body>
+  <div class="container" id="builder-container">
+    <h1>Copilot Prompt Builder</h1>
+    <div id="progress">Step 1 of 3</div>
 
-  <!-- Sidebar -->
-  <div class="sidebar">
-    <a href="{{ url_for('home') }}">🏠 Home</a>
-    <a href="{{ url_for('teach_me') }}">📘 Teach Me</a>
-    <a href="{{ url_for('troubleshooter') }}">🛠️ Troubleshooter</a>
-    <a href="{{ url_for('prompt_builder') }}" class="active">✏️ Prompt Builder</a>
-    <a href="{{ url_for('logout') }}">🚪 Logout</a>
-  </div>
-
-  <!-- Main Content -->
-  <div class="main">
-    <h1>Prompt Builder</h1>
-    <p>Pick your Microsoft 365 app and describe your goal. The AI will ask follow-up questions if needed. If enough detail is already provided, it will generate the perfect Copilot prompt immediately.</p>
-    
-    <!-- Step 1: Start form -->
-    <div id="start-section">
-      <label for="app">Choose your app:</label>
-      <select id="app" required>
-        <option value="">-- Select an app --</option>
-        <option>Word</option>
-        <option>Excel</option>
-        <option>Outlook</option>
-        <option>Teams</option>
-        <option>PowerPoint</option>
-        <option>OneNote</option>
+    <!-- Step 1: Choose app + task -->
+    <div id="step1" class="question-block">
+      <div class="question-text">Pick your Microsoft 365 app:</div>
+      <select id="app-select">
+        <option value="Word">Word</option>
+        <option value="Excel">Excel</option>
+        <option value="Outlook">Outlook</option>
+        <option value="Teams">Teams</option>
+        <option value="PowerPoint">PowerPoint</option>
       </select>
-
-      <label for="goal">Describe your goal:</label>
-      <textarea id="goal" placeholder="Example: Create a summary of my meeting notes with key action items" required></textarea>
-
-      <button onclick="startPromptBuilder()">Start</button>
+      <div class="question-text">Describe what you need help with:</div>
+      <textarea id="task" placeholder="Example: I need to change the text size"></textarea>
+      <button onclick="startBuilder()">Start</button>
     </div>
 
-    <!-- Step 2: Follow-up Q&A -->
-    <div id="question-section" style="display:none;">
-      <div class="question-box" id="current-question"></div>
-      <input type="text" id="answer" placeholder="Type your answer here..." />
+    <!-- Step 2: Follow-up questions -->
+    <div id="step2" class="question-block" style="display:none;">
+      <div id="question-text" class="question-text"></div>
+      <textarea id="answer" placeholder="Type your answer here..."></textarea>
+      <div id="loading" class="loading" style="display:none;">Thinking...</div>
       <button onclick="sendAnswer()">Next</button>
+      <button onclick="sendAnswer(true)">Skip</button>
+      <button onclick="resetBuilder()">Start Over</button>
+      <div class="answers-log" id="answers-log"></div>
     </div>
 
-    <!-- Step 3: Final prompt -->
-    <div id="final-section" style="display:none;">
-      <h2>Your Copilot Prompt:</h2>
-      <div class="prompt-output" id="final-prompt"></div>
-      <div class="explanation" id="prompt-explanation"></div>
-      <button onclick="copyPrompt()">Copy Prompt</button>
-      <button onclick="resetBuilder()">Start Over</button>
+    <!-- Step 3: Final output -->
+    <div id="step3" class="question-block" style="display:none;">
+      <div class="question-text">✅ Your Copilot Prompt</div>
+      <textarea id="final-prompt" readonly class="prompt-output"></textarea>
+      <button onclick="copyPrompt()" title="Copy to clipboard">Copy Prompt</button>
+
+      <div id="manual-steps" class="explanation" style="display:none;"></div>
     </div>
   </div>
-
-  <footer>
-    TVA Copilot Companion — Powered by AI for Microsoft 365
-  </footer>
 
   <script>
-    async function startPromptBuilder() {
-      const app = document.getElementById("app").value;
-      const goal = document.getElementById("goal").value;
-      if (!app || !goal) {
-        alert("Please select an app and enter your goal.");
+    let appSelected = "";
+    let task = "";
+    let answers = [];
+
+    async function startBuilder() {
+      appSelected = document.getElementById("app-select").value;
+      task = document.getElementById("task").value.trim();
+      if (!task) {
+        alert("Please describe what you need help with.");
+        return;
+      }
+      document.getElementById("step1").style.display = "none";
+      document.getElementById("step2").style.display = "block";
+      document.getElementById("progress").innerText = "Step 2 of 3";
+      fetchQuestion();
+    }
+
+    async function fetchQuestion() {
+      document.getElementById("loading").style.display = "block";
+      try {
+        const resp = await fetch("/next_question", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ app: appSelected, task: task, answers: answers })
+        });
+        const data = await resp.json();
+        document.getElementById("loading").style.display = "none";
+
+        if (data.done) {
+          showFinal(data);
+        } else {
+          document.getElementById("question-text").innerText = data.question;
+        }
+      } catch (err) {
+        document.getElementById("loading").style.display = "none";
+        alert("Error talking to AI: " + err);
+      }
+    }
+
+    async function sendAnswer(skip=false) {
+      const answerField = document.getElementById("answer");
+      const answer = skip ? "" : answerField.value.trim();
+      if (!skip && !answer) {
+        alert("Please type an answer or press Skip.");
         return;
       }
 
-      const res = await fetch("/prompt_builder/start", {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({ app, goal })
-      });
-      const data = await res.json();
+      // Log previous Q&A
+      const qText = document.getElementById("question-text").innerText;
+      const log = document.getElementById("answers-log");
+      log.innerHTML += `<div><strong>Q:</strong> ${qText}<br/><strong>A:</strong> ${answer || "(skipped)"}</div><hr/>`;
 
-      document.getElementById("start-section").style.display = "none";
-
-      if (data.final_prompt) {
-        showFinalPrompt(data.final_prompt, data.explanation);
-      } else if (data.question) {
-        document.getElementById("question-section").style.display = "block";
-        document.getElementById("current-question").innerText = data.question;
-      }
+      answers.push({ question: qText, answer: answer });
+      answerField.value = "";
+      fetchQuestion();
     }
 
-    async function sendAnswer() {
-      const answer = document.getElementById("answer").value;
-      if (!answer.trim()) {
-        alert("Please enter an answer.");
-        return;
+    function showFinal(data) {
+      document.getElementById("step2").style.display = "none";
+      document.getElementById("step3").style.display = "block";
+      document.getElementById("progress").innerText = "Step 3 of 3";
+      document.getElementById("final-prompt").value = data.prompt;
+
+      if (data.manual_steps) {
+        document.getElementById("manual-steps").style.display = "block";
+        document.getElementById("manual-steps").innerText = data.manual_steps;
       }
-
-      const res = await fetch("/prompt_builder/answer", {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({ answer })
-      });
-      const data = await res.json();
-
-      if (data.final_prompt) {
-        showFinalPrompt(data.final_prompt, data.explanation);
-      } else if (data.question) {
-        document.getElementById("current-question").innerText = data.question;
-        document.getElementById("answer").value = "";
-      }
-    }
-
-    function showFinalPrompt(prompt, explanation) {
-      document.getElementById("question-section").style.display = "none";
-      document.getElementById("final-section").style.display = "block";
-      document.getElementById("final-prompt").innerText = prompt;
-      document.getElementById("prompt-explanation").innerText = explanation || "";
-    }
-
-    function copyPrompt() {
-      navigator.clipboard.writeText(document.getElementById("final-prompt").innerText);
-      alert("Prompt copied to clipboard!");
     }
 
     function resetBuilder() {
-      document.getElementById("start-section").style.display = "block";
-      document.getElementById("question-section").style.display = "none";
-      document.getElementById("final-section").style.display = "none";
-      document.getElementById("app").value = "";
-      document.getElementById("goal").value = "";
+      if (!confirm("Are you sure you want to start over?")) return;
+      answers = [];
+      document.getElementById("step1").style.display = "block";
+      document.getElementById("step2").style.display = "none";
+      document.getElementById("step3").style.display = "none";
+      document.getElementById("progress").innerText = "Step 1 of 3";
+      document.getElementById("answers-log").innerHTML = "";
+      document.getElementById("task").value = "";
     }
+
+    function copyPrompt() {
+      const text = document.getElementById("final-prompt");
+      text.select();
+      text.setSelectionRange(0, 99999);
+      document.execCommand("copy");
+      alert("Prompt copied to clipboard!");
+    }
+
+    // Enter to submit
+    document.getElementById("answer").addEventListener("keydown", function(e) {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        sendAnswer();
+      }
+    });
   </script>
 </body>
 </html>

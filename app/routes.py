@@ -1,5 +1,5 @@
 from flask import render_template, request, redirect, session, url_for, jsonify
-import os, uuid, csv
+import os, csv
 from app.helpers import ai_chat, get_data, log_prompt_to_csv
 
 # Load APP_PASSWORD from environment
@@ -39,29 +39,35 @@ def init_routes(app):
     def prompt_builder():
         if not session.get('logged_in'):
             return redirect(url_for('login'))
-        session['pb_conversation'] = []
-        session['pb_meta'] = {}
         return render_template('prompt_builder.html')
 
-    @app.route('/prompt_builder/start', methods=['POST'])
-    def prompt_builder_start():
+    @app.route('/next_question', methods=['POST'])
+    def next_question():
         if not session.get('logged_in'):
             return jsonify({"error": "Not logged in"}), 403
+
         data = get_data()
-        app_name = data.get('app', '').strip()
-        goal = data.get('goal', '').strip()
-        if not app_name or not goal:
-            return jsonify({"error": "Please select an app and enter your goal."}), 400
+        app_name = data.get("app", "").strip()
+        task = data.get("task", "").strip()
+        answers = data.get("answers", [])
 
-        convo = [{"role": "user", "content": f"App: {app_name}\nGoal: {goal}"}]
-        session['pb_conversation'] = convo
-        session['pb_meta'] = {"app": app_name, "goal": goal}
+        if not app_name or not task:
+            return jsonify({"error": "Missing app or task"}), 400
 
-        # Decide if enough info already
+        # Build conversation from answers
+        convo = [
+            {"role": "system", "content": "You are a helpful Copilot prompt engineer for TVA employees."},
+            {"role": "user", "content": f"App: {app_name}\nGoal: {task}"}
+        ]
+        for qa in answers:
+            q = qa.get("question", "")
+            a = qa.get("answer", "")
+            convo.append({"role": "assistant", "content": q})
+            convo.append({"role": "user", "content": a})
+
+        # Check if enough info is gathered
         enough = ai_chat([
-            {"role": "system", "content":
-             "Do we already have enough detail to create a strong Copilot prompt? "
-             "Answer EXACTLY 'YES' or 'NO'."}
+            {"role": "system", "content": "Do we now have enough detail to create a strong Copilot prompt? Answer EXACTLY 'YES' or 'NO'."}
         ] + convo)
 
         if enough.strip().upper() == "YES":
@@ -70,56 +76,10 @@ def init_routes(app):
                     "You are an expert Copilot Prompt writer. "
                     "Generate the final Microsoft Copilot prompt from the conversation. "
                     "Then explain in 2-3 sentences WHY this is a great prompt. "
-                    "Format the response as:\nPROMPT: ...\nEXPLANATION: ...")}
+                    "Format as:\nPROMPT: ...\nEXPLANATION: ...")}
             ] + convo)
 
-            if "EXPLANATION:" in final_response:
-                prompt_text, explanation = final_response.split("EXPLANATION:", 1)
-                prompt_text = prompt_text.replace("PROMPT:", "").strip()
-                explanation = explanation.strip()
-            else:
-                prompt_text, explanation = final_response.strip(), ""
-
-            log_prompt_to_csv(goal, prompt_text, explanation)
-            return jsonify({"final_prompt": prompt_text, "explanation": explanation})
-
-        # Otherwise ask first question
-        question = ai_chat([
-            {"role": "system", "content": (
-                "Ask one specific follow-up question to clarify the user's goal. "
-                "Keep it very beginner-friendly and simple.")}
-        ] + convo)
-        return jsonify({"question": question})
-
-    @app.route('/prompt_builder/answer', methods=['POST'])
-    def prompt_builder_answer():
-        if not session.get('logged_in'):
-            return jsonify({"error": "Not logged in"}), 403
-        data = get_data()
-        answer = data.get('answer', '').strip()
-        if not answer:
-            return jsonify({"error": "Please enter an answer."}), 400
-
-        convo = session.get('pb_conversation', [])
-        meta = session.get('pb_meta', {})
-        convo.append({"role": "user", "content": answer})
-        session['pb_conversation'] = convo
-
-        enough = ai_chat([
-            {"role": "system", "content":
-             "Do we now have enough detail to create a strong Copilot prompt? "
-             "Answer EXACTLY 'YES' or 'NO'."}
-        ] + convo)
-
-        if enough.strip().upper() == "YES":
-            final_response = ai_chat([
-                {"role": "system", "content": (
-                    "You are an expert Copilot Prompt writer. "
-                    "Generate the final Microsoft Copilot prompt from the conversation. "
-                    "Then explain in 2-3 sentences WHY this is a great prompt. "
-                    "Format the response as:\nPROMPT: ...\nEXPLANATION: ...")}
-            ] + convo)
-
+            # Parse out prompt vs explanation
             if "EXPLANATION:" in final_response:
                 prompt_text, explanation = final_response.split("EXPLANATION:", 1)
                 prompt_text = prompt_text.replace("PROMPT:", "").strip()
@@ -128,17 +88,22 @@ def init_routes(app):
                 prompt_text, explanation = final_response.strip(), ""
 
             try:
-                log_prompt_to_csv(meta.get('goal', ''), prompt_text, explanation)
+                log_prompt_to_csv(task, prompt_text, explanation)
             except Exception:
                 pass
-            return jsonify({"final_prompt": prompt_text, "explanation": explanation})
 
-        # Otherwise, keep asking
+            return jsonify({
+                "done": True,
+                "prompt": prompt_text,
+                "manual_steps": explanation
+            })
+
+        # Otherwise return next question
         next_q = ai_chat([
-            {"role": "system", "content":
-             "Ask exactly one helpful follow-up question to clarify the user's goal. Keep it simple."}
+            {"role": "system", "content": "Ask one simple, clear follow-up question to clarify the user's goal."}
         ] + convo)
-        return jsonify({"question": next_q})
+
+        return jsonify({"done": False, "question": next_q})
 
     # =========================
     # Troubleshooter
