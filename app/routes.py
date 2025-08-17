@@ -17,6 +17,8 @@ def init_routes(app):
         if request.method == 'POST':
             if (request.form.get('password') or '').strip() == (APP_PASSWORD or ''):
                 session['logged_in'] = True
+                # Reset builder session
+                session['pb_convo'] = []
                 return redirect(url_for('home'))
             error = "Invalid password"
         return render_template('login.html', error=error)
@@ -39,33 +41,30 @@ def init_routes(app):
     def prompt_builder():
         if not session.get('logged_in'):
             return redirect(url_for('login'))
+        # Reset conversation when loading fresh page
+        session['pb_convo'] = []
         return render_template('prompt_builder.html')
 
-    @app.route('/next_question', methods=['POST'])
-    def next_question():
+    @app.route('/prompt_builder/start', methods=['POST'])
+    def pb_start():
         if not session.get('logged_in'):
             return jsonify({"error": "Not logged in"}), 403
 
-        data = get_data()
-        app_name = data.get("app", "").strip()
-        task = data.get("task", "").strip()
-        answers = data.get("answers", [])
+        data = request.get_json(force=True)
+        app_name = (data.get("app") or "").strip()
+        goal = (data.get("goal") or "").strip()
 
-        if not app_name or not task:
-            return jsonify({"error": "Missing app or task"}), 400
+        if not app_name or not goal:
+            return jsonify({"error": "Missing app or goal"}), 400
 
-        # Build conversation from answers
+        # Build initial conversation
         convo = [
             {"role": "system", "content": "You are a helpful Copilot prompt engineer for TVA employees."},
-            {"role": "user", "content": f"App: {app_name}\nGoal: {task}"}
+            {"role": "user", "content": f"App: {app_name}\nGoal: {goal}"}
         ]
-        for qa in answers:
-            q = qa.get("question", "")
-            a = qa.get("answer", "")
-            convo.append({"role": "assistant", "content": q})
-            convo.append({"role": "user", "content": a})
+        session['pb_convo'] = convo
 
-        # Check if enough info is gathered
+        # Check if enough info already
         enough = ai_chat([
             {"role": "system", "content": "Do we now have enough detail to create a strong Copilot prompt? Answer EXACTLY 'YES' or 'NO'."}
         ] + convo)
@@ -79,7 +78,6 @@ def init_routes(app):
                     "Format as:\nPROMPT: ...\nEXPLANATION: ...")}
             ] + convo)
 
-            # Parse out prompt vs explanation
             if "EXPLANATION:" in final_response:
                 prompt_text, explanation = final_response.split("EXPLANATION:", 1)
                 prompt_text = prompt_text.replace("PROMPT:", "").strip()
@@ -88,22 +86,79 @@ def init_routes(app):
                 prompt_text, explanation = final_response.strip(), ""
 
             try:
-                log_prompt_to_csv(task, prompt_text, explanation)
+                log_prompt_to_csv(goal, prompt_text, explanation)
             except Exception:
                 pass
 
             return jsonify({
-                "done": True,
-                "prompt": prompt_text,
-                "manual_steps": explanation
+                "final_prompt": prompt_text,
+                "explanation": explanation
             })
 
-        # Otherwise return next question
+        # Otherwise return first follow-up
         next_q = ai_chat([
             {"role": "system", "content": "Ask one simple, clear follow-up question to clarify the user's goal."}
         ] + convo)
 
-        return jsonify({"done": False, "question": next_q})
+        return jsonify({"question": next_q})
+
+    @app.route('/prompt_builder/answer', methods=['POST'])
+    def pb_answer():
+        if not session.get('logged_in'):
+            return jsonify({"error": "Not logged in"}), 403
+
+        data = request.get_json(force=True)
+        answer = (data.get("answer") or "").strip()
+        convo = session.get('pb_convo', [])
+
+        # Append last Q + user answer into convo
+        if convo and convo[-1]['role'] == 'assistant':
+            convo.append({"role": "user", "content": answer})
+        else:
+            # Fallback: just append as user answer
+            convo.append({"role": "user", "content": answer})
+        session['pb_convo'] = convo
+
+        # Check if enough info now
+        enough = ai_chat([
+            {"role": "system", "content": "Do we now have enough detail to create a strong Copilot prompt? Answer EXACTLY 'YES' or 'NO'."}
+        ] + convo)
+
+        if enough.strip().upper() == "YES":
+            final_response = ai_chat([
+                {"role": "system", "content": (
+                    "You are an expert Copilot Prompt writer. "
+                    "Generate the final Microsoft Copilot prompt from the conversation. "
+                    "Then explain in 2-3 sentences WHY this is a great prompt. "
+                    "Format as:\nPROMPT: ...\nEXPLANATION: ...")}
+            ] + convo)
+
+            if "EXPLANATION:" in final_response:
+                prompt_text, explanation = final_response.split("EXPLANATION:", 1)
+                prompt_text = prompt_text.replace("PROMPT:", "").strip()
+                explanation = explanation.strip()
+            else:
+                prompt_text, explanation = final_response.strip(), ""
+
+            try:
+                log_prompt_to_csv("Prompt Builder", prompt_text, explanation)
+            except Exception:
+                pass
+
+            return jsonify({
+                "final_prompt": prompt_text,
+                "explanation": explanation
+            })
+
+        # Otherwise return next follow-up
+        next_q = ai_chat([
+            {"role": "system", "content": "Ask one simple, clear follow-up question to clarify the user's goal."}
+        ] + convo)
+
+        convo.append({"role": "assistant", "content": next_q})
+        session['pb_convo'] = convo
+
+        return jsonify({"question": next_q})
 
     # =========================
     # Troubleshooter
