@@ -1,6 +1,9 @@
 from flask import render_template, request, redirect, session, url_for, jsonify
 import os, uuid, csv
-from app import ai_chat, get_data, log_prompt_to_csv, APP_PASSWORD
+from app.helpers import ai_chat, get_data, log_prompt_to_csv
+
+# Load APP_PASSWORD from environment
+APP_PASSWORD = os.getenv("APP_PASSWORD")
 
 def init_routes(app):
     # =========================
