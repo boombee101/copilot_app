@@ -83,7 +83,7 @@
       border: none;
       border-radius: 6px;
       padding: 10px 18px;
-      margin: 6px 0;
+      margin: 6px 4px 6px 0;
       cursor: pointer;
       font-size: 14px;
     }
@@ -171,6 +171,15 @@
       margin-top: 10px;
       border-radius: 6px;
       display: none;
+      line-height: 1.6;
+    }
+    .explain-box h4 {
+      margin-top: 0;
+      color: #003366;
+    }
+    .explain-box ul {
+      padding-left: 20px;
+      margin: 6px 0;
     }
     .fade-in {
       animation: fadeIn 0.5s ease-in;
@@ -224,6 +233,7 @@
       <input type="text" id="answer" placeholder="Type your answer here..." />
       <button onclick="sendAnswer()">Send</button>
       <button class="btn-secondary" onclick="finalizePrompt()">Skip → Finalize</button>
+      <button style="background-color:#28a745;" onclick="finalizePrompt()">Finalize Now</button>
     </div>
 
     <!-- Section 3: Final Results -->
@@ -300,7 +310,12 @@
       const data = await res.json();
       showThinking(false);
 
-      if (data.reply) {
+      if (data.finalized) {
+        document.getElementById("question-section").style.display = "none";
+        document.getElementById("final-section").style.display = "block";
+        document.getElementById("final-prompt").textContent = data.copilot || "⚠️ No Copilot prompt.";
+        document.getElementById("manual-steps").textContent = data.manual || "⚠️ No manual steps.";
+      } else if (data.reply) {
         addMessage("ai", data.reply);
       }
     }
@@ -328,17 +343,25 @@
       }
       const box = document.getElementById("explain-box");
       box.style.display = "block";
-      box.textContent = "🤖 Explaining why this prompt works...";
+      box.innerHTML = "<em>🤖 Explaining why this prompt works...</em>";
 
       try {
-        const res = await fetch("/explain_question", {
+        const res = await fetch("/explain_prompt", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ question: prompt })
+          body: JSON.stringify({ prompt })
         });
         const data = await res.json();
         if (data.explanation) {
-          box.textContent = data.explanation;
+          box.innerHTML = `
+            <h4>🔎 Prompt Explanation</h4>
+            <div>
+              ${data.explanation
+                .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+                .replace(/[-•]\s/g, "<br>• ")
+                .replace(/\n/g, "<br>")}
+            </div>
+          `;
           box.classList.add("fade-in");
         } else {
           box.textContent = "⚠️ Sorry — could not generate explanation.";

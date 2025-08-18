@@ -63,12 +63,10 @@ def init_routes(app):
             {"role": "system", "content": (
                 "You are an assistant that helps build perfect Microsoft Copilot prompts. "
                 "Ask smart, beginner-friendly follow-up questions in plain language (like a 'for dummies' guide). "
-                "Keep them clear and simple. Once you have enough details, ONLY output clarifications until user finalizes. "
-                "When user requests finalization, output in exactly two sections:\n\n"
-                "===COPILOT PROMPT===\n"
-                "Final high-quality Copilot prompt.\n\n"
-                "===MANUAL STEPS===\n"
-                "Step-by-step manual instructions in plain beginner style."
+                "Keep them clear and simple. Do NOT finalize until explicitly asked. "
+                "When finalizing, output exactly two sections:\n\n"
+                "===COPILOT PROMPT===\nFinal Copilot prompt.\n\n"
+                "===MANUAL STEPS===\nStep-by-step beginner instructions."
             )},
             {"role": "user", "content": f"App: {app_choice}\nGoal: {goal}"}
         ]
@@ -82,7 +80,7 @@ def init_routes(app):
 
     @app.route('/pb_reply', methods=['POST'])
     def pb_reply():
-        """Handle user reply to a follow-up question or provide more details."""
+        """Handle user reply or detect final output inline."""
         if not session.get('logged_in'):
             return jsonify({"error": "Not logged in"}), 403
 
@@ -97,9 +95,25 @@ def init_routes(app):
 
         reply = ai_chat(convo)
         convo.append({"role": "assistant", "content": reply})
-
         session['pb_convo'] = convo
         session['pb_clarifications'] = session.get('pb_clarifications', 0) + 1
+
+        # Detect if model finalized inside the chat
+        if "===COPILOT PROMPT===" in reply:
+            parts = reply.split("===MANUAL STEPS===")
+            copilot_text = parts[0].replace("===COPILOT PROMPT===", "").strip()
+            manual_text = parts[1].strip() if len(parts) > 1 else ""
+
+            try:
+                log_prompt_to_csv(copilot_text, copilot_text, manual_text)
+            except Exception as e:
+                print("⚠️ Failed to log prompt:", e)
+
+            return jsonify({
+                "finalized": True,
+                "copilot": copilot_text,
+                "manual": manual_text
+            })
 
         return jsonify({"reply": reply})
 
@@ -114,10 +128,8 @@ def init_routes(app):
             "role": "user",
             "content": (
                 "Finalize now. IMPORTANT: Provide output in exactly two sections:\n\n"
-                "===COPILOT PROMPT===\n"
-                "Only the final Copilot prompt text.\n\n"
-                "===MANUAL STEPS===\n"
-                "Only the manual step-by-step instructions in beginner style."
+                "===COPILOT PROMPT===\nOnly the Copilot prompt.\n\n"
+                "===MANUAL STEPS===\nOnly manual beginner steps."
             )
         })
 
@@ -125,7 +137,6 @@ def init_routes(app):
         convo.append({"role": "assistant", "content": final})
         session['pb_convo'] = convo
 
-        # Split cleanly
         copilot_text, manual_text = "", ""
         if "===MANUAL STEPS===" in final:
             parts = final.split("===MANUAL STEPS===")
@@ -134,34 +145,52 @@ def init_routes(app):
         else:
             copilot_text = final.strip()
 
-        # Save to CSV log
         try:
             log_prompt_to_csv(copilot_text, copilot_text, manual_text)
         except Exception as e:
             print("⚠️ Failed to log prompt:", e)
 
-        return jsonify({
-            "copilot": copilot_text,
-            "manual": manual_text
-        })
+        return jsonify({"copilot": copilot_text, "manual": manual_text})
 
     # =========================
-    # Explain This Prompt
+    # Explain Prompt / Explain Question
     # =========================
+    @app.route('/explain_prompt', methods=['POST'])
+    def explain_prompt():
+        """Explain the FINAL Copilot prompt in beginner-friendly terms."""
+        if not session.get('logged_in'):
+            return jsonify({"error": "Not logged in"}), 403
+
+        data = get_data()
+        prompt_text = (data.get("prompt") or "").strip()
+        if not prompt_text:
+            return jsonify({"explanation": "No prompt provided to explain."})
+
+        convo = [
+            {"role": "system", "content": (
+                "You explain Microsoft Copilot prompts to beginners. "
+                "Write a short, friendly explanation that covers:\n"
+                "1) What this prompt will make Copilot do\n"
+                "2) What info it assumes / needs\n"
+                "3) Any data-safety or privacy cautions for a workplace\n"
+                "4) 2–3 optional tweaks to improve the prompt\n"
+                "Use plain language and short bullet points."
+            )},
+            {"role": "user", "content": f"Explain this Copilot prompt:\n{prompt_text}"}
+        ]
+        explanation = ai_chat(convo)
+        return jsonify({"explanation": explanation})
+
     @app.route('/explain_question', methods=['POST'])
     def explain_question():
-        """Explain why AI is asking a clarifying question."""
+        """Explain why AI asked a clarifying question (kept for the clarifications UI)."""
         if not session.get('logged_in'):
             return jsonify({"error": "Not logged in"}), 403
 
         data = get_data()
         question = (data.get("question") or "").strip()
-
         if not question:
-            return jsonify({"explanation": (
-                "This follow-up is asking for more detail. "
-                "If you're not sure, you can skip it or answer simply."
-            )})
+            return jsonify({"explanation": "This follow-up is asking for more detail so the prompt is precise."})
 
         convo = [
             {"role": "system", "content": (
@@ -170,12 +199,11 @@ def init_routes(app):
             )},
             {"role": "user", "content": f"Why is this question important? -> {question}"}
         ]
-
         explanation = ai_chat(convo)
         return jsonify({"explanation": explanation})
 
     # =========================
-    # Help Desk / Ask Help Page
+    # Help / Tools Pages
     # =========================
     @app.route('/ask_help')
     def ask_help():
@@ -183,18 +211,12 @@ def init_routes(app):
             return redirect(url_for('login'))
         return render_template('ask_help.html')
 
-    # =========================
-    # Troubleshooter
-    # =========================
     @app.route('/troubleshooter')
     def troubleshooter():
         if not session.get('logged_in'):
             return redirect(url_for('login'))
         return render_template('troubleshooter.html')
 
-    # =========================
-    # Teach Me
-    # =========================
     @app.route('/teach_me', methods=['GET', 'POST'])
     def teach_me():
         if not session.get('logged_in'):
