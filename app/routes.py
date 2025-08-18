@@ -62,8 +62,6 @@ def init_routes(app):
                 "You are a Copilot prompt engineer for TVA employees.\n"
                 "• Ask clarifications ONLY if essential.\n"
                 "• Clarifications must be written in plain, friendly, for-dummies style.\n"
-                "• For example, instead of 'Specify alignment for the photo', say "
-                "'Do you want your photo on the left, center, or right side of the page?'.\n"
                 "• When you have enough detail, STOP asking and generate the final Copilot prompt.\n"
                 "• The final Copilot prompt must be an instruction (never a question), concise, and paste-ready."
             )},
@@ -88,7 +86,6 @@ def init_routes(app):
         return continue_prompt_builder(convo, "Prompt Builder")
 
     def simplify_question(raw_question: str) -> str:
-        """Map robotic clarifications into friendlier plain-English ones."""
         mapping = {
             "Specify alignment for the photo": "Do you want your photo on the left, center, or right side of the page?",
             "Provide the data range": "Which rows and columns in your spreadsheet should I use? For example, A1 to D20.",
@@ -115,17 +112,14 @@ def init_routes(app):
         next_msg = ai_chat([
             {"role": "system", "content": (
                 "Give ONE short clarifying instruction in plain, beginner-friendly English. "
-                "Be clear and specific. Example: instead of 'Specify alignment for the photo', say "
-                "'Do you want your photo on the left, center, or right side of the page?'. "
-                "If the missing detail is minor or a default exists, DO NOT ask — assume the default. "
+                "Be clear and specific. If the missing detail is minor or a default exists, DO NOT ask — assume the default. "
                 "Output only the clarifying instruction."
             )}
         ] + convo)
 
-        next_msg = next_msg.strip().rstrip("?")
+        next_msg = next_msg.strip()
         session["pb_clarifications"] = clarification_count + 1
 
-        # Rephrase robotic wording to for-dummies tone
         friendly_msg = simplify_question(next_msg)
 
         convo.append({"role": "assistant", "content": friendly_msg})
@@ -162,14 +156,13 @@ def init_routes(app):
             explanation = explanation.strip()
 
             raw_lines = [s.strip() for s in steps_text.split("\n") if s.strip()]
-            manual_steps = []
-            for line in raw_lines:
-                manual_steps.append(line.lstrip("1234567890).•- ").strip())
+            manual_steps = [line.lstrip("1234567890).•- ").strip() for line in raw_lines]
         else:
             prompt_text = final_response.strip()
 
+        # 🚨 Guard: if AI accidentally gives a question, don’t treat as final
         if prompt_text.endswith("?"):
-            prompt_text = prompt_text.rstrip("?").strip()
+            return jsonify({"question": prompt_text, "history": convo})
 
         try:
             log_prompt_to_csv(goal_label, prompt_text, explanation)

@@ -7,98 +7,54 @@
   <title>Prompt Builder - TVA Copilot Companion</title>
   <style>
     body { font-family: "Segoe UI", Tahoma, sans-serif; margin: 0; background-color: #f0f4f9; color: #003366; }
-
     /* Sidebar */
-    .sidebar {
-      position: fixed; left: 0; top: 0; width: 220px; height: 100%;
-      background-color: #002855; padding: 20px 0; display: flex; flex-direction: column;
-    }
+    .sidebar { position: fixed; left: 0; top: 0; width: 220px; height: 100%; background-color: #002855; padding: 20px 0; display: flex; flex-direction: column; }
     .sidebar .brand { display:flex; align-items:center; justify-content:center; margin-bottom: 14px; }
     .sidebar .brand img { height: 48px; }
     .sidebar .title { color:#fff; text-align:center; font-weight:600; font-size:14px; margin: 8px 16px 18px; line-height:1.2; }
-    .nav-link {
-      color: #fff; text-decoration: none; padding: 12px 18px; border-left: 4px solid transparent;
-      display: block; transition: background .2s, border-color .2s;
-    }
+    .nav-link { color: #fff; text-decoration: none; padding: 12px 18px; border-left: 4px solid transparent; display: block; transition: background .2s, border-color .2s; }
     .nav-link:hover { background: #004080; }
     .nav-link.active { background:#0055a5; border-left-color:#ffcc00; }
     .spacer { flex: 1 1 auto; }
     .logout { margin-top: auto; }
-
     /* Main */
     .main { margin-left: 220px; padding: 22px; }
-    .card {
-      background:#fff; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,.08);
-      padding: 22px; max-width: 980px;
-    }
+    .card { background:#fff; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,.08); padding: 22px; max-width: 980px; }
     h1 { margin: 0 0 6px; font-size: 26px; }
     .sub { color:#335; margin-bottom: 16px; }
-
     label { font-weight: 600; display:block; margin:10px 0 6px; }
-    select, textarea, input[type="text"] {
-      width:100%; padding:10px; border-radius:8px; border:1px solid #cbd5e1; background:#fff;
-      font-family:inherit; font-size:15px;
-    }
+    select, textarea, input[type="text"] { width:100%; padding:10px; border-radius:8px; border:1px solid #cbd5e1; background:#fff; font-family:inherit; font-size:15px; }
     textarea { min-height: 100px; resize: vertical; }
-
     .btn-row { display:flex; gap:10px; flex-wrap:wrap; margin-top:10px; }
-    .btn {
-      background: #0055a5; color:#fff; border:none; border-radius:8px; padding:10px 16px;
-      cursor:pointer; font-size:15px;
-    }
+    .btn { background: #0055a5; color:#fff; border:none; border-radius:8px; padding:10px 16px; cursor:pointer; font-size:15px; }
     .btn.secondary { background:#486581; }
     .btn.ghost { background:#e9eef6; color:#153e75; }
     .btn:disabled { opacity:.6; cursor:not-allowed; }
     .btn:hover { filter: brightness(0.95); }
-
     /* Conversation */
-    .chat-box {
-      max-height: 360px; overflow-y: auto; padding: 16px;
-      background: #f8fbff; border-radius:12px; border:1px solid #d9e2ec;
-    }
+    .chat-box { max-height: 360px; overflow-y: auto; padding: 16px; background: #f8fbff; border-radius:12px; border:1px solid #d9e2ec; }
     .msg { margin-bottom: 14px; display:flex; }
     .msg.assistant { justify-content: flex-start; }
     .msg.user { justify-content: flex-end; }
-    .bubble {
-      padding:10px 14px; border-radius:14px; max-width:75%;
-      white-space: pre-wrap; line-height:1.4;
-    }
+    .bubble { padding:10px 14px; border-radius:14px; max-width:75%; white-space: pre-wrap; line-height:1.4; }
     .assistant .bubble { background:#e6f0ff; color:#002855; border:1px solid #cbd5e1; }
     .user .bubble { background:#0055a5; color:#fff; }
-
     .thinking { display:none; color:#5b6470; font-style: italic; margin-top: 6px; }
     .dots::after { content: ''; animation: dots 1.3s steps(3,end) infinite; }
     @keyframes dots { 0%{content:''} 33%{content:'.'} 66%{content:'..'} 100%{content:'...'} }
-
     /* Final Output */
-    .final-card {
-      margin-top: 20px; padding: 24px; border-radius: 12px;
-      background: #fdfdfd; border: 2px solid #0055a5; box-shadow: 0 4px 14px rgba(0,0,0,0.1);
-    }
-    .final-card h2 {
-      margin-top: 0; font-size: 22px; color: #0055a5;
-      display: flex; align-items: center; gap: 8px;
-    }
-    .prompt-output {
-      margin-top: 12px; padding: 14px; border-radius: 8px;
-      background:#eef6ff; border:1px solid #cbd5e1; font-size: 16px; font-weight: 600; color: #002855;
-      white-space: pre-wrap;
-    }
+    .final-card { margin-top: 20px; padding: 24px; border-radius: 12px; background: #fdfdfd; border: 2px solid #0055a5; box-shadow: 0 4px 14px rgba(0,0,0,0.1); }
+    .final-card h2 { margin-top: 0; font-size: 22px; color: #0055a5; display: flex; align-items: center; gap: 8px; }
+    .prompt-output { margin-top: 12px; padding: 14px; border-radius: 8px; background:#eef6ff; border:1px solid #cbd5e1; font-size: 16px; font-weight: 600; color: #002855; white-space: pre-wrap; }
     .instructions { margin-top:10px; font-size: 14px; color: #334155; }
-    .explanation {
-      margin-top:14px; background:#f9fafb; border-left:4px solid #0055a5;
-      padding:12px; border-radius:8px; color:#334155; font-size:14px;
-    }
-
+    .explanation { margin-top:14px; background:#f9fafb; border-left:4px solid #0055a5; padding:12px; border-radius:8px; color:#334155; font-size:14px; }
     footer { text-align:center; color:#667; font-size: 13px; margin-top: 18px; }
   </style>
 </head>
 <body>
   <!-- Sidebar -->
   <aside class="sidebar">
-    <div class="brand">
-      <img src="{{ url_for('static', filename='images/tva_logo.png') }}" alt="TVA logo" />
-    </div>
+    <div class="brand"><img src="{{ url_for('static', filename='images/tva_logo.png') }}" alt="TVA logo" /></div>
     <div class="title">SQN Copilot Companion</div>
     <a class="nav-link" href="{{ url_for('home') }}">🏠 Home</a>
     <a class="nav-link active" href="{{ url_for('prompt_builder') }}">✏️ Prompt Builder</a>
@@ -131,9 +87,7 @@
         <label for="goal">Describe your goal</label>
         <textarea id="goal" placeholder="Example: Summarize all unread emails in my inbox"></textarea>
 
-        <div class="btn-row">
-          <button class="btn" onclick="startPromptBuilder()">Start</button>
-        </div>
+        <div class="btn-row"><button class="btn" onclick="startPromptBuilder()">Start</button></div>
       </section>
 
       <!-- Step 2 -->
@@ -156,12 +110,10 @@
           <p class="instructions">Copy this prompt and paste it into Microsoft Copilot.</p>
           <div class="explanation" id="prompt-explanation"></div>
         </div>
-
         <div class="final-card">
           <h2>✅ Manual Steps</h2>
           <ol id="manual-steps-inline"></ol>
         </div>
-
         <div class="btn-row" style="margin-top:12px;">
           <button class="btn" onclick="copyPrompt()">📋 Copy Prompt</button>
           <button class="btn secondary" onclick="resetBuilder()">Start Over</button>
@@ -172,102 +124,53 @@
   </main>
 
   <script>
-    function showThinking(show){
-      document.getElementById("thinking").style.display = show ? "block" : "none";
-    }
-
+    function showThinking(show){ document.getElementById("thinking").style.display = show ? "block" : "none"; }
     function appendMsg(role, text){
       const chat = document.getElementById("chat-box");
-      const msg = document.createElement("div");
-      msg.className = "msg " + role;
-      const bubble = document.createElement("div");
-      bubble.className = "bubble"; 
-      bubble.textContent = text;
-      msg.appendChild(bubble); 
-      chat.appendChild(msg);
-      chat.scrollTop = chat.scrollHeight;
+      const msg = document.createElement("div"); msg.className = "msg " + role;
+      const bubble = document.createElement("div"); bubble.className = "bubble"; bubble.textContent = text;
+      msg.appendChild(bubble); chat.appendChild(msg); chat.scrollTop = chat.scrollHeight;
     }
 
     async function startPromptBuilder(){
       const app = document.getElementById("app").value;
       const goal = document.getElementById("goal").value.trim();
       if(!app || !goal){ alert("Please select an app and enter your goal."); return; }
-
       showThinking(true);
-      const res = await fetch("/prompt_builder/start", {
-        method: "POST", headers: {"Content-Type":"application/json"},
-        body: JSON.stringify({ app, goal })
-      });
-      const data = await res.json(); 
-      showThinking(false);
-      document.getElementById("start-section").style.display = "none";
-
-      if (data.final_prompt){
-        showFinalPrompt(data.final_prompt, data.explanation, data.manual_steps);
-      } else if (data.question){
-        document.getElementById("question-section").style.display = "block"; 
-        appendMsg("assistant", data.question);
-      } else {
-        document.getElementById("question-section").style.display = "block"; 
-        appendMsg("assistant", "Sorry — please try again.");
-      }
+      const res = await fetch("/prompt_builder/start",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({ app, goal })});
+      const data = await res.json(); showThinking(false); document.getElementById("start-section").style.display = "none";
+      if (data.final_prompt){ showFinalPrompt(data.final_prompt, data.explanation, data.manual_steps); }
+      else if (data.question){ document.getElementById("question-section").style.display = "block"; appendMsg("assistant", data.question); }
+      else { document.getElementById("question-section").style.display = "block"; appendMsg("assistant", "Sorry — please try again."); }
     }
 
     async function sendAnswer(skip=false){
       const answerInput = document.getElementById("answer");
       const answer = skip ? "" : (answerInput.value || "").trim();
       if (!skip && !answer){ alert("Please enter an answer or click Skip."); return; }
-      if (!skip) appendMsg("user", answer); 
-      answerInput.value = "";
-
+      if (!skip) appendMsg("user", answer); answerInput.value = "";
       showThinking(true);
-      const res = await fetch("/prompt_builder/answer", {
-        method: "POST", headers: {"Content-Type":"application/json"},
-        body: JSON.stringify({ answer })
-      });
-      const data = await res.json(); 
-      showThinking(false);
-
-      if (data.final_prompt){
-        showFinalPrompt(data.final_prompt, data.explanation, data.manual_steps);
-      } else if (data.question){
-        appendMsg("assistant", data.question);
-      } else {
-        appendMsg("assistant", "Thanks — no further questions. Please try again.");
-      }
+      const res = await fetch("/prompt_builder/answer",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({ answer })});
+      const data = await res.json(); showThinking(false);
+      if (data.final_prompt){ showFinalPrompt(data.final_prompt, data.explanation, data.manual_steps); }
+      else if (data.question){ appendMsg("assistant", data.question); }
+      else { appendMsg("assistant", "Thanks — no further questions. Please try again."); }
     }
 
     function showFinalPrompt(prompt, explanation, manualSteps){
+      if (!prompt || prompt.endsWith("?")){ appendMsg("assistant", prompt); return; } // 🚨 Guard
       document.getElementById("question-section").style.display = "none";
       document.getElementById("final-section").style.display = "block";
       document.getElementById("final-prompt").textContent = prompt;
       document.getElementById("prompt-explanation").textContent = explanation || "";
-
       const stepsList = manualSteps || [];
-      const stepsHtml = stepsList.length
-        ? stepsList.map(s => `<li>${s}</li>`).join("")
-        : "<li>No manual steps available.</li>";
+      const stepsHtml = stepsList.length ? stepsList.map(s => `<li>${s}</li>`).join("") : "<li>No manual steps available.</li>";
       document.getElementById("manual-steps-inline").innerHTML = stepsHtml;
-
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
-    function copyPrompt(){
-      const text = document.getElementById("final-prompt").innerText;
-      navigator.clipboard.writeText(text).then(()=> alert("Prompt copied to clipboard!"));
-    }
-
-    function resetBuilder(){
-      if (!confirm("Start over and clear this session?")) return;
-      document.getElementById("start-section").style.display = "block";
-      document.getElementById("question-section").style.display = "none";
-      document.getElementById("final-section").style.display = "none";
-      document.getElementById("chat-box").innerHTML = "";
-      document.getElementById("app").value = "";
-      document.getElementById("goal").value = "";
-      showThinking(false); 
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }
+    function copyPrompt(){ const text = document.getElementById("final-prompt").innerText; navigator.clipboard.writeText(text).then(()=> alert("Prompt copied to clipboard!")); }
+    function resetBuilder(){ if (!confirm("Start over and clear this session?")) return; document.getElementById("start-section").style.display = "block"; document.getElementById("question-section").style.display = "none"; document.getElementById("final-section").style.display = "none"; document.getElementById("chat-box").innerHTML = ""; document.getElementById("app").value = ""; document.getElementById("goal").value = ""; showThinking(false); window.scrollTo({ top: 0, behavior: "smooth" }); }
   </script>
 </body>
 </html>
