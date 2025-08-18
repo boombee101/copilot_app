@@ -61,8 +61,9 @@ def init_routes(app):
             {"role": "system", "content": (
                 "You are a Copilot prompt engineer for TVA employees.\n"
                 "• Ask clarifications ONLY if essential.\n"
-                "• Clarifications must be imperative/neutral (no '?' characters).\n"
-                "• Clarifications should be concrete and practical (e.g., 'Specify alignment for the photo').\n"
+                "• Clarifications must be written in plain, friendly, for-dummies style.\n"
+                "• For example, instead of 'Specify alignment for the photo', say "
+                "'Do you want your photo on the left, center, or right side of the page?'.\n"
                 "• When you have enough detail, STOP asking and generate the final Copilot prompt.\n"
                 "• The final Copilot prompt must be an instruction (never a question), concise, and paste-ready."
             )},
@@ -86,6 +87,17 @@ def init_routes(app):
 
         return continue_prompt_builder(convo, "Prompt Builder")
 
+    def simplify_question(raw_question: str) -> str:
+        """Map robotic clarifications into friendlier plain-English ones."""
+        mapping = {
+            "Specify alignment for the photo": "Do you want your photo on the left, center, or right side of the page?",
+            "Provide the data range": "Which rows and columns in your spreadsheet should I use? For example, A1 to D20.",
+            "Summarize the text": "What should the summary focus on — the main ideas, action items, or key numbers?",
+            "Add a chart title": "What title should appear at the top of your chart so others know what it shows?",
+            "Choose font size for text": "What font size would you like me to use for the text, such as 12pt or 14pt?",
+        }
+        return mapping.get(raw_question.strip(), raw_question)
+
     def continue_prompt_builder(convo, goal_label):
         clarification_count = int(session.get("pb_clarifications", 0))
 
@@ -102,10 +114,10 @@ def init_routes(app):
 
         next_msg = ai_chat([
             {"role": "system", "content": (
-                "Give ONE short clarifying instruction (not a question) to gather missing detail. "
-                "Be specific, e.g., 'Specify alignment for the photo' or 'Choose font size for text'. "
-                "If the missing detail is minor or a default exists (e.g., top placement, 0.5 inch indent, 12pt font), "
-                "DO NOT ask—assume a default instead. "
+                "Give ONE short clarifying instruction in plain, beginner-friendly English. "
+                "Be clear and specific. Example: instead of 'Specify alignment for the photo', say "
+                "'Do you want your photo on the left, center, or right side of the page?'. "
+                "If the missing detail is minor or a default exists, DO NOT ask — assume the default. "
                 "Output only the clarifying instruction."
             )}
         ] + convo)
@@ -113,9 +125,12 @@ def init_routes(app):
         next_msg = next_msg.strip().rstrip("?")
         session["pb_clarifications"] = clarification_count + 1
 
-        convo.append({"role": "assistant", "content": next_msg})
+        # Rephrase robotic wording to for-dummies tone
+        friendly_msg = simplify_question(next_msg)
+
+        convo.append({"role": "assistant", "content": friendly_msg})
         session['pb_convo'] = convo
-        return jsonify({"question": next_msg, "history": convo})
+        return jsonify({"question": friendly_msg, "history": convo})
 
     def generate_final(convo, goal_label):
         final_response = ai_chat([
