@@ -18,6 +18,7 @@ def init_routes(app):
             if (request.form.get('password') or '').strip() == (APP_PASSWORD or ''):
                 session['logged_in'] = True
                 session['pb_convo'] = []
+                session['pb_clarifications'] = 0
                 return redirect(url_for('home'))
             error = "Invalid password"
         return render_template('login.html', error=error)
@@ -41,6 +42,7 @@ def init_routes(app):
         if not session.get('logged_in'):
             return redirect(url_for('login'))
         session['pb_convo'] = []
+        session['pb_clarifications'] = 0
         return render_template('prompt_builder.html')
 
     @app.route('/prompt_builder/start', methods=['POST'])
@@ -66,6 +68,7 @@ def init_routes(app):
             {"role": "user", "content": f"App: {app_name}\nGoal: {goal}"}
         ]
         session['pb_convo'] = convo
+        session['pb_clarifications'] = 0
 
         return continue_prompt_builder(convo, goal)
 
@@ -77,7 +80,6 @@ def init_routes(app):
         data = request.get_json(force=True)
         answer = (data.get("answer") or "").strip()
         convo = session.get('pb_convo', [])
-
         convo.append({"role": "user", "content": answer})
         session['pb_convo'] = convo
 
@@ -85,8 +87,11 @@ def init_routes(app):
 
     def continue_prompt_builder(convo, goal_label):
         """
-        Helper to decide: do we need another clarification, or is it time to finalize?
+        Decide: ask another clarification, or finalize.
+        We allow at most 2 clarification turns; then finalize using sensible defaults.
         """
+        clarification_count = int(session.get("pb_clarifications", 0))
+
         enough = ai_chat([
             {"role": "system", "content": (
                 "Based on the conversation, decide if enough detail exists to create a strong Copilot prompt. "
@@ -94,25 +99,26 @@ def init_routes(app):
             )}
         ] + convo)
 
-        # ✅ Loosened check: catch YES even with punctuation or extra words
-        if "YES" in enough.upper():
+        # ✅ Loosened check + clarification cap
+        if "YES" in enough.upper() or clarification_count >= 2:
+            session["pb_clarifications"] = 0
             return generate_final(convo, goal_label)
 
-        # Otherwise, generate the next clarifying instruction
+        # Otherwise, generate ONE short clarifying instruction.
         next_msg = ai_chat([
             {"role": "system", "content": (
                 "Give ONE short clarifying instruction (not a question) to gather missing detail. "
-                "No extra text, no questions, only that one instruction."
+                "If the missing detail is minor or a reasonable default exists (e.g., placement at top, "
+                "indent 0.5 inches, font size 12 pt), DO NOT ask—assume a default instead. "
+                "No extra text, no questions, only that single imperative instruction."
             )}
         ] + convo)
 
-        next_msg = next_msg.strip()
-        if next_msg.endswith("?"):
-            next_msg = next_msg.rstrip("?").strip()
+        next_msg = next_msg.strip().rstrip("?")
+        session["pb_clarifications"] = clarification_count + 1
 
         convo.append({"role": "assistant", "content": next_msg})
         session['pb_convo'] = convo
-
         return jsonify({"question": next_msg, "history": convo})
 
     def generate_final(convo, goal_label):
@@ -126,8 +132,9 @@ def init_routes(app):
                 "   MANUAL STEPS:\n"
                 "2. PROMPT must be one single paste-ready Copilot instruction (not a question).\n"
                 "3. EXPLANATION must be 2–3 sentences.\n"
-                "4. MANUAL STEPS must be a clean numbered list (1., 2., 3.) written in beginner-friendly 'for-dummies' style.\n"
-                "5. Do not include anything outside these three sections.\n"
+                "4. MANUAL STEPS must be a clean numbered list (1., 2., 3.) in beginner-friendly 'for-dummies' style.\n"
+                "5. If minor details were not provided, assume sensible defaults. Do not ask further questions.\n"
+                "6. Output nothing outside these three sections."
             )}
         ] + convo)
 
@@ -143,14 +150,14 @@ def init_routes(app):
             prompt_text = prompt_text.replace("PROMPT:", "").strip()
             explanation = explanation.strip()
 
-            # ✅ Normalize manual steps into a clean list
-            raw_steps = [s.strip() for s in steps_text.split("\n") if s.strip()]
+            # ✅ Normalize manual steps: strip numbers/bullets and blanks
+            raw_lines = [s.strip() for s in steps_text.split("\n") if s.strip()]
             manual_steps = []
-            for s in raw_steps:
-                s = s.lstrip("1234567890).•- ").strip()
-                if s:
-                    manual_steps.append(s)
+            for line in raw_lines:
+                # remove leading numbering or bullets like "1. ", "1) ", "- ", "• "
+                manual_steps.append(line.lstrip("1234567890).•- ").strip())
         else:
+            # Fallback: treat entire output as the prompt (rare)
             prompt_text = final_response.strip()
 
         if prompt_text.endswith("?"):
