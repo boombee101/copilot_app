@@ -172,14 +172,19 @@
   </main>
 
   <script>
-    function showThinking(show){ document.getElementById("thinking").style.display = show ? "block" : "none"; }
+    function showThinking(show){
+      document.getElementById("thinking").style.display = show ? "block" : "none";
+    }
+
     function appendMsg(role, text){
       const chat = document.getElementById("chat-box");
       const msg = document.createElement("div");
       msg.className = "msg " + role;
       const bubble = document.createElement("div");
-      bubble.className = "bubble"; bubble.textContent = text;
-      msg.appendChild(bubble); chat.appendChild(msg);
+      bubble.className = "bubble"; 
+      bubble.textContent = text;
+      msg.appendChild(bubble); 
+      chat.appendChild(msg);
       chat.scrollTop = chat.scrollHeight;
     }
 
@@ -193,15 +198,18 @@
         method: "POST", headers: {"Content-Type":"application/json"},
         body: JSON.stringify({ app, goal })
       });
-      const data = await res.json(); showThinking(false);
+      const data = await res.json(); 
+      showThinking(false);
       document.getElementById("start-section").style.display = "none";
 
       if (data.final_prompt){
         showFinalPrompt(data.final_prompt, data.explanation, data.manual_steps);
       } else if (data.question){
-        document.getElementById("question-section").style.display = "block"; appendMsg("assistant", data.question);
+        document.getElementById("question-section").style.display = "block"; 
+        appendMsg("assistant", data.question);
       } else {
-        document.getElementById("question-section").style.display = "block"; appendMsg("assistant", "Sorry — please try again.");
+        document.getElementById("question-section").style.display = "block"; 
+        appendMsg("assistant", "Sorry — please try again.");
       }
     }
 
@@ -209,14 +217,16 @@
       const answerInput = document.getElementById("answer");
       const answer = skip ? "" : (answerInput.value || "").trim();
       if (!skip && !answer){ alert("Please enter an answer or click Skip."); return; }
-      if (!skip) appendMsg("user", answer); answerInput.value = "";
+      if (!skip) appendMsg("user", answer); 
+      answerInput.value = "";
 
       showThinking(true);
       const res = await fetch("/prompt_builder/answer", {
         method: "POST", headers: {"Content-Type":"application/json"},
         body: JSON.stringify({ answer })
       });
-      const data = await res.json(); showThinking(false);
+      const data = await res.json(); 
+      showThinking(false);
 
       if (data.final_prompt){
         showFinalPrompt(data.final_prompt, data.explanation, data.manual_steps);
@@ -255,7 +265,8 @@
       document.getElementById("chat-box").innerHTML = "";
       document.getElementById("app").value = "";
       document.getElementById("goal").value = "";
-      showThinking(false); window.scrollTo({ top: 0, behavior: "smooth" });
+      showThinking(false); 
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
   </script>
 </body>

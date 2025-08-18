@@ -62,6 +62,7 @@ def init_routes(app):
                 "You are a Copilot prompt engineer for TVA employees.\n"
                 "• Ask clarifications ONLY if essential.\n"
                 "• Clarifications must be imperative/neutral (no '?' characters).\n"
+                "• Clarifications should be concrete and practical (e.g., 'Specify alignment for the photo').\n"
                 "• When you have enough detail, STOP asking and generate the final Copilot prompt.\n"
                 "• The final Copilot prompt must be an instruction (never a question), concise, and paste-ready."
             )},
@@ -86,10 +87,6 @@ def init_routes(app):
         return continue_prompt_builder(convo, "Prompt Builder")
 
     def continue_prompt_builder(convo, goal_label):
-        """
-        Decide: ask another clarification, or finalize.
-        We allow at most 2 clarification turns; then finalize using sensible defaults.
-        """
         clarification_count = int(session.get("pb_clarifications", 0))
 
         enough = ai_chat([
@@ -99,18 +96,17 @@ def init_routes(app):
             )}
         ] + convo)
 
-        # ✅ Loosened check + clarification cap
         if "YES" in enough.upper() or clarification_count >= 2:
             session["pb_clarifications"] = 0
             return generate_final(convo, goal_label)
 
-        # Otherwise, generate ONE short clarifying instruction.
         next_msg = ai_chat([
             {"role": "system", "content": (
                 "Give ONE short clarifying instruction (not a question) to gather missing detail. "
-                "If the missing detail is minor or a reasonable default exists (e.g., placement at top, "
-                "indent 0.5 inches, font size 12 pt), DO NOT ask—assume a default instead. "
-                "No extra text, no questions, only that single imperative instruction."
+                "Be specific, e.g., 'Specify alignment for the photo' or 'Choose font size for text'. "
+                "If the missing detail is minor or a default exists (e.g., top placement, 0.5 inch indent, 12pt font), "
+                "DO NOT ask—assume a default instead. "
+                "Output only the clarifying instruction."
             )}
         ] + convo)
 
@@ -150,14 +146,11 @@ def init_routes(app):
             prompt_text = prompt_text.replace("PROMPT:", "").strip()
             explanation = explanation.strip()
 
-            # ✅ Normalize manual steps: strip numbers/bullets and blanks
             raw_lines = [s.strip() for s in steps_text.split("\n") if s.strip()]
             manual_steps = []
             for line in raw_lines:
-                # remove leading numbering or bullets like "1. ", "1) ", "- ", "• "
                 manual_steps.append(line.lstrip("1234567890).•- ").strip())
         else:
-            # Fallback: treat entire output as the prompt (rare)
             prompt_text = final_response.strip()
 
         if prompt_text.endswith("?"):
