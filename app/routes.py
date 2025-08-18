@@ -1,5 +1,6 @@
+# app/routes.py
 from flask import render_template, request, redirect, session, url_for, jsonify
-import os, csv
+import os
 from app.helpers import ai_chat, get_data, log_prompt_to_csv
 
 # Load APP_PASSWORD from environment
@@ -17,6 +18,7 @@ def init_routes(app):
         if request.method == 'POST':
             if (request.form.get('password') or '').strip() == (APP_PASSWORD or ''):
                 session['logged_in'] = True
+                # reset conversation state for prompt builder
                 session['pb_convo'] = []
                 session['pb_clarifications'] = 0
                 return redirect(url_for('home'))
@@ -37,174 +39,158 @@ def init_routes(app):
     # =========================
     # Prompt Builder
     # =========================
-    @app.route('/prompt_builder', methods=['GET'])
+    @app.route('/prompt_builder')
     def prompt_builder():
         if not session.get('logged_in'):
             return redirect(url_for('login'))
-        session['pb_convo'] = []
-        session['pb_clarifications'] = 0
         return render_template('prompt_builder.html')
 
-    @app.route('/prompt_builder/start', methods=['POST'])
+    @app.route('/pb_start', methods=['POST'])
     def pb_start():
+        """Start a new prompt builder session."""
         if not session.get('logged_in'):
             return jsonify({"error": "Not logged in"}), 403
 
-        data = request.get_json(force=True)
-        app_name = (data.get("app") or "").strip()
+        data = get_data()
+        app_choice = (data.get("app") or "").strip()
         goal = (data.get("goal") or "").strip()
 
-        if not app_name or not goal:
+        if not app_choice or not goal:
             return jsonify({"error": "Missing app or goal"}), 400
+
+        # reset conversation
+        session['pb_convo'] = [
+            {"role": "system", "content": (
+                "You are an assistant that helps build perfect Microsoft Copilot prompts. "
+                "Ask smart, beginner-friendly follow-up questions in plain language (like a 'for dummies' guide). "
+                "Keep them clear and simple. Once you have enough details, ONLY output clarifications until user finalizes. "
+                "When user requests finalization, output in exactly two sections:\n\n"
+                "===COPILOT PROMPT===\n"
+                "Final high-quality Copilot prompt.\n\n"
+                "===MANUAL STEPS===\n"
+                "Step-by-step manual instructions in plain beginner style."
+            )},
+            {"role": "user", "content": f"App: {app_choice}\nGoal: {goal}"}
+        ]
+        session['pb_clarifications'] = 0
+
+        reply = ai_chat(session['pb_convo'])
+        session['pb_convo'].append({"role": "assistant", "content": reply})
+        session['pb_clarifications'] += 1
+
+        return jsonify({"reply": reply})
+
+    @app.route('/pb_reply', methods=['POST'])
+    def pb_reply():
+        """Handle user reply to a follow-up question or provide more details."""
+        if not session.get('logged_in'):
+            return jsonify({"error": "Not logged in"}), 403
+
+        data = get_data()
+        user_reply = (data.get("message") or "").strip()
+
+        if not user_reply:
+            return jsonify({"error": "Missing message"}), 400
+
+        convo = session.get('pb_convo', [])
+        convo.append({"role": "user", "content": user_reply})
+
+        reply = ai_chat(convo)
+        convo.append({"role": "assistant", "content": reply})
+
+        session['pb_convo'] = convo
+        session['pb_clarifications'] = session.get('pb_clarifications', 0) + 1
+
+        return jsonify({"reply": reply})
+
+    @app.route('/pb_finalize', methods=['POST'])
+    def pb_finalize():
+        """Generate the final Copilot prompt and manual instructions."""
+        if not session.get('logged_in'):
+            return jsonify({"error": "Not logged in"}), 403
+
+        convo = session.get('pb_convo', [])
+        convo.append({
+            "role": "user",
+            "content": (
+                "Finalize now. IMPORTANT: Provide output in exactly two sections:\n\n"
+                "===COPILOT PROMPT===\n"
+                "Only the final Copilot prompt text.\n\n"
+                "===MANUAL STEPS===\n"
+                "Only the manual step-by-step instructions in beginner style."
+            )
+        })
+
+        final = ai_chat(convo)
+        convo.append({"role": "assistant", "content": final})
+        session['pb_convo'] = convo
+
+        # Split cleanly
+        copilot_text, manual_text = "", ""
+        if "===MANUAL STEPS===" in final:
+            parts = final.split("===MANUAL STEPS===")
+            copilot_text = parts[0].replace("===COPILOT PROMPT===", "").strip()
+            manual_text = parts[1].strip()
+        else:
+            copilot_text = final.strip()
+
+        # Save to CSV log
+        try:
+            log_prompt_to_csv(copilot_text, copilot_text, manual_text)
+        except Exception as e:
+            print("⚠️ Failed to log prompt:", e)
+
+        return jsonify({
+            "copilot": copilot_text,
+            "manual": manual_text
+        })
+
+    # =========================
+    # Explain This Prompt
+    # =========================
+    @app.route('/explain_question', methods=['POST'])
+    def explain_question():
+        """Explain why AI is asking a clarifying question."""
+        if not session.get('logged_in'):
+            return jsonify({"error": "Not logged in"}), 403
+
+        data = get_data()
+        question = (data.get("question") or "").strip()
+
+        if not question:
+            return jsonify({"explanation": (
+                "This follow-up is asking for more detail. "
+                "If you're not sure, you can skip it or answer simply."
+            )})
 
         convo = [
             {"role": "system", "content": (
-                "You are a Copilot prompt engineer for TVA employees.\n"
-                "• Ask clarifications ONLY if essential.\n"
-                "• Clarifications must be written in plain, friendly, for-dummies style.\n"
-                "• When you have enough detail, STOP asking and generate the final Copilot prompt.\n"
-                "• The final Copilot prompt must be an instruction (never a question), concise, and paste-ready."
+                "You are an assistant explaining to beginners why a specific clarifying question is useful "
+                "for building a better Microsoft Copilot prompt. Keep your explanation simple and supportive."
             )},
-            {"role": "user", "content": f"App: {app_name}\nGoal: {goal}"}
+            {"role": "user", "content": f"Why is this question important? -> {question}"}
         ]
-        session['pb_convo'] = convo
-        session['pb_clarifications'] = 0
 
-        return continue_prompt_builder(convo, goal)
+        explanation = ai_chat(convo)
+        return jsonify({"explanation": explanation})
 
-    @app.route('/prompt_builder/answer', methods=['POST'])
-    def pb_answer():
+    # =========================
+    # Help Desk / Ask Help Page
+    # =========================
+    @app.route('/ask_help')
+    def ask_help():
         if not session.get('logged_in'):
-            return jsonify({"error": "Not logged in"}), 403
-
-        data = request.get_json(force=True)
-        answer = (data.get("answer") or "").strip()
-        convo = session.get('pb_convo', [])
-        convo.append({"role": "user", "content": answer})
-        session['pb_convo'] = convo
-
-        return continue_prompt_builder(convo, "Prompt Builder")
-
-    def simplify_question(raw_question: str) -> str:
-        mapping = {
-            "Specify alignment for the photo": "Do you want your photo on the left, center, or right side of the page?",
-            "Provide the data range": "Which rows and columns in your spreadsheet should I use? For example, A1 to D20.",
-            "Summarize the text": "What should the summary focus on — the main ideas, action items, or key numbers?",
-            "Add a chart title": "What title should appear at the top of your chart so others know what it shows?",
-            "Choose font size for text": "What font size would you like me to use for the text, such as 12pt or 14pt?",
-        }
-        return mapping.get(raw_question.strip(), raw_question)
-
-    def continue_prompt_builder(convo, goal_label):
-        clarification_count = int(session.get("pb_clarifications", 0))
-
-        enough = ai_chat([
-            {"role": "system", "content": (
-                "Based on the conversation, decide if enough detail exists to create a strong Copilot prompt. "
-                "Answer EXACTLY 'YES' or 'NO'. Nothing else."
-            )}
-        ] + convo)
-
-        if "YES" in enough.upper() or clarification_count >= 2:
-            session["pb_clarifications"] = 0
-            return generate_final(convo, goal_label)
-
-        next_msg = ai_chat([
-            {"role": "system", "content": (
-                "Give ONE short clarifying instruction in plain, beginner-friendly English. "
-                "Be clear and specific. If the missing detail is minor or a default exists, DO NOT ask — assume the default. "
-                "Output only the clarifying instruction."
-            )}
-        ] + convo)
-
-        next_msg = next_msg.strip()
-        session["pb_clarifications"] = clarification_count + 1
-
-        friendly_msg = simplify_question(next_msg)
-
-        convo.append({"role": "assistant", "content": friendly_msg})
-        session['pb_convo'] = convo
-        return jsonify({"question": friendly_msg, "history": convo})
-
-    def generate_final(convo, goal_label):
-        final_response = ai_chat([
-            {"role": "system", "content": (
-                "You are an expert Microsoft Copilot prompt writer and trainer for TVA employees.\n"
-                "IMPORTANT RULES:\n"
-                "1. Always output EXACTLY three sections, with these headers in ALL CAPS:\n"
-                "   PROMPT:\n"
-                "   EXPLANATION:\n"
-                "   MANUAL STEPS:\n"
-                "2. PROMPT must be one single paste-ready Copilot instruction (not a question).\n"
-                "3. EXPLANATION must be 2–3 sentences.\n"
-                "4. MANUAL STEPS must be a clean numbered list (1., 2., 3.) in beginner-friendly 'for-dummies' style.\n"
-                "5. If minor details were not provided, assume sensible defaults. Do not ask further questions.\n"
-                "6. Output nothing outside these three sections."
-            )}
-        ] + convo)
-
-        prompt_text, explanation, manual_steps = "", "", []
-
-        if "MANUAL STEPS:" in final_response:
-            parts = final_response.split("MANUAL STEPS:")
-            before_steps, steps_text = parts[0], parts[1]
-            if "EXPLANATION:" in before_steps:
-                prompt_text, explanation = before_steps.split("EXPLANATION:", 1)
-            else:
-                prompt_text, explanation = before_steps, ""
-            prompt_text = prompt_text.replace("PROMPT:", "").strip()
-            explanation = explanation.strip()
-
-            raw_lines = [s.strip() for s in steps_text.split("\n") if s.strip()]
-            manual_steps = [line.lstrip("1234567890).•- ").strip() for line in raw_lines]
-        else:
-            prompt_text = final_response.strip()
-
-        # 🚨 Guard: if AI accidentally gives a question, don’t treat as final
-        if prompt_text.endswith("?"):
-            return jsonify({"question": prompt_text, "history": convo})
-
-        try:
-            log_prompt_to_csv(goal_label, prompt_text, explanation)
-        except Exception:
-            pass
-
-        return jsonify({
-            "final_prompt": prompt_text,
-            "explanation": explanation,
-            "manual_steps": manual_steps,
-            "history": convo
-        })
+            return redirect(url_for('login'))
+        return render_template('ask_help.html')
 
     # =========================
     # Troubleshooter
     # =========================
-    @app.route('/troubleshooter', methods=['GET', 'POST'])
+    @app.route('/troubleshooter')
     def troubleshooter():
         if not session.get('logged_in'):
-            if request.method == 'GET':
-                return redirect(url_for('login'))
-            return jsonify({"error": "Not logged in"}), 403
-
-        if request.method == 'GET':
-            return render_template('troubleshooter.html')
-
-        data = get_data()
-        problem = (data.get('issue') or data.get('problem') or '').strip()
-        if not problem:
-            return render_template('troubleshooter.html', solution="<p style='color:red;'>Please describe the issue.</p>")
-
-        solution = ai_chat([
-            {"role": "system", "content":
-             "You are a friendly Microsoft 365 troubleshooting assistant for TVA employees. "
-             "Give a brief diagnosis, then clear numbered steps. "
-             "If it's likely a network or account issue, advise contacting TVA IT."},
-            {"role": "user", "content": problem}
-        ])
-
-        if request.is_json:
-            return jsonify({"solution": solution})
-        return render_template('troubleshooter.html', solution=solution)
+            return redirect(url_for('login'))
+        return render_template('troubleshooter.html')
 
     # =========================
     # Teach Me
@@ -212,101 +198,20 @@ def init_routes(app):
     @app.route('/teach_me', methods=['GET', 'POST'])
     def teach_me():
         if not session.get('logged_in'):
-            if request.method == 'GET':
-                return redirect(url_for('login'))
-            return jsonify({"error": "Not logged in"}), 403
+            return redirect(url_for('login'))
 
-        if request.method == 'GET':
-            return render_template('teach_me.html')
+        lesson = None
+        if request.method == 'POST':
+            app_choice = (request.form.get("app") or "").strip()
+            if app_choice:
+                convo = [
+                    {"role": "system", "content": (
+                        "You are a Microsoft 365 tutor. "
+                        "When asked about an app, explain it step-by-step in a simple 'for dummies' style. "
+                        "Keep it friendly, beginner-focused, and clear."
+                    )},
+                    {"role": "user", "content": f"Teach me the basics of {app_choice}. Explain step by step."}
+                ]
+                lesson = ai_chat(convo)
 
-        data = get_data()
-        app_name = data.get('app', '').strip()
-        topic = data.get('topic', '').strip()
-
-        if not app_name:
-            msg = "<p style='color:red;'>Please choose an app.</p>"
-            return render_template('teach_me.html', lesson=msg)
-
-        if not topic:
-            prompt = (f"Create a short beginner-friendly starter lesson for Microsoft {app_name}. "
-                      "Explain what it’s used for at work, then give 5–8 numbered steps for a basic, useful task.")
-        else:
-            prompt = (f"Teach this topic in Microsoft {app_name} with clear numbered steps, "
-                      f"beginner-friendly language, and short explanations: {topic}")
-
-        lesson = ai_chat([
-            {"role": "system", "content":
-             "You are a Microsoft 365 trainer for TVA employees. "
-             "Write in very clear, simple, friendly language."},
-            {"role": "user", "content": prompt}
-        ])
-
-        if request.is_json:
-            return jsonify({"lesson": lesson})
         return render_template('teach_me.html', lesson=lesson)
-
-    # =========================
-    # Help Page
-    # =========================
-    @app.route('/help', methods=['GET'])
-    def help_page():
-        if not session.get('logged_in'):
-            return redirect(url_for('login'))
-        return render_template('help.html')
-
-    # =========================
-    # Ask for Help
-    # =========================
-    @app.route('/ask_help', methods=['GET', 'POST'])
-    def ask_help():
-        if not session.get('logged_in'):
-            if request.method == 'GET':
-                return redirect(url_for('login'))
-            return jsonify({"error": "Not logged in"}), 403
-
-        if request.method == 'GET':
-            return render_template('ask_help.html', app_selected='', problem='', result_html='')
-
-        data = get_data()
-        app_selected = data.get('app', '').strip()
-        problem = data.get('problem', '').strip()
-
-        if not app_selected or not problem:
-            return render_template(
-                'ask_help.html',
-                app_selected=app_selected,
-                problem=problem,
-                result_html="<p style='color:red;'>Please select an app and describe the problem.</p>"
-            )
-
-        answer = ai_chat([
-            {"role": "system", "content":
-             "You are a Microsoft 365 help assistant for TVA employees. "
-             "First provide a short diagnosis, then clear numbered steps in beginner-friendly language."},
-            {"role": "user", "content": f"App: {app_selected}\nProblem: {problem}"}
-        ])
-
-        if request.is_json:
-            return jsonify({"answer": answer})
-        return render_template('ask_help.html',
-                               app_selected=app_selected,
-                               problem=problem,
-                               result_html=answer)
-
-    @app.route('/ask_gpt', methods=['GET', 'POST'])
-    def ask_gpt_redirect():
-        return redirect(url_for('ask_help'))
-
-    # =========================
-    # Prompt History
-    # =========================
-    @app.route('/prompt_history')
-    def prompt_history():
-        if not session.get('logged_in'):
-            return redirect(url_for('login'))
-        csv_path = os.path.join('prompt_log', 'prompts.csv')
-        history = []
-        if os.path.exists(csv_path):
-            with open(csv_path, newline='', encoding='utf-8') as f:
-                history = list(csv.reader(f))
-        return render_template('prompt_history.html', history=history)
