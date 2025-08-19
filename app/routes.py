@@ -220,14 +220,14 @@ def init_routes(app):
 
         app_selected = ""
         problem = ""
-        result = None
+        steps = None
 
         if request.method == 'POST':
             app_selected = (request.form.get("app") or "").strip()
             problem = (request.form.get("problem") or "").strip()
 
             if not app_selected or not problem:
-                result = "⚠️ Please select an app and describe the problem."
+                steps = ["⚠️ Please select an app and describe the problem."]
             else:
                 convo = [
                     {"role": "system", "content": (
@@ -238,13 +238,16 @@ def init_routes(app):
                     )},
                     {"role": "user", "content": f"App: {app_selected}\nProblem: {problem}"}
                 ]
-                result = ai_chat(convo)
+                response = ai_chat(convo)
+
+                # Split into steps line-by-line
+                steps = [s.strip() for s in response.split("\n") if s.strip()]
 
         return render_template(
             'ask_help.html',
             app_selected=app_selected,
             problem=problem,
-            result=result
+            steps=steps
         )
 
     @app.route('/troubleshooter')
