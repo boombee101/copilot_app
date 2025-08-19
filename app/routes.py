@@ -183,7 +183,7 @@ def init_routes(app):
 
     @app.route('/explain_question', methods=['POST'])
     def explain_question():
-        """Explain why AI asked a clarifying question (kept for the clarifications UI)."""
+        """Explain why AI asked a clarifying question."""
         if not session.get('logged_in'):
             return jsonify({"error": "Not logged in"}), 403
 
@@ -227,21 +227,34 @@ def init_routes(app):
             problem = (request.form.get("problem") or "").strip()
 
             if not app_selected or not problem:
-                steps = ["⚠️ Please select an app and describe the problem."]
+                steps = ["Please select an app and describe the problem."]
             else:
                 convo = [
                     {"role": "system", "content": (
                         "You are a helpful Microsoft 365 troubleshooter. "
                         "Given an app name and a problem, respond in plain language with clear, numbered steps. "
                         "Keep it beginner-friendly, like a 'for dummies' guide. "
+                        "Avoid markdown symbols like *, **, or colons. "
+                        "Format steps as 'Step Title - explanation'. "
                         "If the problem looks network-related, advise the user to contact TVA IT support."
                     )},
                     {"role": "user", "content": f"App: {app_selected}\nProblem: {problem}"}
                 ]
                 response = ai_chat(convo)
 
-                # Split into steps line-by-line
-                steps = [s.strip() for s in response.split("\n") if s.strip()]
+                # Clean and format steps
+                cleaned = []
+                for line in response.split("\n"):
+                    line = line.strip()
+                    if not line:
+                        continue
+                    line = line.replace("*", "")
+                    line = line.lstrip("0123456789).:- ").strip()
+                    if line.lower().startswith("no worries"):
+                        continue
+                    cleaned.append(line)
+
+                steps = cleaned
 
         return render_template(
             'ask_help.html',

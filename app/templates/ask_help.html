@@ -25,7 +25,7 @@
       box-shadow: 0 2px 8px rgba(227,193,72,0.08);
     }
 
-    /* Layout container */
+    /* Layout */
     .container {
       display: flex;
       min-height: 100vh;
@@ -37,7 +37,6 @@
       background: linear-gradient(180deg, #002b5c, #004080);
       color: white;
       padding: 20px;
-      box-sizing: border-box;
       display: flex;
       flex-direction: column;
     }
@@ -59,7 +58,7 @@
       padding-left: 8px;
     }
 
-    /* Main content */
+    /* Main */
     .main {
       flex: 1;
       padding: 30px 40px;
@@ -109,7 +108,7 @@
       background: #002d5d;
     }
 
-    /* Result Panel */
+    /* Panel */
     .panel {
       background: #f8fafc;
       border: 1px solid #dce6f5;
@@ -134,10 +133,6 @@
       padding: 12px 12px 12px 48px;
       position: relative;
       line-height: 1.5;
-      transition: transform 0.15s ease;
-    }
-    .step:hover {
-      transform: translateX(4px);
     }
     .step-num {
       position: absolute;
@@ -146,14 +141,19 @@
       width: 28px;
       height: 28px;
       border-radius: 50%;
-      display: inline-flex;
+      display: flex;
       align-items: center;
       justify-content: center;
       font-weight: 700;
       background: #004785;
       color: #fff;
       font-size: 14px;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+    }
+    .step-text {
+      font-size: 15px;
+      color: #002b5c;
+      font-weight: 500;
+      line-height: 1.6;
     }
 
     /* Footer */
@@ -177,7 +177,7 @@
       {% include "_nav.html" %}
     </div>
 
-    <!-- Main content -->
+    <!-- Main -->
     <div class="main">
       <h1>Ask for Help</h1>
       <p>Pick a Microsoft 365 app and describe the issue. You’ll get a short diagnosis and clear, step-by-step instructions to try.</p>
@@ -205,7 +205,7 @@
             {% for step in steps %}
               <div class="step">
                 <div class="step-num">{{ loop.index }}</div>
-                {{ step|safe }}
+                <div class="step-text">{{ step }}</div>
               </div>
             {% endfor %}
           </div>
