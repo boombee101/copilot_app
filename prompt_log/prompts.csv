@@ -75,3 +75,85 @@ Q: Do you want to extract all the text from the PDF file, or just certain parts 
 A: extract text
 Q: Once you've extracted the text, what would you like to do with it? Would you like to save it in a new document, or perhaps insert it into an existing one?
 A: word document","""I have a PDF file saved on my local hard drive and I need to extract all the text from it. Once the text is extracted, I want to insert it into a new Word document. Can you guide me on how to do this in SharePoint?"""
+i need to add a photo to the top of document,Insert a photo at the top of the document in Microsoft Word.,This instruction is for adding a photo at the beginning or top section of your Word document. It involves accessing the menu options to insert the image into the document space. Make sure your photo is saved on your computer before starting.
+Prompt Builder Task,"### Final Copilot Prompt
+
+**App: Word**
+
+1. Insert a photo at the top of every page by placing it in the header section.
+2. Add page numbers to my document in the bottom right corner.
+
+---
+
+### Step-by-Step Manual Instructions
+
+**Part 1: Insert a Photo in the Header**
+
+1. **Open your Word document.**
+2. **Go to the ""Insert"" tab** at the top of the screen.
+3. Click on **""Header""** in the Header & Footer group, and choose **""Edit Header.""**
+4. In the header area, go back to the **""Insert"" tab**.
+5. Click on **""Pictures.""** Select where your picture is stored (like ""This Device""), then choose your photo and click **""Insert.""**
+6. Your photo will now be in the header and appear on every page. You can resize or move it as needed.
+7. Click on **""Close Header and Footer""** near the top-right corner when you’re done.
+
+**Part 2: Add Page Numbers**
+
+1. Stay in your document and go back to the **""Insert"" tab.**
+2. Click on **""Page Number""** in the Header & Footer group.
+3. Hover over **""Bottom of Page""** and select **""Plain Number 3""** to place the page numbers at the bottom right corner.
+4. Your pages will now have numbers at the bottom right corner.
+
+Now your Word document should have a photo at the top of each page and page numbers at the bottom right!",(manual included)
+"Create a Word document where a photo is automatically resized to fit and is centered at the top of every page. Additionally, add page numbers that are centered at the bottom of every page.","Create a Word document where a photo is automatically resized to fit and is centered at the top of every page. Additionally, add page numbers that are centered at the bottom of every page.","1. Open Microsoft Word and create a new document.
+2. Go to the ""Insert"" tab in the toolbar.
+3. Click on ""Header"" and choose a blank header to activate the header space.
+4. Click on ""Picture"" from the ""Insert"" tab and select a photo from your files.
+5. Once the photo is inserted, it may appear large; Word will automatically resize it to fit the page width.
+6. Click on the picture to select it and use ""Picture Tools"" to center it horizontally in the header.
+7. Go to the ""Header & Footer"" tab and click ""Close Header and Footer"" to return to the main document view.
+8. Return to the ""Insert"" tab and select ""Page Number.""
+9. Choose ""Bottom of Page"" and select the center option under ""Plain Number.""
+10. The photo will appear on top and page numbers at the bottom throughout the document."
+"In Microsoft Word, insert a JPG image at the top of the document and add page numbers to every page in the default style.","In Microsoft Word, insert a JPG image at the top of the document and add page numbers to every page in the default style.","1. Open your Word document.
+2. Click on ""Insert"" in the top menu.
+3. Select ""Pictures"" from the dropdown and choose ""This Device.""
+4. Navigate to the location of your JPG image, select it, and click ""Insert."" The picture will appear at the current cursor position; you can drag it to the top.
+5. To add page numbers, click ""Insert"" again from the top menu.
+6. Choose ""Page Number,"" then pick the location for the numbers (like ""Top of Page"" or ""Bottom of Page"").
+7. Select the style you prefer from the list (the default style is usually selected automatically).
+8. The page numbers will appear on all pages of your document."
+"Perfect! We have all the information we need now. Let's finalize the Copilot prompt for your task.
+
+
+Create a Power Automate shortcut to search for emails containing the word ""meeting"" in the content of all emails received today in the Inbox using Outlook on the desktop.","Perfect! We have all the information we need now. Let's finalize the Copilot prompt for your task.
+
+
+Create a Power Automate shortcut to search for emails containing the word ""meeting"" in the content of all emails received today in the Inbox using Outlook on the desktop.","1. Open Outlook on your desktop.
+2. Go to your Inbox folder.
+3. In the search bar at the top, type: `meeting received:today`
+4. Press Enter. This will display all emails received today with the word ""meeting"" in the content.
+5. Review the search results to find the emails you need."
+"Search for emails containing the word ""meeting"" in all folders including sent items, with only the exact word ""meeting"" in the subject or body of emails received today.","Search for emails containing the word ""meeting"" in all folders including sent items, with only the exact word ""meeting"" in the subject or body of emails received today.","1. Open Microsoft Outlook on your computer or navigate to the Outlook web app.
+2. In the search bar at the top, click to focus your cursor inside.
+3. Type in: `meeting received:today`.
+4. Use the search filters to ensure you are searching across all folders, not just the inbox.
+5. Press Enter on your keyboard to perform the search.
+6. Review the results to find all emails containing the word ""meeting"" received today."
+"Search for emails containing the word ""meeting"" in all my folders including sent items, with today's date. Include only results where ""meeting"" appears in the subject or body of the email.","Search for emails containing the word ""meeting"" in all my folders including sent items, with today's date. Include only results where ""meeting"" appears in the subject or body of the email.","1. Open Outlook on your computer or device.
+2. Go to the Search bar usually located at the top of your email list or in the top menu.
+3. Type `""meeting"" received:today` to find emails with the word ""meeting"" from today.
+4. Press Enter to execute the search.
+5. Review the search results which will include emails from all folders with the word ""meeting"" in the subject or body from today's date."
+"Search for the word ""meeting"" in all my emails from today across all folders in Outlook.","Search for the word ""meeting"" in all my emails from today across all folders in Outlook.","1. Open Outlook on your computer.
+2. In the search bar at the top of the email list, type the word ""meeting.""
+3. Click on the dropdown arrow in the search bar to expand the search options.
+4. Set the date filter to ""Today"" to limit your search to emails received or sent on the current day.
+5. Make sure ""All Mailboxes"" or ""All Outlook Items"" is selected to search across all folders.
+6. Press Enter or click on the search icon to execute the search.
+7. Review the list of emails displayed that contain the word ""meeting"" from today."
+I am using Microsoft Teams on a desktop and I am part of a specific group chat. I want to know how to see all the members of this group chat directly from the chat window. Please provide detailed instructions on how to achieve this.,I am using Microsoft Teams on a desktop and I am part of a specific group chat. I want to know how to see all the members of this group chat directly from the chat window. Please provide detailed instructions on how to achieve this.,"1. Open Microsoft Teams on your desktop and navigate to the group chat you are interested in.
+2. Once you have the group chat open, look towards the top-right corner of the chat window.
+3. You will see the group members' profile pictures or initials. Click on the people icon or participants' avatar here.
+4. A ""Participants"" pane will appear, showing a list of all current members in the group chat.
+5. You can scroll through this list to view all the members."
