@@ -4,72 +4,74 @@
   <meta charset="UTF-8" />
   <title>Ask for Help - SQN Copilot Companion</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <style>
     body {
       margin: 0;
       font-family: "Segoe UI", Tahoma, Arial, sans-serif;
-      background-color: #f4f8fb;
+      background-color: #f4f7fb;
       color: #003366;
-    }
-
-    /* Disclaimer */
-    .disclaimer {
-      background: linear-gradient(90deg, #fffbe5 85%, #f6f7f8 100%);
-      color: #755000;
-      border: 1.5px solid #f5df95;
-      font-weight: 500;
-      text-align: center;
-      padding: 12px 10px;
-      font-size: 15.5px;
-      border-radius: 0 0 10px 10px;
-      box-shadow: 0 2px 8px rgba(227,193,72,0.08);
-    }
-
-    /* Layout */
-    .container {
       display: flex;
-      min-height: 100vh;
     }
 
-    /* Sidebar */
+    /* Sidebar (copied from home.html) */
     .sidebar {
       width: 240px;
       background: linear-gradient(180deg, #002b5c, #004080);
       color: white;
       padding: 20px;
+      box-sizing: border-box;
       display: flex;
       flex-direction: column;
+      align-items: center;
+    }
+    .sidebar img {
+      width: 120px;
+      margin-bottom: 20px;
     }
     .sidebar h2 {
       font-size: 20px;
-      margin-bottom: 20px;
       text-align: center;
+      margin-bottom: 20px;
     }
-    .sidebar a {
+    .nav-links {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      width: 100%;
+    }
+    .nav-links a {
       color: white;
       text-decoration: none;
-      padding: 10px 0;
-      display: block;
-      transition: background 0.2s;
+      padding: 10px 14px;
+      border-radius: 50px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: background 0.3s, padding-left 0.2s;
     }
-    .sidebar a:hover {
-      background: rgba(255, 255, 255, 0.15);
-      border-radius: 6px;
-      padding-left: 8px;
+    .nav-links a:hover {
+      background: rgba(255,255,255,0.2);
+      padding-left: 18px;
+    }
+    .nav-links a.active {
+      background: rgba(255,255,255,0.25);
+      border-left: 4px solid #ffcc00;
     }
 
     /* Main */
     .main {
       flex: 1;
-      padding: 30px 40px;
+      padding: 30px;
     }
-    .main h1 {
-      margin-top: 0;
-      font-size: 26px;
+    h1 {
+      font-size: clamp(22px, 2.2vw, 28px);
+      margin-bottom: 10px;
       color: #002855;
     }
-    .main p {
-      font-size: 15.5px;
+    .subhead {
+      font-size: 15px;
+      color: #555;
       margin-bottom: 20px;
     }
 
@@ -108,23 +110,24 @@
       background: #002d5d;
     }
 
-    /* Panel */
+    /* Steps Panel */
     .panel {
-      background: #f8fafc;
+      background: #fff;
       border: 1px solid #dce6f5;
-      border-radius: 8px;
-      padding: 16px;
-      margin-top: 24px;
-      box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.04);
+      border-radius: 10px;
+      padding: 20px;
+      margin-top: 30px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.08);
     }
     .panel h3 {
       margin-top: 0;
+      font-size: 18px;
       color: #002855;
     }
     .steps {
       display: grid;
-      gap: 12px;
-      margin-top: 12px;
+      gap: 14px;
+      margin-top: 16px;
     }
     .step {
       background: #f7fbff;
@@ -141,79 +144,90 @@
       width: 28px;
       height: 28px;
       border-radius: 50%;
-      display: flex;
+      display: inline-flex;
       align-items: center;
       justify-content: center;
       font-weight: 700;
       background: #004785;
       color: #fff;
       font-size: 14px;
-    }
-    .step-text {
-      font-size: 15px;
-      color: #002b5c;
-      font-weight: 500;
-      line-height: 1.6;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
     }
 
-    /* Footer */
-    .footer {
+    /* Disclaimer */
+    .disclaimer {
+      background: #fff7e6;
+      border-left: 6px solid #ffcc00;
+      padding: 12px;
+      font-size: 14px;
+      max-width: 900px;
+      margin: 20px auto;
+      border-radius: 6px;
+    }
+
+    footer {
+      margin-top: 30px;
       text-align: center;
-      font-size: 14.5px;
-      color: #7d91ab;
-      margin-top: 40px;
+      font-size: 12px;
+      color: #666;
     }
   </style>
 </head>
 <body>
-  <div class="disclaimer">
-    Do not input TVA-sensitive, personal, or confidential information.
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <img src="{{ url_for('static', filename='images/tva_logo.png') }}" alt="TVA Logo">
+    <h2>SQN Copilot Companion</h2>
+    <div class="nav-links">
+      <a href="{{ url_for('home') }}"><i class="fas fa-home"></i> Home</a>
+      <a href="{{ url_for('prompt_builder') }}"><i class="fas fa-pencil-alt"></i> Prompt Builder</a>
+      <a href="{{ url_for('ask_help') }}" class="active"><i class="fas fa-comments"></i> AI Help for 365 Apps</a>
+      <a href="{{ url_for('troubleshooter') }}"><i class="fas fa-tools"></i> Troubleshooter</a>
+      <a href="{{ url_for('teach_me') }}"><i class="fas fa-book-open"></i> Teach Me</a>
+      <a href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a>
+    </div>
   </div>
 
-  <div class="container">
-    <!-- Sidebar -->
-    <div class="sidebar">
-      <h2>Copilot Companion</h2>
-      {% include "_nav.html" %}
-    </div>
+  <!-- Main -->
+  <div class="main">
+    <h1>Ask for Help</h1>
+    <div class="subhead">Pick a Microsoft 365 app and describe the issue. You’ll get a short diagnosis and clear, step-by-step instructions.</div>
 
-    <!-- Main -->
-    <div class="main">
-      <h1>Ask for Help</h1>
-      <p>Pick a Microsoft 365 app and describe the issue. You’ll get a short diagnosis and clear, step-by-step instructions to try.</p>
+    <form method="POST">
+      <label for="app">Which app?</label>
+      <select id="app" name="app" required>
+        <option {{ 'selected' if app_selected=='Word' else '' }}>Word</option>
+        <option {{ 'selected' if app_selected=='Excel' else '' }}>Excel</option>
+        <option {{ 'selected' if app_selected=='Outlook' else '' }}>Outlook</option>
+        <option {{ 'selected' if app_selected=='Teams' else '' }}>Teams</option>
+        <option {{ 'selected' if app_selected=='PowerPoint' else '' }}>PowerPoint</option>
+      </select>
 
-      <form method="POST">
-        <label for="app">Which app?</label>
-        <select id="app" name="app" required>
-          <option {{ 'selected' if app_selected=='Word' else '' }}>Word</option>
-          <option {{ 'selected' if app_selected=='Excel' else '' }}>Excel</option>
-          <option {{ 'selected' if app_selected=='Outlook' else '' }}>Outlook</option>
-          <option {{ 'selected' if app_selected=='Teams' else '' }}>Teams</option>
-          <option {{ 'selected' if app_selected=='PowerPoint' else '' }}>PowerPoint</option>
-        </select>
+      <label for="problem">What’s happening?</label>
+      <textarea id="problem" name="problem" placeholder="Example: My Word document won’t save to OneDrive.">{{ problem }}</textarea>
 
-        <label for="problem">What’s happening?</label>
-        <textarea id="problem" name="problem" placeholder="Example: My Word document won’t save to OneDrive.">{{ problem }}</textarea>
+      <button class="button" type="submit">Get Steps</button>
+    </form>
 
-        <button class="button" type="submit">Get Steps</button>
-      </form>
-
-      {% if steps %}
-        <div class="panel">
-          <h3>Steps to Try</h3>
-          <div class="steps">
-            {% for step in steps %}
-              <div class="step">
-                <div class="step-num">{{ loop.index }}</div>
-                <div class="step-text">{{ step }}</div>
-              </div>
-            {% endfor %}
-          </div>
+    {% if steps %}
+      <div class="panel">
+        <h3>Steps to Try</h3>
+        <div class="steps">
+          {% for step in steps %}
+            <div class="step">
+              <div class="step-num">{{ loop.index }}</div>
+              {{ step|safe }}
+            </div>
+          {% endfor %}
         </div>
-      {% endif %}
+      </div>
+    {% endif %}
 
-      <div class="footer">SQN Copilot Companion</div>
+    <div class="disclaimer">
+      ⚠ Do not input TVA-sensitive, personal, or confidential information.
     </div>
+
+    <footer>© TVA SQN Copilot Companion</footer>
   </div>
 </body>
 </html>
