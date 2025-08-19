@@ -3,13 +3,15 @@
     <a href="{{ url_for('home') }}"
        class="sqn-nav-link {% if active_page == 'home' %}active{% endif %}">Home</a>
 
-    <!-- Fixed: Now points to help_page route -->
-    <a href="{{ url_for('help_page') }}"
-       class="sqn-nav-link {% if active_page == 'help' %}active{% endif %}">Help Desk</a>
+    <!-- Fixed: Help Desk now points to ask_help -->
+    <a href="{{ url_for('ask_help') }}"
+       class="sqn-nav-link {% if active_page == 'ask_help' %}active{% endif %}">Help Desk</a>
 
-    <!-- Ask for Help -->
+    <!-- Ask for Help (merged into Help Desk above, but leaving if you want separate link) -->
+    <!--
     <a href="{{ url_for('ask_help') }}"
        class="sqn-nav-link {% if active_page == 'ask_help' %}active{% endif %}">Ask for Help</a>
+    -->
 
     <a href="{{ url_for('prompt_builder') }}"
        class="sqn-nav-link {% if active_page == 'prompt_builder' %}active{% endif %}">Prompt Builder</a>

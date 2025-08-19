@@ -205,11 +205,47 @@ def init_routes(app):
     # =========================
     # Help / Tools Pages
     # =========================
-    @app.route('/ask_help')
-    def ask_help():
+    @app.route('/help')
+    def help():
+        """General Help page (overview + quick AI Q&A)."""
         if not session.get('logged_in'):
             return redirect(url_for('login'))
-        return render_template('ask_help.html')
+        return render_template('help.html')
+
+    @app.route('/ask_help', methods=['GET', 'POST'])
+    def ask_help():
+        """AI Troubleshooter page."""
+        if not session.get('logged_in'):
+            return redirect(url_for('login'))
+
+        app_selected = ""
+        problem = ""
+        result = None
+
+        if request.method == 'POST':
+            app_selected = (request.form.get("app") or "").strip()
+            problem = (request.form.get("problem") or "").strip()
+
+            if not app_selected or not problem:
+                result = "⚠️ Please select an app and describe the problem."
+            else:
+                convo = [
+                    {"role": "system", "content": (
+                        "You are a helpful Microsoft 365 troubleshooter. "
+                        "Given an app name and a problem, respond in plain language with clear, numbered steps. "
+                        "Keep it beginner-friendly, like a 'for dummies' guide. "
+                        "If the problem looks network-related, advise the user to contact TVA IT support."
+                    )},
+                    {"role": "user", "content": f"App: {app_selected}\nProblem: {problem}"}
+                ]
+                result = ai_chat(convo)
+
+        return render_template(
+            'ask_help.html',
+            app_selected=app_selected,
+            problem=problem,
+            result=result
+        )
 
     @app.route('/troubleshooter')
     def troubleshooter():

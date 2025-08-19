@@ -31,13 +31,10 @@
     .button:hover { background:#002d5d; }
     .panel { background:#f8fafc; border:1px solid #dce6f5; border-radius:8px; padding:16px; margin-top:16px; }
 
-    /* Card-style steps */
-    .steps { display: grid; gap: 10px; }
+    /* Step cards */
+    .steps { display: grid; gap: 12px; margin-top: 12px; }
     .step { background:#f7fbff; border:1px solid #c9d8ea; border-radius:10px; padding:12px 12px 12px 48px; position:relative; line-height:1.5; }
     .step-num { position:absolute; left:12px; top:12px; width:28px; height:28px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-weight:700; background:#004785; color:#fff; }
-    .step.warning { border-color:#ffcf8a; background:#fff8ef; }
-    .step.warning .step-num { background:#d9480f; }
-
     .footer { text-align:center; font-size:14.5px; color:#7d91ab; margin-top:32px; }
   </style>
 </head>
@@ -72,10 +69,17 @@
       <button class="button" type="submit">Get Steps</button>
     </form>
 
-    {% if result_html or result %}
+    {% if result %}
       <div class="panel">
         <h3>Steps to Try</h3>
-        <div>{{ (result_html or result)|safe }}</div>
+        <div class="steps">
+          {% for line in result.split('\n') if line.strip() %}
+            <div class="step">
+              <div class="step-num">{{ loop.index }}</div>
+              {{ line }}
+            </div>
+          {% endfor %}
+        </div>
       </div>
     {% endif %}
 
